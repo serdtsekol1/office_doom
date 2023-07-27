@@ -1,0 +1,74 @@
+{% extends 'wrapper.html' %}
+{% block body %}
+    <form action="{% url "update_gmail_messages" %}" method="post">
+        <button type="submit" class="btn btn-success">Обновить сообщения на почте</button>
+    </form>
+    <ol class="list-group list-group-numbered">
+        {% for message in gmail_messages %}
+
+
+
+            <li class="list-group-item d-flex justify-content-end align-items-center">
+                <div style="flex-basis: 50%; flex-grow: 1">
+                    <div style="font-size: 16px; font-weight: 500;" class="fw-bold"> {{ message.message_name }}</div>
+                    <div class="text-dark">{{ message.message_sender }}</div>
+                    <div class="text-dark">{{ message.message_date|date:"d.m.Y" }}</div>
+                        {% for attachment in message.attachments.all %}
+                            <div class="text-dark">{{ attachment.name }}</div>
+                        {% endfor %}
+
+                    <div class="text-dark">{{ message.message_id }}</div>
+
+                </div>
+                {#                <div style="margin-right: 70px">#}
+                {#                    {% for diadoc_invoce in matching_invoices %}#}
+                {#                        {% if diadoc_invoce.number == invoice.number %}#}
+                {#                            {% if diadoc_invoce.supplier == invoice.kontragent %}#}
+                {#                                {% if diadoc_invoce.issue_date == invoice.issue_date %}#}
+                {#                                    <button type="submit" class="btn btn-primary">Просмотреть накладную</button>#}
+                {#                                {% endif %}#}
+                {#                            {% endif %}#}
+                {#                        {% endif %}#}
+                {#                    {% endfor %}#}
+
+
+                {#                </div>#}
+                <div class="">
+                    <form action="{% url "create_documents_from_gmail_message" %}" method="post">
+                        <input hidden type="text" name="gmail_message_id" id="gmail_message_id" value="{{ message.message_id }}">
+                        <button type="submit" class="btn btn-primary">Принять Накладную</button>
+                    </form>
+                </div>
+                <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                    <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
+                </div>
+            </li>
+        {% endfor %}
+    </ol>
+    <script>
+        if (Status == "Error") {
+            $('ModalToShow').modal("show");
+        }
+
+        $(".checked_paid").on('change', (e) => {
+
+            let id = e.currentTarget.id;
+            let paid = 0;
+            if (e.currentTarget.checked) {
+                paid = 1
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/paid_update/',
+                data: {'id': id, 'paid': paid},
+                {#contentType: false,#}
+                {#processData: false,#}
+                {#async: false,#}
+                success: function (data) {
+                    console.log(data)
+                }
+            });
+        })
+    </script>
+{% endblock %}

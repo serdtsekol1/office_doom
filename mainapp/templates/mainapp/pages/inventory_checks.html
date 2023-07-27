@@ -1,0 +1,17 @@
+{% extends 'wrapper.html' %}
+{% block body %}
+    <ol class="list-group list-group-numbered">
+        {% for inventory_check in inventory_checks %}
+            <li class="list-group-item d-flex align-items-center">
+                <a href="{% url "inventory_check" inventory_check_id=inventory_check.id %}" style="flex-basis: 100%">
+                    <div>
+                        <div style="font-size: 16px; font-weight: 500;" class="fw-bold">Название инвентаризации:{{ inventory_check.num }}</div>
+                    </div>
+                    <div class="text-dark">
+                        Дата содания инвентаризации: {{ inventory_check.createdAt }}
+                    </div>
+                </a>
+            </li>
+        {% endfor %}
+    </ol>
+{% endblock %}

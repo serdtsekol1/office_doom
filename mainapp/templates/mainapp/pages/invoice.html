@@ -1,0 +1,65 @@
+{% extends 'wrapper.html' %}
+{% block body %}
+    <input id="search" value="" placeholder="search">
+    {% for invoice_supplier, invoice in invoices %}
+        <a href="#{{invoice_supplier}}">{{invoice_supplier}}</a>
+    {% endfor %}
+    {% for invoice_supplier, invoice in invoices %}
+        <div class="search_field" data-search_data_field="{{ invoice_supplier }}">
+            <div style="font-size: 24px; font-weight: bold" id = "{{invoice_supplier}}">{{ invoice_supplier }}</div>
+            <table class="table" style="table-layout: fixed">
+                <thead>
+                <tr>
+                    <th style="width: 200px">Номер</th>
+                    <th style="width: 200px">Сума</th>
+                    <th>Оплата</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for inv in invoice %}
+                    <tr>
+                        <td style="width: 200px">{{ inv.number }}</td>
+                        <td style="width: 200px">{{ inv.sum }}</td>
+                        <td><input id="{{ inv.id }}" class="checked_paid" type="checkbox" {% if inv.paid %}checked{% endif %}></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+
+    {% endfor %}
+    <script>
+        $("#search").on('input', (e) => {
+            console.log(e.currentTarget.value)
+            $(".search_field").each((key, element) => {
+                if (element.dataset.search_data_field.toLowerCase().search(e.currentTarget.value.toLowerCase()) === -1) {
+                    $(element).hide()
+                } else {
+                    $(element).show()
+                }
+                console.log(element)
+            })
+        })
+        $(".checked_paid").on('change', (e) => {
+
+            let id = e.currentTarget.id;
+            let paid = 0;
+            if (e.currentTarget.checked){
+                paid = 1
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/paid_update/',
+                data: {'id': id, 'paid': paid},
+                {#contentType: false,#}
+                {#processData: false,#}
+                {#async: false,#}
+                success: function (data) {
+                    console.log(data)
+                }
+            });
+        })
+    </script>
+{% endblock %}

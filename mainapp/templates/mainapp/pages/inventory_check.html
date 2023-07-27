@@ -1,0 +1,104 @@
+{% extends 'wrapper.html' %}
+{% load mainapp_tags %}
+{% block body %}
+    <div class="row border bg-white align-items-center">
+        <div class="col-sm-3 text-right">Имя</div>
+        <div class="col-sm-2 text-right">Количество</div>
+        <div class="col-sm-2 text-right">Количество на счету</div>
+    </div>
+    {% for item in inventory_check_document.positions %}
+        <div class="row border bg-white align-items-center">
+            <div class="col-sm-3 text-right">{{ item.name }}</div>
+            <div class="col-sm-2 text-right">{{ item.amount|divide:1000 }}</div>
+            <div class="col-sm-2 text-right">{{ item.amountRef|divide:1000 }}</div>
+        </div>
+
+        {#                <div class="col-sm-1 text-right">{{ item.amount|divide:1000 }}</div>#}
+        {#                <div class="col-sm-1 text-right">{{ item.costWithTax|divide:100 }}</div>#}
+        {#                <div class="col-sm-2 col-lg-1 text-right">{{ item.price|divide:100 }}</div>#}
+        {#                <div class="col-sm-1 text-right">{{ item.price|divide:item.costWithTax|subtract:1|floatformat:4|multiply:100|floatformat:2 }}%</div>#}
+        {#                <div class="col-sm-1"></div>#}
+    {% endfor %}
+    <div class="form-group">
+        <label for="exampleFormControlTextarea1">Example textarea</label>
+        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+    </div>
+    <div id="outputTemplate">
+
+    </div>
+
+    <button class="btn btn-success" id="send_elements">SEND TO DREEM</button>
+    <a href="{% url "merge_inventory_check_items" inventory_check_id=inventory_check_id %}" style="flex-basis: 100%">
+        <button class="btn btn-success">Соединить дубликаты</button>
+    </a>
+
+
+    <script>
+        x = 0;
+        $(document).ready(function () {
+            $('#exampleFormControlTextarea1').keypress(function (event) {
+                if (event.which == 13) {// Check if Enter key is pressed
+                    x = x + 1;
+                    if (x > 1) {
+                        x = 0;
+                        event.preventDefault(); // Prevent the default Enter key behavior
+
+                        let inputText = $(this).val(); // Get the content of the textarea
+                        let lines = inputText.split("\n")
+
+
+                        // Create an HTML template using the inputText and append it to the outputTemplate div
+                        let template = `
+<div class="new_element d-flex">
+    <label for="line_${lines[0]}">${lines[0]}</label>
+    <input type="text" id="line_${lines[0]}" data-id="${lines[0]}" value="${lines[1]}">
+    <div class="delete p5" onClick=deleteElement(this)>X</div>
+</div>
+`;
+
+
+                        $('#outputTemplate').append(template);
+
+                        $(this).val(''); // Clear the textarea content
+                    }
+
+                }
+            });
+        });
+
+        function deleteElement(e) {
+            let confirmation = confirm("Are you sure you want to delete this element?");
+            if (confirmation) {
+                $(e).parent().remove();
+            }
+        }
+
+        function getElements() {
+            let elements = [];
+            $('.new_element').each(function () {
+                let dataId = $(this).find('input').data('id');
+                let value = $(this).find('input').val();
+                let element = {
+                    'data-id': dataId,
+                    'value': value
+                };
+                elements.push(element);
+            });
+            return elements
+        }
+
+
+        $("#send_elements").on('click', () => {
+            $.ajax({
+                type: "POST",
+                url: '/update_inventory_check/{{ inventory_check_id }}/',
+                data: JSON.stringify(getElements()),
+                contentType: "application/json",
+                async: false,
+                success: function (data) {
+                    console.log(data)
+                }
+            });
+        })
+    </script>
+{% endblock %}

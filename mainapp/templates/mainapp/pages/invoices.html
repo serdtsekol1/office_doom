@@ -1,0 +1,103 @@
+{% extends 'wrapper.html' %}
+{% block body %}
+    {% include "mainapp/parts/pagination.html" with page=invoices %}
+    <form action="{% url "invoices_update" %}" method="post">
+        <button type="submit" class="btn btn-success">Обновить Накладные Дримкас</button>
+    </form>
+
+    Поиск по накладным:
+    <div>
+        <input id="search" value="" placeholder="search">
+    </div>
+
+    <ol class="list-group list-group-numbered">
+        {% for invoice in invoices %}
+            <div class="search_field" data-search_data_field="{{ invoice.number }} {{ invoice.supplier }} {{ invoice.sum }}">
+
+                <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.paid %} list-group-item-success {% endif %}">
+
+                    <div style="flex-basis: 50%; flex-grow: 1">
+
+                        <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.id_dreem %}">{{ invoice.number }}</a></div>
+                        <div class="text-dark">{{ invoice.supplier }}</div>
+                        <div class="text-dark">{{ invoice.issue_date|date:"d.m.Y" }}</div>
+
+                    </div>
+                    <div style="flex-basis: 100px">
+                    <div>
+                        {% if invoice.invoice_status == False%}
+                            ЧЕРНОВИК
+                        {% endif %}
+                    </div>
+                        {% for linkeddocument in invoice.linkeddocuments_set.all %}
+                            {{ linkeddocument }}
+                            {% if linkeddocument.document_status == True %}
+                                {% if linkeddocument.document_type == "PRICING" %}
+                                    НАКЛАДНАЯ РАСЦЕНЕНА
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div style="flex-basis: 100px">
+                        {% if invoice.invoicetype %}
+                            НАЛ
+                        {% endif %}
+                        {% if not invoice.invoicetype %}
+                            БЕЗНАЛ
+                        {% endif %}
+                    </div>
+
+                    <div style="flex-basis: 100px; display: flex;" class="{% if invoice.paid %}text-success{% else %} text-danger {% endif %}">
+                        <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.paid %} checked {% endif %} id="{{ invoice.id }}">
+                    </div>
+                    <div class="">
+                        <form action="{% url "create_pricing_order" %}" method="post">
+                            <input hidden type="text" name="parentId" id="parentId" value="{{ invoice.id_dreem }}">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-hand-holding-dollar"></i></button>
+                        </form>
+                        <button class="btn btn-secondary"><i class="fa-solid fa-file-invoice"></i></button>
+                        <button class="btn btn-info"><i class="fa-solid fa-file-arrow-down"></i></button>
+                    </div>
+                    <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                        <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
+                    </div>
+
+                </li>
+
+            </div>
+        {% endfor %}
+    </ol>
+    <script>
+        $(".checked_paid").on('change', (e) => {
+
+            let id = e.currentTarget.id;
+            let paid = 0;
+            if (e.currentTarget.checked) {
+                paid = 1
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/paid_update/',
+                data: {'id': id, 'paid': paid},
+                {#contentType: false,#}
+                {#processData: false,#}
+                {#async: false,#}
+                success: function (data) {
+                    console.log(data)
+                }
+            });
+        })
+        $("#search").on('input', (e) => {
+            console.log(e.currentTarget.value)
+            $(".search_field").each((key, element) => {
+                if (element.dataset.search_data_field.toLowerCase().search(e.currentTarget.value.toLowerCase()) === -1) {
+                    $(element).hide()
+                } else {
+                    $(element).show()
+                }
+                console.log(element)
+            })
+        })
+    </script>
+{% endblock %}

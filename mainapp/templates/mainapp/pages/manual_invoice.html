@@ -1,0 +1,153 @@
+{% extends "wrapper.html" %}
+{% load django_tables2 %}
+{% load static %}
+{% load mainapp_tags %}
+{% load i18n %}
+{% block body %}
+    {#    <label for="code">Штрих кож</label>#}
+    {#    <input type="text" id="code">#}
+    {#    <label for="price">Ціна</label>#}
+    {#    <input type="number" id="price">#}
+    {#    <button id="save_product">Ок</button>#}
+    <div class="container">
+        <h1 class="text-uppercase"><a href="https://kabinet.dreamkas.ru/app/#!/goods-acceptance/invoices">dreamkas</a></h1>
+        <form action="{% url "manual_invoice" %}" method="post" id="form_file" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Choise File</label>
+                <input class="form-control" id="file" type="file">
+            </div>
+            <div class="form-group">
+                {#                <select class="form-control" id="company">#}
+                {#                    {% for key, val in COMPANIES %}#}
+                {#                     <option value="{{ key }}">{{ val }}</option>#}
+                {#                    {% endfor %}#}
+                {##}
+                {#                </select>#}
+            </div>
+            <button class="btn btn-primary" id="load_file">OK</button>
+        </form>
+    </div>
+
+    <form id="form_preset" method="post">
+        <div class="h4 ml-5 ">
+            <div class="form-group">
+                <label class="form-check-label" for="type_cell_company">Компания</label>
+                <input class="input" value="" name="type_cell_company" id="type_cell_company">
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="type_cell" id="type_cell_inn">
+                <label class="form-check-label" for="type_cell_inn">ИНН</label>
+                <input class="readonly" type="text" name="input_type_cell_inn" id="input_type_cell_inn" readonly value="">
+            </div>
+            <div class="form-check mb-5">
+                <input class="form-check-input" type="radio" name="type_cell" id="type_cell_doc_id">
+                <label class="form-check-label" for="type_cell_doc_id">Ид документа</label>
+                <input class="readonly" type="text" name="input_type_cell_doc_id" id="input_type_cell_doc_id" readonly value="">
+            </div>
+
+            {% include 'mainapp/parts/select_type_cell.html' with field="name" filed_name="Назва" %}
+            {% include 'mainapp/parts/select_type_cell.html' with field="code" filed_name="Код" %}
+            {% include 'mainapp/parts/select_type_cell.html' with field="qty" filed_name="Кількість" %}
+            {% include 'mainapp/parts/select_type_cell.html' with field="sum_price" filed_name="Сума" %}
+        </div>
+        <button class="btn btn-success" type="submit">Save Preset</button>
+    </form>
+
+    <div class="table-container">
+
+        <table {% render_attrs table.attrs %}>
+            {% block table.thead %}
+                {% if table.show_header %}
+                    <thead {{ table.attrs.thead.as_html }}>
+                    <tr>
+                        {% for column in table.columns %}
+                            <th {{ column.attrs.th.as_html }}>
+                                {% if column.orderable %}
+                                    <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">{{ column.header }}</a>
+                                {% else %}
+                                    {{ column.header }}
+                                {% endif %}
+                            </th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                {% endif %}
+            {% endblock table.thead %}
+            {% block table.tbody %}
+                <tbody {{ table.attrs.tbody.as_html }}>
+                {% for row in table.paginated_rows %}
+                    {% block table.tbody.row %}
+                        <tr {{ row.attrs.as_html }}>
+                            {% for column, cell in row.items %}
+                                <td data-id_row="{{ forloop.parentloop.counter0 }}" {{ column.attrs.td.as_html }}>
+                                    {% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endblock table.tbody.row %}
+                {% empty %}
+                    {% if table.empty_text %}
+                        {% block table.tbody.empty_text %}
+                            <tr>
+                                <td colspan="{{ table.columns|length }}">{{ table.empty_text }}</td>
+                            </tr>
+                        {% endblock table.tbody.empty_text %}
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            {% endblock table.tbody %}
+            {% block table.tfoot %}
+                {% if table.has_footer %}
+                    <tfoot {{ table.attrs.tfoot.as_html }}>
+                    <tr>
+                        {% for column in table.columns %}
+                            <td {{ column.attrs.tf.as_html }}>{{ column.footer }}</td>
+                        {% endfor %}
+                    </tr>
+                    </tfoot>
+                {% endif %}
+            {% endblock table.tfoot %}
+        </table>
+
+
+
+        {% if table.page and table.paginator.num_pages > 1 %}
+            <ul class="pagination">
+                {% if table.page.has_previous %}
+                    {% block pagination.previous %}
+                        <li class="previous">
+                            <a href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}">
+                                {% trans 'previous' %}
+                            </a>
+                        </li>
+                    {% endblock pagination.previous %}
+                {% endif %}
+                {% if table.page.has_previous or table.page.has_next %}
+                    {% block pagination.range %}
+                        {% for p in table.page|table_page_range:table.paginator %}
+                            <li {% if p == table.page.number %}class="active"{% endif %}>
+                                {% if p == '...' %}
+                                    <a href="#">{{ p }}</a>
+                                {% else %}
+                                    <a href="{% querystring table.prefixed_page_field=p %}">
+                                        {{ p }}
+                                    </a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    {% endblock pagination.range %}
+                {% endif %}
+                {% if table.page.has_next %}
+                    {% block pagination.next %}
+                        <li class="next">
+                            <a href="{% querystring table.prefixed_page_field=table.page.next_page_number %}">
+                                {% trans 'next' %}
+                            </a>
+                        </li>
+                    {% endblock pagination.next %}
+                {% endif %}
+            </ul>
+        {% endif %}
+
+    </div>
+
+{% endblock %}

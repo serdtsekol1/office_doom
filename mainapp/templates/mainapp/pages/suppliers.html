@@ -1,0 +1,51 @@
+{% extends 'wrapper.html' %}
+{% block body %}
+    <input id="search" value="" placeholder="search">
+
+    {% for supplier in suppliers %}
+
+        <div class="search_field" data-search_data_field="{{ supplier.name }} {{ supplier.inn }}">
+            <li class="list-group-item d-flex justify-content-end align-items-center">
+
+                <div style="flex-basis: 50%; flex-grow: 1">
+                    <a href="{% url "dreamkas_supplier" supplier_name=supplier.name %}">
+                        <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.name }}</div>
+                        <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
+                    </a>
+                </div>
+
+
+            </li>
+        </div>
+
+    {% endfor %}
+
+
+    {#    <ol class="list-group list-group-numbered">#}
+    {#        {% for supplier in suppliers %}#}
+    {#            <li class="list-group-item d-flex justify-content-end align-items-center">#}
+    {#                <div style="flex-basis: 50%; flex-grow: 1">#}
+    {#                    <a href="{% url "dreamkas_supplier" supplier_name=supplier.name %}">#}
+    {#                        <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.name }}</div>#}
+    {#                        <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>#}
+    {#                    </a>#}
+    {#                </div>#}
+    {##}
+    {##}
+    {#            </li>#}
+    {#        {% endfor %}#}
+    {#    </ol>#}
+    <script>
+        $("#search").on('input', (e) => {
+            console.log(e.currentTarget.value)
+            $(".search_field").each((key, element) => {
+                if (element.dataset.search_data_field.toLowerCase().search(e.currentTarget.value.toLowerCase()) === -1) {
+                    $(element).hide()
+                } else {
+                    $(element).show()
+                }
+                console.log(element)
+            })
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,17 @@
+<div style="display: flex; flex-wrap: wrap">
+    <select class="select_{{ field }}" name="select_{{ field }}" id="select_{{ field }}" multiple style="width: 200px">
+        <option>...</option>
+        <option value="int">int</option>
+        <option value="str">str</option>
+        <option value="float">float</option>
+    </select><br>
+    <label class="form-check-label" for="type_cell_{{ field }}">{{ filed_name }}</label>
+    <select class="form-select" name="type_cell_{{ field }}" id="type_cell_{{ field }}">
+        {% for name in table.columns.names %}
+            <option value="{{ name }}">{{ name }}</option>
+        {% endfor %}
+    </select>
+    <script>
+        $('.select_{{ field }}').select2();
+    </script>
+</div>

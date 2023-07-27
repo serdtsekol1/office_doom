@@ -1,0 +1,43 @@
+//form {
+//  & > div {
+//    display: flex;
+//    flex-wrap: wrap;
+//    justify-content: space-between;
+//
+//    & > div {
+//      flex-basis: 100%;
+//    }
+//  }
+//}
+ul.ui-tabs-nav {
+  li {
+    a {
+      padding: 6px 25px 4px 25px !important;
+
+    }
+  }
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+
+  .tab {
+    padding: 5px 10px;
+    background: #79aec8;
+    color: white;
+    cursor: pointer;
+    margin-bottom: 2px;
+
+    &.active {
+      background: #111111;
+    }
+
+    &:not(:last-child) {
+      margin-right: 4px;
+    }
+  }
+}

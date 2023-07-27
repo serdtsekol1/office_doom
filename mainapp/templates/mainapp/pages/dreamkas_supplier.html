@@ -1,0 +1,95 @@
+{% extends 'wrapper.html' %}
+
+{% block body %}
+
+    <ol class="list-group list-group-numbered">
+        <div style="flex-basis: 50%; flex-grow: 1">
+            <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.name }}</div>
+            <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
+            <div class="Paymentlimit">
+                <div style="font-size: 18px;" class="text-dark">Срок оплаты:
+                </div>
+                <input name="paymenttime" id="paymenttime" data-id="{{ supplier.id }}" type="text" value="{{ supplier.paymenttime }}">
+            </div>
+            </a>
+        </div>
+        {% for invoice in dreamkas_invoices %}
+            {% if invoice.supplier == supplier.name %}
+                <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.paid %} list-group-item-success {% endif %}">
+                    <div style="flex-basis: 50%; flex-grow: 1;" class="">
+                        <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.id_dreem %}">{{ invoice.number }}</a></div>
+                        <div class="text-dark">{{ invoice.supplier }}</div>
+                        <div class="text-dark">{{ invoice.issue_date|date:"d.m.Y" }}</div>
+
+                    </div>
+                    <div style="flex-basis: 100px; display:flex">
+
+                        {% if invoice.date_to_pay and not invoice.overdue %}
+                            {{ invoice.date_to_pay }}
+                        {% endif %}
+
+
+                    </div>
+                        {% if invoice.overdue and not invoice.paid %}
+                            ПРОСРОЧЕНА ОПЛАТА
+                        {% endif %}
+                    <div style="flex-basis: 100px; display:flex">
+                    </div>
+                    <div style="flex-basis: 100px; display: flex;" class="{% if invoice.paid %}text-success{% else %} text-danger {% endif %}">
+                        <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.paid %} checked {% endif %} id="{{ invoice.id }}">
+                    </div>
+
+
+                    <div class="">
+                    </div>
+                    <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                        <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
+                    </div>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+
+    </ol>
+    <script>
+        $(".checked_paid").on('change', (e) => {
+
+            let id = e.currentTarget.id;
+            let paid = 0;
+            if (e.currentTarget.checked) {
+                paid = 1
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '/paid_update/',
+                data: {'id': id, 'paid': paid},
+                {#contentType: false,#}
+                {#processData: false,#}
+                {#async: false,#}
+                success: function (data) {
+                    console.log(data)
+                }
+            });
+        })
+        $(".Paymentlimit input").on('keyup', (e) => {
+
+            let element = e.currentTarget;
+            let data = {
+                'id': $(element).data("id"),
+                'paymenttime': $(element).val(),
+            }
+            $.ajax({
+                type: "POST",
+                url: '/supplier_paymenttime_update/',
+                data: data,
+                {#contentType: false,#}
+                {#processData: false,#}
+                async: false,
+                success: function (data) {
+                    console.log(data)
+                }
+            });
+        })
+    </script>
+{% endblock %}

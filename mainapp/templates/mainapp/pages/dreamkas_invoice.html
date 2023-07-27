@@ -1,0 +1,155 @@
+{% extends 'wrapper.html' %}
+{% load mainapp_tags %}
+{% block body %}
+
+    <ol class="list-group list-group-numbered">
+        {{ invoice.id }}
+        {{ priced }}
+
+        {% if priced != 0 %}
+            123123
+        {% endif %}
+        <div style="font-size: 16px;">
+            Отправитель : {{ invoice.sourceLegalEntity.name }}
+        </div>
+        <div>
+            Получатель : {{ invoice.targetLegalEntity.name }}
+        </div>
+        <div>
+            Принят: {{ invoice.acceptedAt }}
+        </div>
+        <div style="font-size: 24px; {% if priced != 0 %}color:green{% endif %}{% if priced == 0 %} color:red {% endif %}">
+
+            Накладная
+            {% if priced != 0 %}
+                Расценена
+            {% endif %}
+            {% if priced == 0 %}
+                Не расценена
+            {% endif %}
+
+
+        </div>
+        <div class="row">
+            <div class="col-sm-2">
+                <form action="{% url "create_pricing_order" %}" method="post">
+                    <input hidden type="text" name="parentId" id="parentId" value="{{ invoice.id }}">
+                    <button type="submit" class="btn btn-primary">Создать расценку накладной</button>
+                </form>
+            </div>
+
+            {% if priced == 0 %}
+                <div class="col-sm-6"></div>
+                <div class="col-sm-4">
+                    <a href="https://kabinet.dreamkas.ru/app/#!/documents/card~2F{{ invoice.id }}">
+                        <button class="btn btn-primary">Перейти на страницу накладной</button>
+                    </a>
+                </div>
+            {% endif %}
+            {% if priced != 0 %}
+                <div class="col-sm-2"></div>
+                <div class="col-sm-4">
+                    <a href="https://kabinet.dreamkas.ru/app/#!/documents/card~2F{{ invoice.priced }}">
+                        <button class="btn btn-primary">Перейти на страницу переоценки</button>
+                    </a>
+                </div>
+                <div class="col-sm-4">
+                    <a href="https://kabinet.dreamkas.ru/app/#!/documents/card~2F{{ invoice.id }}">
+                        <button class="btn btn-primary">Перейти на страницу накладной</button>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="row border bg-dark text-light">
+            <div class="col-sm-4 col-lg-5">Товар</div>
+            <div class="col-sm-2"><span class="ml-3">Категория</span></div>
+            <div class="col-sm-1 text-right">Количество</div>
+            <div class="col-sm-1 text-right">Цена</div>
+            <div class="col-sm-2 col-lg-1 text-right">Цена продажи</div>
+            <div class="col-sm-1 text-right">Наценка</div>
+            <div class="col-sm-1"></div>
+        </div>
+        {% for item in invoice.positions %}
+            <div class="row border bg-white align-items-center">
+                <div class="col-sm-4 col-lg-5">{{ item.name }}</div>
+                <div class="col-sm-2">
+                    <select data-good_id="{{ item.productId }}" name="select" id="select" class="form-control selectpiker select_good_group" style="width:100%">
+                        {% for group in good_groups %}
+                            <option {% if group.group_id == item.product.categoryId %}selected="selected"{% endif %} value={{ group.group_id }}>{{ group.name }}</option>
+                        {% endfor %}
+                    </select></div>
+                <div class="col-sm-1 text-right">{{ item.amount|divide:1000 }}</div>
+                <div class="col-sm-1 text-right">{{ item.costWithTax|divide:100 }}</div>
+                <div class="col-sm-2 col-lg-1 text-right">{{ item.price|divide:100 }}</div>
+                <div class="col-sm-1 text-right">{{ item.price|divide:item.costWithTax|subtract:1|floatformat:4|multiply:100|floatformat:2 }}%</div>
+                <div class="col-sm-1"></div>
+            </div>
+            {% comment %}<li class="list-group-item d-flex justify-content-end align-items-center">
+                <div style="flex-basis: 35%; flex-grow: 1; border-right:1px solid red">
+                    {{ item.name }}
+                </div>
+                <div style="flex-basis: 10%">
+                    <select data-good_id="{{ item.productId }}" name="select" id="select" class="form-control selectpiker select_good_group" style="width:100%">
+                        {% for group in good_groups %}
+                            <option {% if group.group_id == item.product.categoryId %}selected="selected"{% endif %} value={{ group.group_id }}>{{ group.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="flex-basis: 10%">
+                    {{ item.amount|divide:1000 }}
+                </div>
+                <div style="flex-basis: 10%">
+                    {{ item.costWithTax|divide:100 }}
+                </div>
+                <div style="flex-basis: 10%">
+                    {% if item.price == null %}
+
+                    {% endif %}
+                    {{ item.price|divide:100 }}
+                </div>
+                <div style="flex-basis: 7%">
+                    {{ item.price|divide:item.costWithTax|subtract:1|floatformat:4|multiply:100|floatformat:2 }}%
+                </div>
+            </li>
+            <ul class="list-unstyled card-columns">
+                <li></li>
+            </ul>{% endcomment %}
+        {% endfor %}
+        <div class="row border bg-dark text-light">
+            <div class="col-sm-4 col-lg-5"></div>
+            <div class="col-sm-2"><span class="ml-3"></span></div>
+            <div class="col-sm-1 text-right"></div>
+            <div class="col-sm-1 text-right"></div>
+            <div class="col-sm-2 col-lg-1 text-right">Приход</div>
+            <div class="col-sm-1 text-right"></div>
+            <div class="col-sm-1"></div>
+        </div>
+        <div class="row border bg-dark text-light">
+            <div class="col-sm-4 col-lg-5"></div>
+            <div class="col-sm-2"><span class="ml-3"></span></div>
+            <div class="col-sm-1 text-right"></div>
+            <div class="col-sm-1 text-right"></div>
+            <div class="col-sm-2 col-lg-1 text-right">{{ total|divide:100 }}</div>
+            <div class="col-sm-1 text-right"></div>
+            <div class="col-sm-1"></div>
+        </div>
+    </ol>
+    <script>
+        $(".select_good_group").on('change', (e) => {
+
+            let group_id = $(e.currentTarget).find("option:selected").val()
+            let good_id = e.currentTarget.dataset.good_id;
+            $.ajax({
+                type: "POST",
+                url: '/update_item_group/',
+                data: {'good_id': good_id, 'group_id': group_id},
+                {#contentType: false,#}
+                {#processData: false,#}
+                {#async: false,#}
+                success: function (data) {
+                    document.location.reload()
+                }
+            });
+        })
+    </script>
+{% endblock %}

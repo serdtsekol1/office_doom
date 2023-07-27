@@ -1,0 +1,58 @@
+{% extends "wrapper.html" %}
+{% block body %}
+
+    <form action="{% url "good_groups" %}" method="post">
+        <button type="submit" class="btn btn-success">Обновить Группы</button>
+    </form>
+    <ol class="list-group list-group-numbered">
+        {% for key in good_groups %}
+
+
+
+            <li id="{{ key.id }}" class="list-group-item d-flex justify-content-end align-items-center one_good_group">
+                <div style="flex-basis: 100px; ">
+                    <div class="group_id">{{ key.group_id }}</div>
+                </div>
+                <div style="flex-basis: 100px; flex-grow: 1; display: flex;" class="">
+                    {{ key.name }}
+                </div>
+                <div class="">
+                    <input name="pricingpercent" type="text" value="{% if key.pricingpercent or key.pricingpercent == 0 %}{{ key.pricingpercent }}{% endif %}">
+                </div>
+                <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+
+                    <input name="roundnumber" type="number" value="{% if key.roundnumber or key.roundnumber == 0 %}{{ key.roundnumber }}{% endif %}">
+                </div>
+                <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                    <input name="rule" value="{% if key.rule or key.rule == 0 %}{{ key.rule }}{% endif %}">
+                </div>
+            </li>
+        {% endfor %}
+    </ol>
+
+    <script>
+        $(".one_good_group input").on('change', (e) => {
+
+            let element = e.currentTarget;
+            console.log($(element).val())
+            console.log($(element).attr("name"))
+            console.log($(element).parent().parent().attr("id"))
+            let data = {
+                'id': $(element).parent().parent().attr("id"),
+                'field_name': $(element).attr("name"),
+                'field_value': $(element).val(),
+            }
+            $.ajax({
+                type: "POST",
+                url: '/good_groups_user_form/',
+                data: data,
+                {#contentType: false,#}
+                {#processData: false,#}
+                async: false,
+                success: function (data) {
+                    console.log(data)
+                }
+            });
+        })
+    </script>
+{% endblock %}
