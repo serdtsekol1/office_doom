@@ -1,3 +1,4 @@
+simplegmail==4.1.1
 python-dotenv==1.0.0
 agate==1.6.3
 agate-dbf==0.2.2
