@@ -150,6 +150,7 @@ class Preset(View):
 
 @csrf_exempt
 def get_index_page(request, keyword='index'):
+    result1 = DREAM_KAS_API.get_problematic_products()
     return render(request, "mainapp/pages/index.html")
 
 

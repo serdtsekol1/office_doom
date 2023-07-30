@@ -324,7 +324,15 @@ class DreamKasApi:
     def delete_document(self, document_id):
         return
 
+    def get_problematic_products(self,devices=[34796,31391,163617]):
+        from datetime import timedelta, date
+        today = date.today()
+        last_day = date.today() - timedelta(days=1)
+        for device in devices:
+            responce = self.session.get(f"https://kabinet.dreamkas.ru/api/receipts?from={last_day}&to={today}&limit=1000&devices={device}")
+            print(responce)
 
+        return
     def get_documents(self, limit=100):
         # 0: {label: "Перемещение", value: 2}
         # 1: {label: "Оприходование", value: 3}
