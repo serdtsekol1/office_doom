@@ -82,6 +82,9 @@ class Invoice(models.Model):
     invoicetype = models.BooleanField('Тип накладной', default=False)
     overdue = models.BooleanField('Просрочена ли накладная?', default=False)
     invoice_status = models.BooleanField('DRAFT OR ACCEPTED', null=True, blank=True, default=False)
+    hide = models.BooleanField('Спрятать накладную от показа?', null=True, blank=True, default=False)
+    hide_comment = models.CharField('Комментарий \ Причина того что накладная не видна', max_length=255, blank=True, default=None, null=True)
+    ignore_problem = models.BooleanField('Игнорировать ли возможную проблему с накладной?', null=True, blank=True, default=False)
     printed = models.BooleanField('Was it printed?', null=True, blank=True, default=False)
 
     # linked_documents = models.ManyToManyField("self", blank=True)

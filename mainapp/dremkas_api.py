@@ -89,7 +89,11 @@ class DreamKasApi:
             "password": self.PASSWORD
         })
         self.session.cookies = response.cookies
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print("Login failed")
+            return "Login Failed"
 
     def get_inventory_checks(self):
         inventory_checks = self.session.get(
@@ -325,14 +329,15 @@ class DreamKasApi:
         return
 
     def get_problematic_products(self,devices=[34796,31391,163617]):
-        from datetime import timedelta, date
-        today = date.today()
-        last_day = date.today() - timedelta(days=1)
-        for device in devices:
-            responce = self.session.get(f"https://kabinet.dreamkas.ru/api/receipts?from={last_day}&to={today}&limit=1000&devices={device}")
-            print(responce)
+    #     from datetime import timedelta, date
+    #     today = date.today()
+    #     last_day = date.today() - timedelta(days=1)
+    #     for device in devices:
+    #         responce = self.session.get(f"https://kabinet.dreamkas.ru/api/receipts?from={last_day}&to={today}&limit=1000&devices={device}")
+    #         for item in responce.json()['data']['positions:']:
+    #         self.session.get
+        return "Work in progress"
 
-        return
     def get_documents(self, limit=100):
         # 0: {label: "Перемещение", value: 2}
         # 1: {label: "Оприходование", value: 3}
@@ -348,8 +353,11 @@ class DreamKasApi:
 
         response = self.session.get(f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={DocType.PRIHODNAYA_NAKLADNAYA.value}&filter[preset]=PAPER,DOCUMENTS")
         print(f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={DocType.PRIHODNAYA_NAKLADNAYA.value}&filter[preset]=PAPER,DOCUMENTS")
-        return response.json()
-
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print("Login failed")
+            return "Login Failed"
 
     def get_document(self, id_document):
         response = self.session.get(f"{self.URL_DOCUMENTS_v1_API}/{id_document}")

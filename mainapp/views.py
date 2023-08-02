@@ -25,6 +25,12 @@ from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_M
 from .gmail_invoices import create_document_from_excel
 from .helper import send_document, delete_file
 
+from django.core.validators import MinValueValidator, MaxValueValidator, EMPTY_VALUES
+from django.utils import timezone
+
+from django.db.models import Count
+from django.db import models
+from django.db.models import Aggregate
 # DREAM_KAS_API = None
 GOOGLEMAIL = [
     "auto_mail@mpk-skvortsovo.ru",
@@ -84,7 +90,18 @@ class PresetModelValue:
         self.str = _str
         self.exists = _exists
 
+class Concat(Aggregate):
+    function = 'GROUP_CONCAT'
+    # template = '%(function)s(%(distinct)s%(expressions)s)'
+    allow_distinct = True
 
+    def __init__(self, expression, distinct=False, **extra):
+        super(Concat, self).__init__(
+            expression,
+            distinct='DISTINCT ' if distinct else '',
+            output_field=models.CharField(),
+            **extra
+        )
 @dataclass
 class PresetModel:
     company = str
@@ -150,7 +167,7 @@ class Preset(View):
 
 @csrf_exempt
 def get_index_page(request, keyword='index'):
-    result1 = DREAM_KAS_API.get_problematic_products()
+    #problematic_invoices()
     return render(request, "mainapp/pages/index.html")
 
 
@@ -241,6 +258,56 @@ def invoices_update(request):
     if request.method == 'POST':
         Invoice.update_invoices()
         return redirect(reverse('invoices'))
+
+
+def problematic_invoices():
+    dublicate_invoices = Invoice.objects.values("number", "sum", "issue_date", "supplier").annotate(
+        nomer_itema=Concat("number"),
+        id_2=Concat("id"),
+        supplier_c=Concat("supplier"),
+        sum_c=Concat("sum"),
+        issue_date_c=Concat("issue_date"),
+        count=Count("number")
+    ).filter(count__gte=2).values(
+        "id_2",
+        "nomer_itema",
+        "supplier_c",
+        "sum_c",
+        "issue_date_c") # після валуес можна спокійно робити ордер бай.
+    for i in dublicate_invoices:
+        print(i.values())
+    duplicates = []
+    possible_problematic_invoices_supplier = []
+    possible_problematic_invoices_sum = []
+
+    for invoice in invoices:
+        comparison = Invoice.objects.all().filter(hide=False, sum=invoice.sum, supplier=invoice.supplier, issue_date=invoice.issue_date, number=invoice.number)
+        if comparison.count() > 1:
+            for item in comparison:
+                if item not in duplicates:
+                    duplicates.append(item)
+        comparison = Invoice.objects.all().filter(hide=False, supplier=invoice.supplier, issue_date=invoice.issue_date, number=invoice.number)
+        if comparison.count() > 1:
+            for item in comparison:
+                if item not in duplicates and item not in possible_problematic_invoices_sum:
+                    possible_problematic_invoices_sum.append(item)
+        comparison = Invoice.objects.all().filter(hide=False, sum=invoice.sum, issue_date=invoice.issue_date, number=invoice.number)
+        if comparison.count() > 1:
+            for item in comparison:
+                if item not in duplicates and item not in possible_problematic_invoices_sum and item not in possible_problematic_invoices_supplier:
+                    possible_problematic_invoices_supplier.append(item)
+
+        # for invoice_compared in invoices:
+        #     if invoice_compared.number == invoice.number and invoice_compared.sum == invoice.sum and invoice_compared.issue_date == invoice.issue_date and invoice_compared.supplier == invoice.supplier:
+        #         duplicates.append(invoice_compared)
+        #     if invoice_compared.number == invoice.number and invoice_compared.sum == invoice.sum and invoice_compared.issue_date == invoice.issue_date:
+        #         possible_problematic_invoices_supplier.append(invoice_compared)
+        #     if invoice_compared.number == invoice.number and invoice_compared.issue_date == invoice.issue_date and invoice_compared.supplier == invoice.supplier:
+        #         possible_problematic_invoices_sum.append(invoice_compared)
+
+    print(duplicates)
+    print("Invoices supplier", possible_problematic_invoices_supplier)
+    print("Invoices sum", possible_problematic_invoices_sum)
 
 
 def invoices(request):
@@ -371,7 +438,6 @@ def merge_inventory_check_items(request, inventory_check_id):
         return render(request, 'mainapp/pages/inventory_checks.html', {'inventory_checks': inventory_checks})
 
 
-
 @csrf_exempt
 def update_gmail_messages(request):
     if request.method == 'POST':
@@ -411,6 +477,7 @@ def create_documents_from_gmail_message(request):
             return redirect(reverse('gmail_messages'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
         else:
             print("Что-то пошло не так. НУЖНО ЧИНИТЬ. ЧЕРТ.")
+
 
 @csrf_exempt
 def show_excel_document(request):
