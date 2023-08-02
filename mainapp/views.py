@@ -167,7 +167,7 @@ class Preset(View):
 
 @csrf_exempt
 def get_index_page(request, keyword='index'):
-    #problematic_invoices()
+    problematic_invoices()
     return render(request, "mainapp/pages/index.html")
 
 
@@ -262,7 +262,7 @@ def invoices_update(request):
 
 def problematic_invoices():
     dublicate_invoices = Invoice.objects.values("number", "sum", "issue_date", "supplier").annotate(
-        nomer_itema=Concat("number"),
+        number_c=Concat("number"),
         id_2=Concat("id"),
         supplier_c=Concat("supplier"),
         sum_c=Concat("sum"),
@@ -270,32 +270,58 @@ def problematic_invoices():
         count=Count("number")
     ).filter(count__gte=2).values(
         "id_2",
-        "nomer_itema",
+        "number_c",
         "supplier_c",
         "sum_c",
-        "issue_date_c") # після валуес можна спокійно робити ордер бай.
-    for i in dublicate_invoices:
-        print(i.values())
-    duplicates = []
-    possible_problematic_invoices_supplier = []
-    possible_problematic_invoices_sum = []
+        "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',') # після валуес можна спокійно робити ордер бай.
+    possible_problematic_invoices_sum = Invoice.objects.values("number", "issue_date", "supplier").annotate(
+        number_c=Concat("number"),
+        id_2=Concat("id"),
+        supplier_c=Concat("supplier"),
+        issue_date_c=Concat("issue_date"),
+        count=Count("number")
+    ).filter(count__gte=2).values(
+        "id_2",
+        "number_c",
+        "supplier_c",
+        "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')
+    possible_problematic_invoices_supplier = Invoice.objects.values("number", "sum", "issue_date").annotate(
+        number_c=Concat("number"),
+        id_2=Concat("id"),
+        sum_c=Concat("sum"),
+        issue_date_c=Concat("issue_date"),
+        count=Count("number")
+    ).filter(count__gte=2).values(
+        "id_2",
+        "number_c",
+        "sum_c",
+        "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')
 
-    for invoice in invoices:
-        comparison = Invoice.objects.all().filter(hide=False, sum=invoice.sum, supplier=invoice.supplier, issue_date=invoice.issue_date, number=invoice.number)
-        if comparison.count() > 1:
-            for item in comparison:
-                if item not in duplicates:
-                    duplicates.append(item)
-        comparison = Invoice.objects.all().filter(hide=False, supplier=invoice.supplier, issue_date=invoice.issue_date, number=invoice.number)
-        if comparison.count() > 1:
-            for item in comparison:
-                if item not in duplicates and item not in possible_problematic_invoices_sum:
-                    possible_problematic_invoices_sum.append(item)
-        comparison = Invoice.objects.all().filter(hide=False, sum=invoice.sum, issue_date=invoice.issue_date, number=invoice.number)
-        if comparison.count() > 1:
-            for item in comparison:
-                if item not in duplicates and item not in possible_problematic_invoices_sum and item not in possible_problematic_invoices_supplier:
-                    possible_problematic_invoices_supplier.append(item)
+    possible_problematic_invoices_sum = list(set(possible_problematic_invoices_sum) - set(dublicate_invoices))
+    possible_problematic_invoices_supplier = list(set(possible_problematic_invoices_supplier) - set(possible_problematic_invoices_sum) - set(dublicate_invoices))
+
+    # duplicates = []
+    # possible_problematic_invoices_supplier = []
+    # possible_problematic_invoices_sum = []
+    print(dublicate_invoices)
+    print(possible_problematic_invoices_sum)
+    print(possible_problematic_invoices_supplier)
+    # for invoice in invoices:
+    #     comparison = Invoice.objects.all().filter(hide=False, sum=invoice.sum, supplier=invoice.supplier, issue_date=invoice.issue_date, number=invoice.number)
+    #     if comparison.count() > 1:
+    #         for item in comparison:
+    #             if item not in duplicates:
+    #                 duplicates.append(item)
+    #     comparison = Invoice.objects.all().filter(hide=False, supplier=invoice.supplier, issue_date=invoice.issue_date, number=invoice.number)
+    #     if comparison.count() > 1:
+    #         for item in comparison:
+    #             if item not in duplicates and item not in possible_problematic_invoices_sum:
+    #                 possible_problematic_invoices_sum.append(item)
+    #     comparison = Invoice.objects.all().filter(hide=False, sum=invoice.sum, issue_date=invoice.issue_date, number=invoice.number)
+    #     if comparison.count() > 1:
+    #         for item in comparison:
+    #             if item not in duplicates and item not in possible_problematic_invoices_sum and item not in possible_problematic_invoices_supplier:
+    #                 possible_problematic_invoices_supplier.append(item)
 
         # for invoice_compared in invoices:
         #     if invoice_compared.number == invoice.number and invoice_compared.sum == invoice.sum and invoice_compared.issue_date == invoice.issue_date and invoice_compared.supplier == invoice.supplier:
@@ -304,12 +330,6 @@ def problematic_invoices():
         #         possible_problematic_invoices_supplier.append(invoice_compared)
         #     if invoice_compared.number == invoice.number and invoice_compared.issue_date == invoice.issue_date and invoice_compared.supplier == invoice.supplier:
         #         possible_problematic_invoices_sum.append(invoice_compared)
-
-    print(duplicates)
-    print("Invoices supplier", possible_problematic_invoices_supplier)
-    print("Invoices sum", possible_problematic_invoices_sum)
-
-
 def invoices(request):
     invoices = Invoice.objects.all().order_by("-issue_date")
     page = Paginator(invoices, 500).page(request.GET.get("page", 1))
