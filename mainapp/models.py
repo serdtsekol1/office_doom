@@ -93,7 +93,8 @@ class Invoice(models.Model):
     def date_to_pay(self):
         if self.supplier_fk:
             if self.supplier_fk.paymenttime:
-                return self.issue_date + timedelta(days=self.supplier_fk.paymenttime)
+                return (self.issue_date
+                        + timedelta(days=self.supplier_fk.paymenttime))
         return None
 
     @staticmethod
@@ -148,7 +149,10 @@ class Invoice(models.Model):
                     'invoice_status': True if "ACCEPTED" in document["status"] else False})
         for item in documents_to_delete:
             Invoice.objects.filter(id_dreem=item).delete()
-
+        def update_invoice(id_dreem):
+            document = DREAM_KAS_API.get_document(id_dreem)
+            invoice, invoice_create = Invoice.objects.update(id_dreem=document['id'], defaults={
+                'invoice_status': True if "ACCEPTED" in document["status"] else False})
 
 class LinkedDocuments(models.Model):
     class DocumentTypesList(models.TextChoices):

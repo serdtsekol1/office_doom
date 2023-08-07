@@ -1,7 +1,93 @@
 {% extends "wrapper.html" %}
+
+{% load mainapp_tags %}
 {% block body %}
+    {% for duplicates in problematic_invoices.duplicate_invoices %}
+        <div class="duplicate-group" style="margin-bottom: 10px">
+
+                {% for duplicate in duplicates %}
+                    <li class="list-group-item d-flex justify-content-end align-items-center">
+                        <div style="flex-basis: 50%; flex-grow: 1;" class="">
+                            <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=duplicate.id_dreem %}">{{ duplicate.number }}</a></div>
+                            <div class="text-dark">{{ duplicate.supplier }}</div>
+                            <div class="text-dark">{{ duplicate.issue_date|date:"d.m.Y" }}</div>
+
+                        </div>
+                        <div style="flex-basis: 100px; display:flex">
+                        </div>
+                        <div style="flex-basis: 100px; display:flex">
+                        </div>
+                        <div style="flex-basis: 100px; display: flex;" class="">
+                        </div>
+
+                        <form action="{% url "hide_invoice" %}" method="post">
+                            <input hidden type="text" name="id_dreem" id="id_dreem" value="{{ duplicate.id_dreem }}">
+                            <input hidden type="text" name="comment" id="comment" value="Накладная помечена как дубликат">
+                            <button type="submit" class="btn btn-primary hide_invoice_button"
+                                    data-number="{{ duplicate.number }}"
+                                    data-supplier="{{ duplicate.supplier }}"
+                                    data-issue_date="{{ duplicate.issue_date|date:"d.m.Y" }}"
+                                    data-id_dreem="{{ duplicate.id_dreem }}"
+                                    data-comment="Накладная помечена как дубликат">
+                                Пометить Как Дубликат
+                            </button>
+                        </form>
+                        <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ duplicate.sum }}</div>
+                        </div>
+                    </li>
 
 
+                {% endfor %}
 
 
+        </div>
+
+    {% endfor %}
+    <script>
+        $(".hide_invoice_button").on('click', (e) => {
+
+            e.preventDefault()
+            let id_dreem = $(e.currentTarget).data('id_dreem')
+            let comment = $(e.currentTarget).data('comment')
+            let number = $(e.currentTarget).data('number')
+            let supplier = $(e.currentTarget).data('supplier')
+            let issue_date = $(e.currentTarget).data('issue_date')
+
+
+            $.ajax({
+                type: "POST",
+                url: '/hide_invoice/',
+                data: {'id_dreem': id_dreem, 'comment': comment},
+                {#contentType: false,#}
+                {#processData: false,#}
+                {#async: false,#}
+                success: function (data) {
+                    console.log(data)
+                    if (data.success === true) {
+                        const count_elements = $(e.currentTarget).parents('.duplicate-group').find('>li').length
+                        if (count_elements > 2){
+                            $(e.currentTarget).parents('li').remove()
+                        } else {
+                            $(e.currentTarget).parents('.duplicate-group').remove()
+                        }
+                        Swal.fire({
+                            position: 'top-end',
+                            icon: 'success',
+                            title: `Накладная ${number} от ${supplier} за ${issue_date} отмечена как дубликат, и более не будет показываться`,
+                            showConfirmButton: false,
+                            timer: 2500,
+                            backdrop: false
+                        }).then(()=>{
+                            document.location.reload()
+                        })
+
+
+                    }
+
+                }
+            });
+
+        })
+    </script>
 {% endblock %}

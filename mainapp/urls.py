@@ -1,7 +1,7 @@
 from django.urls import path
 from mainapp.views import get_index_page, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
     update_diadoc_invoices, create_document_from_diadoc, dreamkas_invoice, update_item_group, dreamkas_suppliers, dreamkas_supplier, supplier_paymenttime_update, gmail_messages, update_gmail_messages, \
-    inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document
+    inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document, hide_invoice
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -45,7 +45,8 @@ urlpatterns = [
     path('create_documents_from_gmail_message/', create_documents_from_gmail_message, name="create_documents_from_gmail_message"),
     path('show_excel_document/', show_excel_document, name="show_excel_document"),
 
-
+    ## INDEX PAGE
+    path('hide_invoice/', hide_invoice,  name="hide_invoice"),
 
     # create_document_from_diadoc
 

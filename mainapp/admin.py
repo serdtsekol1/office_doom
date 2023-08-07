@@ -60,6 +60,6 @@ class AdminProduct(admin.ModelAdmin):
 class AdminInvoices(admin.ModelAdmin):
     search_fields = ['id_dreem', 'supplier']
     list_display = [f.name for f in Invoice._meta.fields if f.name not in ['id', 'id_dreem']]
-    list_editable = ['paid']
+    list_editable = ['paid', 'hide']
     list_filter = ['paid', 'supplier', 'issue_date','invoice_status']
     inlines = [LinkedDocumentsInline]

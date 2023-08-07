@@ -10,7 +10,7 @@ import requests
 import simplegmail
 from django.core.files.uploadedfile import UploadedFile
 from django.core.paginator import Paginator
-from django.db.models import Sum
+from django.db.models import Sum, Value
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -31,6 +31,7 @@ from django.utils import timezone
 from django.db.models import Count
 from django.db import models
 from django.db.models import Aggregate
+
 # DREAM_KAS_API = None
 GOOGLEMAIL = [
     "auto_mail@mpk-skvortsovo.ru",
@@ -90,6 +91,7 @@ class PresetModelValue:
         self.str = _str
         self.exists = _exists
 
+
 class Concat(Aggregate):
     function = 'GROUP_CONCAT'
     # template = '%(function)s(%(distinct)s%(expressions)s)'
@@ -102,6 +104,8 @@ class Concat(Aggregate):
             output_field=models.CharField(),
             **extra
         )
+
+
 @dataclass
 class PresetModel:
     company = str
@@ -167,8 +171,9 @@ class Preset(View):
 
 @csrf_exempt
 def get_index_page(request, keyword='index'):
-    problematic_invoices()
-    return render(request, "mainapp/pages/index.html")
+    probelems = problematic_invoices()
+
+    return render(request, "mainapp/pages/index.html", {'problematic_invoices': probelems})
 
 
 @csrf_exempt
@@ -261,7 +266,7 @@ def invoices_update(request):
 
 
 def problematic_invoices():
-    dublicate_invoices = Invoice.objects.values("number", "sum", "issue_date", "supplier").annotate(
+    dublicate_invoices = Invoice.objects.filter(hide=False).values("number", "sum", "issue_date", "supplier").annotate(
         number_c=Concat("number"),
         id_2=Concat("id"),
         supplier_c=Concat("supplier"),
@@ -273,67 +278,130 @@ def problematic_invoices():
         "number_c",
         "supplier_c",
         "sum_c",
-        "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',') # після валуес можна спокійно робити ордер бай.
-    possible_problematic_invoices_sum = Invoice.objects.values("number", "issue_date", "supplier").annotate(
+        "issue_date_c")
+    possible_problematic_invoices_sum = Invoice.objects.filter(hide=False).values("number", "issue_date", "supplier").annotate(
         number_c=Concat("number"),
         id_2=Concat("id"),
         supplier_c=Concat("supplier"),
+        sum_c=Value(0),
         issue_date_c=Concat("issue_date"),
-        count=Count("number")
+        count=Count("number"),
+
     ).filter(count__gte=2).values(
         "id_2",
         "number_c",
         "supplier_c",
-        "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')
-    possible_problematic_invoices_supplier = Invoice.objects.values("number", "sum", "issue_date").annotate(
+        "sum_c",
+        "issue_date_c"
+    )
+    possible_problematic_invoices_supplier = Invoice.objects.filter(hide=False).values("number", "sum", "issue_date").annotate(
         number_c=Concat("number"),
         id_2=Concat("id"),
+        supplier_c=Value(""),
         sum_c=Concat("sum"),
         issue_date_c=Concat("issue_date"),
         count=Count("number")
     ).filter(count__gte=2).values(
         "id_2",
         "number_c",
+        "supplier_c",
         "sum_c",
-        "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')
+        "issue_date_c"
+    )
 
-    possible_problematic_invoices_sum = list(set(possible_problematic_invoices_sum) - set(dublicate_invoices))
-    possible_problematic_invoices_supplier = list(set(possible_problematic_invoices_supplier) - set(possible_problematic_invoices_sum) - set(dublicate_invoices))
+    possible_problematic_invoices_sum |= dublicate_invoices
+    possible_problematic_invoices_supplier |= possible_problematic_invoices_sum | dublicate_invoices
 
-    # duplicates = []
-    # possible_problematic_invoices_supplier = []
-    # possible_problematic_invoices_sum = []
-    print(dublicate_invoices)
-    print(possible_problematic_invoices_sum)
-    print(possible_problematic_invoices_supplier)
-    # for invoice in invoices:
-    #     comparison = Invoice.objects.all().filter(hide=False, sum=invoice.sum, supplier=invoice.supplier, issue_date=invoice.issue_date, number=invoice.number)
-    #     if comparison.count() > 1:
-    #         for item in comparison:
-    #             if item not in duplicates:
-    #                 duplicates.append(item)
-    #     comparison = Invoice.objects.all().filter(hide=False, supplier=invoice.supplier, issue_date=invoice.issue_date, number=invoice.number)
-    #     if comparison.count() > 1:
-    #         for item in comparison:
-    #             if item not in duplicates and item not in possible_problematic_invoices_sum:
-    #                 possible_problematic_invoices_sum.append(item)
-    #     comparison = Invoice.objects.all().filter(hide=False, sum=invoice.sum, issue_date=invoice.issue_date, number=invoice.number)
-    #     if comparison.count() > 1:
-    #         for item in comparison:
-    #             if item not in duplicates and item not in possible_problematic_invoices_sum and item not in possible_problematic_invoices_supplier:
-    #                 possible_problematic_invoices_supplier.append(item)
+    dupes = []
+    for item in dublicate_invoices:
+        group = []
+        for id in item['id_2'].split(','):
+            group.append(Invoice.objects.filter(id=id).get())
+        dupes.append(group)
 
-        # for invoice_compared in invoices:
-        #     if invoice_compared.number == invoice.number and invoice_compared.sum == invoice.sum and invoice_compared.issue_date == invoice.issue_date and invoice_compared.supplier == invoice.supplier:
-        #         duplicates.append(invoice_compared)
-        #     if invoice_compared.number == invoice.number and invoice_compared.sum == invoice.sum and invoice_compared.issue_date == invoice.issue_date:
-        #         possible_problematic_invoices_supplier.append(invoice_compared)
-        #     if invoice_compared.number == invoice.number and invoice_compared.issue_date == invoice.issue_date and invoice_compared.supplier == invoice.supplier:
-        #         possible_problematic_invoices_sum.append(invoice_compared)
+    sum_dupes = []
+    for item in possible_problematic_invoices_sum:
+        group = []
+        for id in item['id_2'].split(','):
+            group.append(Invoice.objects.filter(id=id).get())
+        sum_dupes.append(group)
+
+    supplier_dupes = []
+    for item in possible_problematic_invoices_supplier:
+        group = []
+        for id in item['id_2'].split(','):
+            group.append(Invoice.objects.filter(id=id).get())
+        supplier_dupes.append(group)
+
+    return {
+        'duplicate_invoices': dupes,
+        'possible_problematic_invoices_sum': sum_dupes,
+        'possible_problematic_invoices_supplier': supplier_dupes
+    }
+
+
+# def problematic_invoices():
+#     dublicate_invoices = Invoice.objects.filter(hide=False).values("number", "sum", "issue_date", "supplier").annotate(
+#         number_c=Concat("number"),
+#         id_2=Concat("id"),
+#         supplier_c=Concat("supplier"),
+#         sum_c=Concat("sum"),
+#         issue_date_c=Concat("issue_date"),
+#         count=Count("number")
+#     ).filter(count__gte=2).values(
+#         "id_2",
+#         "number_c",
+#         "supplier_c",
+#         "sum_c",
+#         "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')  # після валуес можна спокійно робити ордер бай.
+#     possible_problematic_invoices_sum = Invoice.objects.values("number", "issue_date", "supplier").annotate(
+#         number_c=Concat("number"),
+#         id_2=Concat("id"),
+#         supplier_c=Concat("supplier"),
+#         issue_date_c=Concat("issue_date"),
+#         count=Count("number")
+#     ).filter(count__gte=2).values(
+#         "id_2",
+#         "number_c",
+#         "supplier_c",
+#         "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')
+#     possible_problematic_invoices_supplier = Invoice.objects.values("number", "sum", "issue_date").annotate(
+#         number_c=Concat("number"),
+#         id_2=Concat("id"),
+#         sum_c=Concat("sum"),
+#         issue_date_c=Concat("issue_date"),
+#         count=Count("number")
+#     ).filter(count__gte=2).values(
+#         "id_2",
+#         "number_c",
+#         "sum_c",
+#         "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')
+#
+#     possible_problematic_invoices_sum = list(set(possible_problematic_invoices_sum) - set(dublicate_invoices))
+#     possible_problematic_invoices_supplier = list(set(possible_problematic_invoices_supplier) - set(possible_problematic_invoices_sum) - set(dublicate_invoices))
+#
+#     return {
+#         'duplicate_invoices': Invoice.objects.filter(id__in=dublicate_invoices),
+#         'possible_problematic_invoices_sum': Invoice.objects.filter(id__in=possible_problematic_invoices_sum),
+#         'possible_problematic_invoices_supplier': Invoice.objects.filter(id__in=possible_problematic_invoices_supplier)
+#     }
+
+
 def invoices(request):
-    invoices = Invoice.objects.all().order_by("-issue_date")
+    invoices = Invoice.objects.all().filter(hide=False).order_by("-issue_date")
     page = Paginator(invoices, 500).page(request.GET.get("page", 1))
     return render(request, 'mainapp/pages/invoices.html', {'invoices': page})
+
+@csrf_exempt
+def hide_invoice(request):
+    if request.method == 'POST':
+        id = request.POST.get("id_dreem")
+        invoice = Invoice.objects.get(id_dreem=id)
+        invoice.hide = True
+        comment = request.POST.get("comment", None)
+        invoice.hide_comment = str(comment)
+        invoice.save()
+        return JsonResponse({"success": True})
 
 
 def dreamkas_invoice(request, invoiceid):
@@ -546,6 +614,9 @@ def create_document_from_diadoc(request):
             'issue_date': result['issueDate'],
             'invoicetype': True if "НАЛ" in result['num'] else False,
             'overdue': False,
+            'invoice_status': False,
+            'printed': False,
+            'hide': False,
             'invoice_status': False
         })
         return redirect(reverse('invoices_diadoc'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
@@ -615,10 +686,14 @@ def good_groups_user_form(request):
 def supplier_paymenttime_update(request):
     id = request.POST.get('id', None)
     paymenttime = request.POST.get('paymenttime', None)
-    Supplier.objects.update_or_create(id=id, defaults={
-        'paymenttime': paymenttime,
-    })
-    return JsonResponse({'success': True})
+    try:
+        paymenttime = int(paymenttime)
+        Supplier.objects.update_or_create(id=id, defaults={
+            'paymenttime': paymenttime,
+        })
+        return JsonResponse({'success': True})
+    except:
+        return JsonResponse({"success": False, "message": "Incorrect format"})
 
 # @csrf_exempt
 # def save_product(request):

@@ -6,10 +6,11 @@
         <div style="flex-basis: 50%; flex-grow: 1">
             <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.name }}</div>
             <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
-            <div class="Paymentlimit">
-                <div style="font-size: 18px;" class="text-dark">Срок оплаты:
+            <div class="Paymentlimit row">
+                <div style="font-size: 18px;" class="text-dark col-12">Срок оплаты:
                 </div>
-                <input name="paymenttime" id="paymenttime" data-id="{{ supplier.id }}" type="text" value="{{ supplier.paymenttime }}">
+                <div class="col-1"><input class="w-100" name="paymenttime" id="paymenttime" data-id="{{ supplier.id }}" type="text" value="{{ supplier.paymenttime }}"></div>
+                <div class="col" id="Error_1"></div>
             </div>
             </a>
         </div>
@@ -30,9 +31,9 @@
 
 
                     </div>
-                        {% if invoice.overdue and not invoice.paid %}
-                            ПРОСРОЧЕНА ОПЛАТА
-                        {% endif %}
+                    {% if invoice.overdue and not invoice.paid %}
+                        ПРОСРОЧЕНА ОПЛАТА
+                    {% endif %}
                     <div style="flex-basis: 100px; display:flex">
                     </div>
                     <div style="flex-basis: 100px; display: flex;" class="{% if invoice.paid %}text-success{% else %} text-danger {% endif %}">
@@ -88,8 +89,25 @@
                 async: false,
                 success: function (data) {
                     console.log(data)
-                }
+                    if (data.success === true) {
+                        const element = document.getElementById("Error_1");
+                        element.innerHTML = "Works";
+                        $(e.currentTarget).removeAttr("style")
+                    } else {
+                        const element = document.getElementById("Error_1");
+                        element.innerHTML = data.message;
+                        $(e.currentTarget).css({"border": "2px red solid", "outline": "none"})
+                    }
+
+                },
+
+                failure: function (data) {
+
+                },
             });
+            {# if json responce is false - display pop up message - "Wrong format"   #}
+
         })
+        {#$(".Paymentlimit input").trigger("keyup")#}
     </script>
 {% endblock %}

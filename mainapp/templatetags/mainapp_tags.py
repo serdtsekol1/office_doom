@@ -17,6 +17,19 @@ from dremkas.settings import MEDIA_ROOT
 register = template.Library()
 
 
+@register.filter(name='split')
+def split(value, key):
+    """
+        Returns the value turned into a list.
+    """
+    if len(key) == 1:
+        return value.split(key)
+    else:
+        return value.split(key[0])[int(key[1])]
+
+
+
+
 @register.simple_tag
 def call_method(obj, method_name, **kwargs):
     """
@@ -46,10 +59,12 @@ def filter_image_x2(value, x=2):
     """Фільтер для збільшеня width/height картинки в 2 рази"""
     return int(value) * x
 
+
 @register.filter
 def multiply(num1, num2):
     """Фільтер для збільшеня width/height картинки в 2 рази"""
-    return Decimal(str(num1).replace(",",".")) * Decimal(str(num2).replace(",","."))
+    return Decimal(str(num1).replace(",", ".")) * Decimal(str(num2).replace(",", "."))
+
 
 @register.filter
 def divide(num1, num2):
@@ -58,6 +73,7 @@ def divide(num1, num2):
         return Decimal(num1) / Decimal(num2)
     except Exception as ex:
         return 0
+
 
 @register.filter
 def subtract(num1, num2):
@@ -77,15 +93,16 @@ def tag_get_full_path(request, path=None):
     return url
 
 
-
 @register.filter
 def filter_phone_trim(phone):
     phone = re.sub("\D+", '', str(phone))
     return str(phone)
 
+
 @register.filter
 def media_url(value, request):
     return ''.join([request.scheme, "://", request.META['HTTP_HOST'], value])
+
 
 @register.filter
 def add_language_to_link(url, lng):
