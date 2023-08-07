@@ -463,9 +463,6 @@ def invoices_diadoc(request):
         for dreamkas_invoice in dreamkas_invoices:
             if dreamkas_invoice.number == diadoc_invoice.number and dreamkas_invoice.issue_date == diadoc_invoice.issue_date and dreamkas_invoice.supplier == diadoc_invoice.kontragent:
                 matching_invoices.append(dreamkas_invoice)
-
-    print(matching_invoices)
-
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': diadocinvoices, 'matching_invoices': matching_invoices})
 
 
