@@ -44,6 +44,51 @@
         </div>
 
     {% endfor %}
+
+    {% for problematic_invoices_sum in problematic_invoices.possible_problematic_invoices_sum %}
+        <div class="duplicate-group" style="margin-bottom: 10px">
+
+                {% for problematic_invoice_sum in problematic_invoices_sum %}
+                    <li class="list-group-item d-flex justify-content-end align-items-center">
+                        <div style="flex-basis: 50%; flex-grow: 1;" class="">
+                            <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=problematic_invoice_sum.id_dreem %}">{{ problematic_invoice_sum.number }}</a></div>
+                            <div class="text-dark">{{ problematic_invoice_sum.supplier }}</div>
+                            <div class="text-dark">{{ problematic_invoice_sum.issue_date|date:"d.m.Y" }}</div>
+
+                        </div>
+                        <div style="flex-basis: 100px; display:flex">
+                        </div>
+                        <div style="flex-basis: 100px; display:flex">
+                        </div>
+                        <div style="flex-basis: 100px; display: flex;" class="">
+                        </div>
+
+                        <form action="{% url "hide_invoice" %}" method="post">
+                            <input hidden type="text" name="id_dreem" id="id_dreem" value="{{ problematic_invoice_sum.id_dreem }}">
+                            <input hidden type="text" name="comment" id="comment" value="Накладная помечена как дубликат с неправильной суммой">
+                            <button type="submit" class="btn btn-primary hide_invoice_button"
+                                    data-number="{{ problematic_invoice_sum.number }}"
+                                    data-supplier="{{ problematic_invoice_sum.supplier }}"
+                                    data-issue_date="{{ problematic_invoice_sum.issue_date|date:"d.m.Y" }}"
+                                    data-id_dreem="{{ problematic_invoice_sum.id_dreem }}"
+                                    data-comment="Накладная помечена как дубликат с неправильной суммой">
+                                Пометить как дубликат в неправильной суммой
+                            </button>
+                        </form>
+                        <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ problematic_invoice_sum.sum }}</div>
+                        </div>
+                    </li>
+
+
+                {% endfor %}
+
+
+        </div>
+
+    {% endfor %}
+
+
     <script>
         $(".hide_invoice_button").on('click', (e) => {
 
