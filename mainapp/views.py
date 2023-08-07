@@ -446,7 +446,7 @@ def dreamkas_suppliers(request):
 
 def dreamkas_supplier(request, supplier_name):
     supplier = Supplier.objects.get(name=supplier_name)
-    dreamkas_invoices = Invoice.objects.all().order_by("-issue_date")
+    dreamkas_invoices = Invoice.objects.filter(hide=False).order_by("-issue_date")
     return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices})
 
 
