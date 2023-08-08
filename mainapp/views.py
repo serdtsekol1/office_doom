@@ -489,7 +489,7 @@ def update_diadoc_invoices(request):
     if request.method == 'POST':
         try:
             DiadocInvoice.update_diadoc_invoices()
-            return redirect(reverse('invoices_diadoc'))
+            return JsonResponse({'success': True})
         except Exception as Ex:
             print(Ex)
             return JsonResponse({'success': False})
