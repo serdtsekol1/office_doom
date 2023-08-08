@@ -5,40 +5,40 @@
     {% for duplicates in problematic_invoices.duplicate_invoices %}
         <div class="duplicate-group" style="margin-bottom: 10px">
 
-                {% for duplicate in duplicates %}
-                    <li class="list-group-item d-flex justify-content-end align-items-center">
-                        <div style="flex-basis: 50%; flex-grow: 1;" class="">
-                            <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=duplicate.id_dreem %}">{{ duplicate.number }}</a></div>
-                            <div class="text-dark">{{ duplicate.supplier }}</div>
-                            <div class="text-dark">{{ duplicate.issue_date|date:"d.m.Y" }}</div>
+            {% for duplicate in duplicates %}
+                <li class="list-group-item d-flex justify-content-end align-items-center">
+                    <div style="flex-basis: 50%; flex-grow: 1;" class="">
+                        <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=duplicate.id_dreem %}">{{ duplicate.number }}</a></div>
+                        <div class="text-dark">{{ duplicate.supplier }}</div>
+                        <div class="text-dark">{{ duplicate.issue_date|date:"d.m.Y" }}</div>
 
-                        </div>
-                        <div style="flex-basis: 100px; display:flex">
-                        </div>
-                        <div style="flex-basis: 100px; display:flex">
-                        </div>
-                        <div style="flex-basis: 100px; display: flex;" class="">
-                        </div>
+                    </div>
+                    <div style="flex-basis: 100px; display:flex">
+                    </div>
+                    <div style="flex-basis: 100px; display:flex">
+                    </div>
+                    <div style="flex-basis: 100px; display: flex;" class="">
+                    </div>
 
-                        <form action="{% url "hide_invoice" %}" method="post">
-                            <input hidden type="text" name="id_dreem" id="id_dreem" value="{{ duplicate.id_dreem }}">
-                            <input hidden type="text" name="comment" id="comment" value="Накладная помечена как дубликат">
-                            <button type="submit" class="btn btn-primary hide_invoice_button"
-                                    data-number="{{ duplicate.number }}"
-                                    data-supplier="{{ duplicate.supplier }}"
-                                    data-issue_date="{{ duplicate.issue_date|date:"d.m.Y" }}"
-                                    data-id_dreem="{{ duplicate.id_dreem }}"
-                                    data-comment="Накладная помечена как дубликат">
-                                Пометить Как Дубликат
-                            </button>
-                        </form>
-                        <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
-                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ duplicate.sum }}</div>
-                        </div>
-                    </li>
+                    <form action="{% url "hide_invoice" %}" method="post">
+                        <input hidden type="text" name="id_dreem" id="id_dreem" value="{{ duplicate.id_dreem }}">
+                        <input hidden type="text" name="comment" id="comment" value="Накладная помечена как дубликат">
+                        <button type="submit" class="btn btn-primary hide_invoice_button"
+                                data-number="{{ duplicate.number }}"
+                                data-supplier="{{ duplicate.supplier }}"
+                                data-issue_date="{{ duplicate.issue_date|date:"d.m.Y" }}"
+                                data-id_dreem="{{ duplicate.id_dreem }}"
+                                data-comment="Накладная помечена как дубликат">
+                            Пометить Как Дубликат
+                        </button>
+                    </form>
+                    <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                        <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ duplicate.sum }}</div>
+                    </div>
+                </li>
 
 
-                {% endfor %}
+            {% endfor %}
 
 
         </div>
@@ -48,45 +48,71 @@
     {% for problematic_invoices_sum in problematic_invoices.possible_problematic_invoices_sum %}
         <div class="duplicate-group" style="margin-bottom: 10px">
 
-                {% for problematic_invoice_sum in problematic_invoices_sum %}
-                    <li class="list-group-item d-flex justify-content-end align-items-center">
-                        <div style="flex-basis: 50%; flex-grow: 1;" class="">
-                            <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=problematic_invoice_sum.id_dreem %}">{{ problematic_invoice_sum.number }}</a></div>
-                            <div class="text-dark">{{ problematic_invoice_sum.supplier }}</div>
-                            <div class="text-dark">{{ problematic_invoice_sum.issue_date|date:"d.m.Y" }}</div>
+            {% for problematic_invoice_sum in problematic_invoices_sum %}
+                <li class="list-group-item d-flex justify-content-end align-items-center">
+                    <div style="flex-basis: 50%; flex-grow: 1;" class="">
+                        <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a
+                                href="{% url "dreamkas_invoice" invoiceid=problematic_invoice_sum.id_dreem %}">{{ problematic_invoice_sum.number }}</a></div>
+                        <div class="text-dark">{{ problematic_invoice_sum.supplier }}</div>
+                        <div class="text-dark">{{ problematic_invoice_sum.issue_date|date:"d.m.Y" }}</div>
 
-                        </div>
-                        <div style="flex-basis: 100px; display:flex">
-                        </div>
-                        <div style="flex-basis: 100px; display:flex">
-                        </div>
-                        <div style="flex-basis: 100px; display: flex;" class="">
-                        </div>
+                    </div>
+                    <div style="flex-basis: 100px; display:flex">
+                    </div>
+                    <div style="flex-basis: 100px; display:flex">
+                    </div>
+                    <div style="flex-basis: 100px; display: flex;" class="">
+                    </div>
 
-                        <form action="{% url "hide_invoice" %}" method="post">
-                            <input hidden type="text" name="id_dreem" id="id_dreem" value="{{ problematic_invoice_sum.id_dreem }}">
-                            <input hidden type="text" name="comment" id="comment" value="Накладная помечена как дубликат с неправильной суммой">
-                            <button type="submit" class="btn btn-primary hide_invoice_button"
-                                    data-number="{{ problematic_invoice_sum.number }}"
-                                    data-supplier="{{ problematic_invoice_sum.supplier }}"
-                                    data-issue_date="{{ problematic_invoice_sum.issue_date|date:"d.m.Y" }}"
-                                    data-id_dreem="{{ problematic_invoice_sum.id_dreem }}"
-                                    data-comment="Накладная помечена как дубликат с неправильной суммой">
-                                Пометить как дубликат в неправильной суммой
-                            </button>
-                        </form>
-                        <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
-                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ problematic_invoice_sum.sum }}</div>
-                        </div>
-                    </li>
+                    <form action="{% url "hide_invoice" %}" method="post">
+                        <input hidden type="text" name="id_dreem" id="id_dreem" value="{{ problematic_invoice_sum.id_dreem }}">
+                        <input hidden type="text" name="comment" id="comment" value="Накладная помечена как дубликат с неправильной суммой">
+                        <button type="submit" class="btn btn-primary hide_invoice_button"
+                                data-number="{{ problematic_invoice_sum.number }}"
+                                data-supplier="{{ problematic_invoice_sum.supplier }}"
+                                data-issue_date="{{ problematic_invoice_sum.issue_date|date:"d.m.Y" }}"
+                                data-id_dreem="{{ problematic_invoice_sum.id_dreem }}"
+                                data-comment="Накладная помечена как дубликат с неправильной суммой">
+                            Пометить как дубликат в неправильной суммой
+                        </button>
+                    </form>
+                    <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                        <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ problematic_invoice_sum.sum }}</div>
+                    </div>
+                </li>
 
 
-                {% endfor %}
+            {% endfor %}
 
 
         </div>
 
     {% endfor %}
+
+    <div>
+        {% for supplier in problematic_suppliers %}
+
+            <div class="search_field" data-search_data_field="{{ supplier.name }} {{ supplier.inn }}">
+                <li class="list-group-item d-flex justify-content-end align-items-center">
+
+                    <div style="flex-basis: 50%; flex-grow: 1">
+                        <a href="{% url "dreamkas_supplier" supplier_name=supplier.name %}">
+                            <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.name }}</div>
+                            <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
+                        </a>
+                    </div>
+                    <div class="Paymentlimit row">
+                        <div style="font-size: 18px;" class="text-dark col-12">Срок оплаты:
+                        </div>
+                        <div class="col-1"><input class="w-100" name="paymenttime" id="paymenttime" data-id="{{ supplier.id }}" type="text" value="{{ supplier.paymenttime }}"></div>
+                        <div class="col" id="Error_1"></div>
+                    </div>
+
+                </li>
+            </div>
+
+        {% endfor %}
+    </div>
 
 
     <script>
@@ -111,7 +137,7 @@
                     console.log(data)
                     if (data.success === true) {
                         const count_elements = $(e.currentTarget).parents('.duplicate-group').find('>li').length
-                        if (count_elements > 2){
+                        if (count_elements > 2) {
                             $(e.currentTarget).parents('li').remove()
                         } else {
                             $(e.currentTarget).parents('.duplicate-group').remove()
@@ -123,7 +149,7 @@
                             showConfirmButton: false,
                             timer: 2500,
                             backdrop: false
-                        }).then(()=>{
+                        }).then(() => {
                             document.location.reload()
                         })
 

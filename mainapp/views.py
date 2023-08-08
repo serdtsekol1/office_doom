@@ -172,8 +172,9 @@ class Preset(View):
 @csrf_exempt
 def get_index_page(request, keyword='index'):
     probelems = problematic_invoices()
+    probelems_suppliers = get_suppliers_with_no_payment_time()
 
-    return render(request, "mainapp/pages/index.html", {'problematic_invoices': probelems})
+    return render(request, "mainapp/pages/index.html", {'problematic_invoices': probelems, 'problematic_suppliers': probelems_suppliers})
 
 
 @csrf_exempt
@@ -209,6 +210,11 @@ def good_groups(request, keyword='inaaadex'):
 
     # return render(request, "mainapp/pages/good_groups.html", {'list_from_file': list_from_file, 'good_groups': GoodGroups.objects.all()})
     return render(request, "mainapp/pages/good_groups.html", {'good_groups': GoodGroups.objects.all()})
+
+
+def get_suppliers_with_no_payment_time():
+    no_payment_suppliers = Supplier.objects.filter(paymenttime__isnull=True)
+    return no_payment_suppliers
 
 
 @csrf_exempt
@@ -392,6 +398,7 @@ def invoices(request):
     page = Paginator(invoices, 500).page(request.GET.get("page", 1))
     return render(request, 'mainapp/pages/invoices.html', {'invoices': page})
 
+
 @csrf_exempt
 def hide_invoice(request):
     if request.method == 'POST':
@@ -480,8 +487,12 @@ def update_item_group(request):
 @csrf_exempt
 def update_diadoc_invoices(request):
     if request.method == 'POST':
-        DiadocInvoice.update_diadoc_invoices()
-        return redirect(reverse('invoices_diadoc'))
+        try:
+            DiadocInvoice.update_diadoc_invoices()
+            return redirect(reverse('invoices_diadoc'))
+        except Exception as Ex:
+            print(Ex)
+            return JsonResponse({'success': False})
 
 
 @csrf_exempt

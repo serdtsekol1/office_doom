@@ -6,7 +6,7 @@
     {% if status == "Error" %}
     {% endif %}
     <form action="{% url "invoices_diadoc_update" %}" method="post">
-        <button type="submit" class="btn btn-success">Обновить Накладные в Диадок</button>
+        <button type="submit" class="btn btn-success refresh-diadoc-invoices">Обновить Накладные в Диадок</button>
     </form>
     <ol class="list-group list-group-numbered">
         {% for invoice in invoices %}
@@ -47,29 +47,33 @@
         {% endfor %}
     </ol>
     <script>
-        if (Status == "Error"){
-            $('ModalToShow').modal("show");
-        }
+        $(".refresh-diadoc-invoices").on('click', (e) => {
+                e.preventDefault()
+                $.ajax({
+                    type: "POST",
+                    url: '/invoices_diadoc_update/',
+                    {#contentType: false,#}
+                    {#processData: false,#}
+                    {#async: false,#}
+                    success: function (data) {
+                        console.log(data)
+                        if (data.success === true) {
+                            document.location.reload()
+                        } else {
+                            Swal.fire({
+                                position: 'top-end',
+                                title: `Произошла Ошибка. Попробуйте позже либо обратитесь к администиатору`,
+                                showConfirmButton: false,
+                                timer: 10000,
+                                backdrop: false
+                            })
+                        }
 
-        $(".checked_paid").on('change', (e) => {
-
-            let id = e.currentTarget.id;
-            let paid = 0;
-            if (e.currentTarget.checked) {
-                paid = 1
+                    }
+                })
             }
+        )
 
-            $.ajax({
-                type: "POST",
-                url: '/paid_update/',
-                data: {'id': id, 'paid': paid},
-                {#contentType: false,#}
-                {#processData: false,#}
-                {#async: false,#}
-                success: function (data) {
-                    console.log(data)
-                }
-            });
-        })
+
     </script>
 {% endblock %}

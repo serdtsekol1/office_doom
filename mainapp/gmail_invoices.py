@@ -191,7 +191,8 @@ def create_document_from_excel(document_path):
             print(ex)
 
 # def find_excel_supplier(document):
-#         for company in companies_list:
+#         for company in compan
+#         ies_list:
 #               if company[1] in document.iloc[company[2],company[3]].
 
 #         return 0
