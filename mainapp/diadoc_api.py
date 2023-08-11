@@ -1,9 +1,9 @@
 import errno
 import os
 import json
+from time import sleep
 
 from requests_html import HTMLSession
-
 
 
 class DiadocApi():
@@ -15,7 +15,7 @@ class DiadocApi():
     PASSWORD = None
 
     def __init__(self, login, password):
-        print(login,password)
+        print(login, password)
         self.session = HTMLSession()
         self.session.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
@@ -39,30 +39,70 @@ class DiadocApi():
         self.login_http()
 
     def login_http(self):
+        import undetected_chromedriver as uc
+        from selenium.webdriver.common.by import By
         """
         Можливо колись понадобиться стандартний логін через https
         :return:
         """
-        authpage = self.session.get(self.LOGIN_URL)
+        BASE_PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
 
-        self.session.headers.update({
-            'X-CSRF-Token': authpage.cookies.get('AntiForgery'),
-            'Referer': self.LOGIN_URL
-        })
-        self.session.headers.pop('Upgrade-Insecure-Requests')
+        # Path to the chromedriver executable
+        CHROME_DRIVER_PATH = f'{BASE_PROJECT_PATH}/chromedriver.exe'
 
-        diadoc = self.session.post(
-            "https://auth.kontur.ru/api/authentication/password/auth-by-password?customize=default",
-            allow_redirects=True,
-            json =
-             {
-                 "Login": self.LOGIN, "Password": self.PASSWORD, "Remember": True
-             }
-        )
+        options = uc.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        driver = uc.Chrome(options=options)
+
+        # Navigate to the desired URL
+        driver.get("https://auth.kontur.ru/?customize=diadoc&back=https%3A%2F%2Fdiadoc.kontur.ru%2F")
+
+        # Find element with data-tid="tab_login"
+        login_tab = driver.find_element(By.XPATH, "//*[contains(@data-tid, 'tab_login')]")
+        login_tab.click()
+
+        # Find element with name="login"
+        login_field = driver.find_element(By.NAME, "login")
+        login_field.send_keys(self.LOGIN)
+
+        # Find element with type="password"
+        password_field = driver.find_element(By.CSS_SELECTOR, "*[type='password']")
+        password_field.send_keys(self.PASSWORD)
+
+        # Find element with data-tid="Button__root"
+        login_button = driver.find_element(By.XPATH, "//*[contains(@data-tid, 'Button__root')]")
+        login_button.click()
+        sleep(3)
+        # Fetch cookies
+        cookies = driver.get_cookies()
+
+        for cookie in cookies:
+            self.session.cookies.set(cookie['name'], cookie['value'])
+
+        # authpage = self.session.get(self.LOGIN_URL)
+        #
+        # self.session.headers.update({
+            # 'X-CSRF-Token': authpage.cookies.get('AntiForgery'),
+            # 'Referer': self.LOGIN_URL
+        # })
+        # self.session.headers.pop('Upgrade-Insecure-Requests')
+        #
+        # diadoc = self.session.post(
+        #     "https://auth.kontur.ru/api/authentication/password/auth-by-password?customize=diadoc",
+        #     allow_redirects=True,
+        #     json=
+        #     {
+        #         "Login": self.LOGIN, "Password": self.PASSWORD, "Remember": True
+        #     }
+        # )
+        # print(diadoc)
+
     def get_documents(self):
         self.LIST_DOCUMENTS = []
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{self.USER_BOX_ID}/Folder/Inbox")
         list_elements_with_document = page_list_documents.html.find("#letterList > li")
+
         for element_with_document in list_elements_with_document:
             list_elements_with_document_attach = element_with_document.find("ul[ft-name='attachments-list'] > li")
             for element_with_document_attach in list_elements_with_document_attach:
@@ -85,6 +125,7 @@ class DiadocApi():
                 except Exception as e:
                     print("diadoc_api get_documents Exception [000]" + str(e))
         return self.LIST_DOCUMENTS
+
     def download(self, url, file_name):
         if not os.path.exists(os.path.dirname(file_name)):
             try:
@@ -99,18 +140,14 @@ class DiadocApi():
                 file.write(response.content)
         except Exception as ex:
             print(ex)
+
     def download_invoices(self):
         for dock in self.LIST_DOCUMENTS:
             print(dock)
             self.download(dock.get('link_document_attachment'), f'media/diadoc_files/{dock.get("documentid")}.xml')
-
-
-
-
 
 # session.headers.update({
 #     'Referer': "https://auth.kontur.ru/"
 # })
 # authpage = session.get("https://cabinet.kontur.ru/?p=1210&utm_referer=auth.kontur.ru&utm_startpage=kontur.ru&utm_orderpage=kontur.ru")
 # authpage = session.get("https://diadoc.kontur.ru/Box/Selection?back=/?using=switcher&from=cabinet.kontur.ru")
-

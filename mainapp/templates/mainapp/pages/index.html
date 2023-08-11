@@ -2,49 +2,60 @@
 
 {% load mainapp_tags %}
 {% block body %}
-    {% for duplicates in problematic_invoices.duplicate_invoices %}
-        <div class="duplicate-group" style="margin-bottom: 10px">
+    {% if problematic_invoices.duplicate_invoices|length > 0 %}
+        <ol class="list-group list-group-numbered">
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+                <div class="ms-2 me-auto">
+                    <div class="fw-bold" style="font-size: 24px">Дубликаты нкладных</div>
+                    <div>Накладные в которых совпадают поставщик, дата, номер и сумма.</div>
+                    <div>Нужно действие пользователя для определения оригинала и дубликатов.</div>
+                </div>
+                <span class="badge bg-primary rounded-pill">14</span>
+            </li>
+        </ol>
+        {% for duplicates in problematic_invoices.duplicate_invoices %}
+            <div class="duplicate-group" style="margin-bottom: 10px">
 
-            {% for duplicate in duplicates %}
-                <li class="list-group-item d-flex justify-content-end align-items-center">
-                    <div style="flex-basis: 50%; flex-grow: 1;" class="">
-                        <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=duplicate.id_dreem %}">{{ duplicate.number }}</a></div>
-                        <div class="text-dark">{{ duplicate.supplier }}</div>
-                        <div class="text-dark">{{ duplicate.issue_date|date:"d.m.Y" }}</div>
+                {% for duplicate in duplicates %}
+                    <li class="list-group-item d-flex justify-content-end align-items-center">
+                        <div style="flex-basis: 50%; flex-grow: 1;" class="">
+                            <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=duplicate.id_dreem %}">{{ duplicate.number }}</a></div>
+                            <div class="text-dark">{{ duplicate.supplier }}</div>
+                            <div class="text-dark">{{ duplicate.issue_date|date:"d.m.Y" }}</div>
 
-                    </div>
-                    <div style="flex-basis: 100px; display:flex">
-                    </div>
-                    <div style="flex-basis: 100px; display:flex">
-                    </div>
-                    <div style="flex-basis: 100px; display: flex;" class="">
-                    </div>
+                        </div>
+                        <div style="flex-basis: 100px; display:flex">
+                        </div>
+                        <div style="flex-basis: 100px; display:flex">
+                        </div>
+                        <div style="flex-basis: 100px; display: flex;" class="">
+                        </div>
 
-                    <form action="{% url "hide_invoice" %}" method="post">
-                        <input hidden type="text" name="id_dreem" id="id_dreem" value="{{ duplicate.id_dreem }}">
-                        <input hidden type="text" name="comment" id="comment" value="Накладная помечена как дубликат">
-                        <button type="submit" class="btn btn-primary hide_invoice_button"
-                                data-number="{{ duplicate.number }}"
-                                data-supplier="{{ duplicate.supplier }}"
-                                data-issue_date="{{ duplicate.issue_date|date:"d.m.Y" }}"
-                                data-id_dreem="{{ duplicate.id_dreem }}"
-                                data-comment="Накладная помечена как дубликат">
-                            Пометить Как Дубликат
-                        </button>
-                    </form>
-                    <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
-                        <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ duplicate.sum }}</div>
-                    </div>
-                </li>
-
-
-            {% endfor %}
+                        <form action="{% url "hide_invoice" %}" method="post">
+                            <input hidden type="text" name="id_dreem" id="id_dreem" value="{{ duplicate.id_dreem }}">
+                            <input hidden type="text" name="comment" id="comment" value="Накладная помечена как дубликат">
+                            <button type="submit" class="btn btn-primary hide_invoice_button"
+                                    data-number="{{ duplicate.number }}"
+                                    data-supplier="{{ duplicate.supplier }}"
+                                    data-issue_date="{{ duplicate.issue_date|date:"d.m.Y" }}"
+                                    data-id_dreem="{{ duplicate.id_dreem }}"
+                                    data-comment="Накладная помечена как дубликат">
+                                Пометить Как Дубликат
+                            </button>
+                        </form>
+                        <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ duplicate.sum }}</div>
+                        </div>
+                    </li>
 
 
-        </div>
+                {% endfor %}
 
-    {% endfor %}
 
+            </div>
+
+        {% endfor %}
+        {{ problematic_invoices.duplicate_invoices|length }}{% endif %}
     {% for problematic_invoices_sum in problematic_invoices.possible_problematic_invoices_sum %}
         <div class="duplicate-group" style="margin-bottom: 10px">
 
@@ -105,7 +116,6 @@
                         <div style="font-size: 18px;" class="text-dark col-12">Срок оплаты:
                         </div>
                         <div class="col-1"><input class="w-100" name="paymenttime" id="paymenttime" data-id="{{ supplier.id }}" type="text" value="{{ supplier.paymenttime }}"></div>
-                        <div class="col" id="Error_1"></div>
                     </div>
 
                 </li>
