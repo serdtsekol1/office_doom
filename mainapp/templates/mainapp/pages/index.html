@@ -10,7 +10,7 @@
                     <div>Накладные в которых совпадают поставщик, дата, номер и сумма.</div>
                     <div>Нужно действие пользователя для определения оригинала и дубликатов.</div>
                 </div>
-                <span class="badge bg-primary rounded-pill">14</span>
+                <span class="badge bg-primary rounded-pill" style="font-size: 28px;">{{ problematic_invoices.duplicate_invoices|length }}</span>
             </li>
         </ol>
         {% for duplicates in problematic_invoices.duplicate_invoices %}

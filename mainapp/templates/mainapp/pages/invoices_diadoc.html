@@ -1,12 +1,13 @@
 {% extends 'wrapper.html' %}
 {% block body %}
     {{ Status }}
-
-
     {% if status == "Error" %}
     {% endif %}
     <form action="{% url "invoices_diadoc_update" %}" method="post">
-        <button type="submit" class="btn btn-success refresh-diadoc-invoices">Обновить Накладные в Диадок</button>
+        <button type="submit" class="btn btn-success refresh-diadoc-invoices">
+            <span style = "display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <span role="status">Обновить Накладные в Диадок</span>
+        </button>
     </form>
     <ol class="list-group list-group-numbered">
         {% for invoice in invoices %}
@@ -49,12 +50,16 @@
     <script>
         $(".refresh-diadoc-invoices").on('click', (e) => {
                 e.preventDefault()
+                let spinner = $(".refresh-diadoc-invoices span.loading-spinner-stuff");
+                spinner.css("display", "inherit")
+                {#element.getElementById('update-diadoc-invoices').setAttribute(class, "btn btn-success refresh-diadoc-invoices spinner-border spinner-border-sm")#}
                 $.ajax({
                     type: "POST",
                     url: '/invoices_diadoc_update/',
                     {#contentType: false,#}
                     {#processData: false,#}
                     {#async: false,#}
+
                     success: function (data) {
                         console.log(data)
                         if (data.success === true) {
@@ -67,6 +72,7 @@
                                 timer: 10000,
                                 backdrop: false
                             })
+                            spinner.css("display", "none")
                         }
 
                     }
