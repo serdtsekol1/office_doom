@@ -303,7 +303,7 @@ def problematic_invoices():
     possible_problematic_invoices_supplier = Invoice.objects.filter(hide=False).values("number", "sum", "issue_date").annotate(
         number_c=Concat("number"),
         id_2=Concat("id"),
-        supplier_c=Value(""),
+        supplier_c=Value('supplier'),
         sum_c=Concat("sum"),
         issue_date_c=Concat("issue_date"),
         count=Count("number")
@@ -317,6 +317,8 @@ def problematic_invoices():
 
     possible_problematic_invoices_sum |= dublicate_invoices
     possible_problematic_invoices_supplier |= possible_problematic_invoices_sum | dublicate_invoices
+
+    #Get objects with ids provided from previous 3 actions:
 
     dupes = []
     for item in dublicate_invoices:
@@ -332,17 +334,28 @@ def problematic_invoices():
             group.append(Invoice.objects.filter(id=id).get())
         sum_dupes.append(group)
 
-    supplier_dupes = []
+    supplier_dupes_objects = []
     for item in possible_problematic_invoices_supplier:
         group = []
         for id in item['id_2'].split(','):
             group.append(Invoice.objects.filter(id=id).get())
-        supplier_dupes.append(group)
+        supplier_dupes_objects.append(group)
+
+    #Remove duplicates that can be cross-found.
+    sum_dupes_result = []
+    for item in sum_dupes:
+        if item not in dupes:
+            sum_dupes_result.append(item)
+
+    supplier_dupes_result = []
+    for item in supplier_dupes_objects:
+        if item not in dupes and item not in sum_dupes:
+            supplier_dupes_result.append(item)
 
     return {
         'duplicate_invoices': dupes,
-        'possible_problematic_invoices_sum': sum_dupes,
-        'possible_problematic_invoices_supplier': supplier_dupes
+        'possible_problematic_invoices_sum': sum_dupes_result,
+        'possible_problematic_invoices_supplier': supplier_dupes_result
     }
 
 
