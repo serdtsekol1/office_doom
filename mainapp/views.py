@@ -72,7 +72,8 @@ COMPANIES = [
     ('ip_melnikova_tatiana_bogdanovna', "IP Melnikova Tatiana Bogdanovna"),
     ('ip_yarosh_sergey_valerievich', 'IP Yarosh Sergey Valerievich'),
     ('ip_desna_vasility_anatolievich', ", IP Desna Vasiliy Anatolievich"),
-    ('ip_trusov_A_Yu, "IP TRUSOV Aleksey Yurievich')
+    ('ip_trusov_A_Yu', ", IP Trusov Aleksandr Yurievich"),
+
 
 
 ]
