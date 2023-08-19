@@ -57,25 +57,30 @@ class DiadocApi():
 
         # Navigate to the desired URL
         driver.get("https://auth.kontur.ru/?customize=diadoc&back=https%3A%2F%2Fdiadoc.kontur.ru%2F")
+        print("Auth contur Get - OK")
 
         # Find element with data-tid="tab_login"
         login_tab = driver.find_element(By.XPATH, "//*[contains(@data-tid, 'tab_login')]")
         login_tab.click()
+        print("Login Tab Click - OK")
 
         # Find element with name="login"
         login_field = driver.find_element(By.NAME, "login")
         login_field.send_keys(self.LOGIN)
+        print("Login Field Send - OK")
 
         # Find element with type="password"
         password_field = driver.find_element(By.CSS_SELECTOR, "*[type='password']")
         password_field.send_keys(self.PASSWORD)
-
+        print("Password Field Send - OK")
         # Find element with data-tid="Button__root"
         login_button = driver.find_element(By.XPATH, "//*[contains(@data-tid, 'Button__root')]")
         login_button.click()
+        print("Login Button Click - OK")
         sleep(3)
         # Fetch cookies
         cookies = driver.get_cookies()
+        print("Cookies - OK")
 
         for cookie in cookies:
             self.session.cookies.set(cookie['name'], cookie['value'])
