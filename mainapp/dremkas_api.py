@@ -406,7 +406,7 @@ class DreamKasApi:
             if self.check_code(product_code):
                 productcode = product_code
                 print("Product is EAC8/13")
-                found_product = self.search_goods(str(productcode))
+                found_product = self.search_goods(str(productcode).strip())
         except:
             print("EAC8/13 check, product not found or error")
             pass
