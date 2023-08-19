@@ -17,6 +17,7 @@ class DiadocApi():
     def __init__(self, login, password):
         print(login, password)
         self.session = HTMLSession()
+        print("HTML Session - OK")
         self.session.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
             "Accept-Encoding": "gzip, deflate, br",
@@ -33,9 +34,11 @@ class DiadocApi():
             "Accept-Language": "ru-RU,ru;q=0.9",
 
         }
+        print("Headers - OK")
 
         self.LOGIN = login
         self.PASSWORD = password
+        print("Login and Password to self - OK")
         self.login_http()
 
     def login_http(self):
