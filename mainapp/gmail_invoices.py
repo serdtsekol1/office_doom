@@ -130,7 +130,7 @@ def create_document_from_excel(document_path):
                             product_name = str(pandas_document.iloc[company["product_name_row"], i])
                             met_conditions = met_conditions + 1
                         if company["product_code_row"] is not None:
-                            product_code = str(pandas_document.iloc[company["product_code_row"], i])
+                            product_code = str(pandas_document.iloc[company["product_code_row"], i]).strip()
                             met_conditions = met_conditions + 1
                         if company["product_amount_type_row"] is not None:
                             product_amount_type = str(pandas_document.iloc[company["product_amount_type_row"], i])

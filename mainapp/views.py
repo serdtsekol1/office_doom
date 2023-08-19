@@ -4,7 +4,7 @@ import pickle
 import webbrowser
 from dataclasses import dataclass
 from decimal import Decimal
-
+import py7zr
 import pandas
 import requests
 import simplegmail
@@ -71,7 +71,9 @@ COMPANIES = [
     ('ip_popov_aleksandr_aleksandrovich', "Saksoye Morojenoye, popov A A"),
     ('ip_melnikova_tatiana_bogdanovna', "IP Melnikova Tatiana Bogdanovna"),
     ('ip_yarosh_sergey_valerievich', 'IP Yarosh Sergey Valerievich'),
-    ('ip_desna_vasility_anatolievich', ", IP Desna Vasiliy Anatolievich")
+    ('ip_desna_vasility_anatolievich', ", IP Desna Vasiliy Anatolievich"),
+    ('ip_trusov_A_Yu, "IP TRUSOV Aleksey Yurievich')
+
 
 ]
 
@@ -272,7 +274,7 @@ def invoices_update(request):
 
 
 def problematic_invoices():
-    dublicate_invoices = Invoice.objects.filter(hide=False).values("number", "sum", "issue_date", "supplier").annotate(
+    dublicate_invoices = Invoice.objects.filter(hide=False).order_by("-issue_date").values("number", "sum", "issue_date", "supplier").annotate(
         number_c=Concat("number"),
         id_2=Concat("id"),
         supplier_c=Concat("supplier"),
@@ -285,7 +287,7 @@ def problematic_invoices():
         "supplier_c",
         "sum_c",
         "issue_date_c")
-    possible_problematic_invoices_sum = Invoice.objects.filter(hide=False).values("number", "issue_date", "supplier").annotate(
+    possible_problematic_invoices_sum = Invoice.objects.filter(hide=False).order_by("-issue_date").values("number", "issue_date", "supplier").annotate(
         number_c=Concat("number"),
         id_2=Concat("id"),
         supplier_c=Concat("supplier"),
@@ -300,7 +302,7 @@ def problematic_invoices():
         "sum_c",
         "issue_date_c"
     )
-    possible_problematic_invoices_supplier = Invoice.objects.filter(hide=False).values("number", "sum", "issue_date").annotate(
+    possible_problematic_invoices_supplier = Invoice.objects.filter(hide=False).order_by("-issue_date").values("number", "sum", "issue_date").annotate(
         number_c=Concat("number"),
         id_2=Concat("id"),
         supplier_c=Value('supplier'),
@@ -351,7 +353,6 @@ def problematic_invoices():
     for item in supplier_dupes_objects:
         if item not in dupes and item not in sum_dupes:
             supplier_dupes_result.append(item)
-
     return {
         'duplicate_invoices': dupes,
         'possible_problematic_invoices_sum': sum_dupes_result,
@@ -427,6 +428,9 @@ def hide_invoice(request):
 def dreamkas_invoice(request, invoiceid):
     print(invoiceid)
     invoice = DREAM_KAS_API.get_document(invoiceid)
+    Invoice.objects.update_or_create(id_dreem=invoiceid, defaults={
+        "invoice_status" : True if invoice['status'] == "ACCEPTED" else False,
+    })
     try:
         Supplier.objects.update_or_create(name=invoice['sourceLegalEntity']['name'], defaults={
             'inn': invoice['sourceLegalEntity']['inn'],
@@ -452,8 +456,8 @@ def dreamkas_invoice(request, invoiceid):
     if priced == 0:
         invoice['positions'] = DREAM_KAS_API.price_invoice(invoice['positions'])
     total = 0
-    for item in invoice['positions']:
-        total = total + int(item['price']) * (int(item['amount'])) / 1000
+    #for item in invoice['positions']:
+    #        total = total + int(item['costWithTax']) / 1000
     print(invoice)
     return render(request, 'mainapp/pages/dreamkas_invoice.html', {'invoice': invoice, 'good_groups': GoodGroups.objects.all(), 'priced': priced, 'total': total})
 
@@ -557,30 +561,50 @@ def update_gmail_messages(request):
 @csrf_exempt
 def create_documents_from_gmail_message(request):
     if request.method == 'POST':
-
+        result = None
         gmail = simplegmail.Gmail()
         query_params = {
             "id": request.POST.get("gmail_message_id")
         }
         message = gmail.get_messages(query=construct_query(query_params))
-
+        if len(os.listdir("media/gmail_invoices/")) > 1:
+            print("Папка не пуста. Все файлы в media/gmail_invoices/ будут удалены")
+            for file in os.listdir("media/gmail_invoices/"):
+                os.remove("media/gmail_invoices/" + file)
         if message[0].attachments:
             for attachment in message[0].attachments:
                 attachment.save("media/gmail_invoices/" + attachment.filename, overwrite=True)
-                try:
-                    document = create_document_from_excel("media/gmail_invoices/" + attachment.filename)
-                except Exception as ex:
-                    print(ex)
-                try:
-                    os.remove("media/gmail_invoices/" + attachment.filename)
-                except Exception as ex:
-                    print(ex)
+                if attachment.filename.endswith(".rar") or attachment.filename.endswith(".zip"):
+                    try:
+                        with py7zr.SevenZipFile('media/gmail_invoices/' + attachment.filename, mode='r') as z:
+                            z.extractall('media/gmail_invoices/')
+                            os.remove('media/gmail_invoices/' + attachment.filename)
+                    except Exception as ex:
+                        print(ex)
+                        try:
+                            os.remove('media/gmail_invoices/' + attachment.filename)
+                        except:
+                            pass
 
-        try:
-            result = DREAM_KAS_API.createdocument(document["document_date"], "", document["partnerid"], str(document["document_number"]), positions=document["resulting_goods_list"])
-        except Exception as ex:
-            print("Failed to send document")
-            print(ex)
+        for attachment in os.listdir("media/gmail_invoices"):
+            try:
+                document = create_document_from_excel("media/gmail_invoices/" + attachment)
+                try:
+                    result = DREAM_KAS_API.createdocument(
+                        document["document_date"],
+                        "Документ Создан Автоматически. Источник - Почта",
+                        document["partnerid"],
+                        str(document["document_number"]),
+                        positions=document["resulting_goods_list"])
+                except Exception as ex:
+                    print("Failed to send document")
+                    print(ex)
+            except Exception as ex:
+                print(ex)
+            try:
+                os.remove("media/gmail_invoices/" + attachment)
+            except Exception as ex:
+                print(ex)
         print("send_document_result_done")
         if result is not None:
             return redirect(reverse('gmail_messages'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
@@ -638,7 +662,8 @@ def create_document_from_diadoc(request):
             'invoice_status': False,
             'printed': False,
             'hide': False,
-            'invoice_status': False
+            'invoice_status': False,
+            'comment': 'Документ Создан Автоматически. Источник - Диадок.'
         })
         return redirect(reverse('invoices_diadoc'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
         # else:

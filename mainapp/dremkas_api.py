@@ -820,6 +820,29 @@ class DreamKasApi:
         data.update({"positions": goods})
         return data
 
+    def generate_document_ip_trusov_A_Yu(self, file_path=None):
+        prefix = "TRUAY"
+        data = {}
+        data_dict = open_file_type(file_path=file_path)
+        data.update({"date": datetime.datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
+        data.update({"inn": data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвИП"]["@ИННФЛ"]})
+        if data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвИП"]["@ИННФЛ"] != "911000077609":
+            return
+        data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерСчФ"]})
+        # creating JSON object using dictionary object
+        goods = []
+        for item in data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов']:
+            if item == "@НомСтр":
+                new_position = self.search_goods_xml_diadoc(prefix, data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов'])
+                print(new_position)
+                goods.append(new_position)
+                break
+            new_position = self.search_goods_xml_diadoc(prefix, item)
+            print(new_position)
+            goods.append(new_position)
+        data.update({"positions": goods})
+        return data
+
 
     def generate_document_ip_popov_aleksandr_aleksandrovich(self, file_path=None):
         prefix = "PPVAA"
