@@ -49,7 +49,7 @@ def send_document(company, file, DREAM_KAS_API):
         print("send_document_document_done")
         partnerid = DREAM_KAS_API.search_partner_id_by_inn(document["inn"])
         print("send_document_partnerid_done")
-        result = DREAM_KAS_API.createdocument(document["date"], "", partnerid, str(document["doc_id"]), positions=document["positions"])
+        result = DREAM_KAS_API.createdocument(document["date"], "Документ Создан Автоматически. Источник - Диадок", partnerid, str(document["doc_id"]), positions=document["positions"])
         print("send_document_result_done")
         print(result)
         return result

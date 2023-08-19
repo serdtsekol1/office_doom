@@ -662,8 +662,6 @@ def create_document_from_diadoc(request):
             'invoice_status': False,
             'printed': False,
             'hide': False,
-            'invoice_status': False,
-            'comment': 'Документ Создан Автоматически. Источник - Диадок.'
         })
         return redirect(reverse('invoices_diadoc'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
         # else:
