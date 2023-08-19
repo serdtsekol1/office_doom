@@ -54,7 +54,7 @@ class DiadocApi():
         options.add_argument('--headless')
         options.add_argument('--disable-gpu')
         driver = uc.Chrome(options=options)
-
+        print("Driver - OK")
         # Navigate to the desired URL
         driver.get("https://auth.kontur.ru/?customize=diadoc&back=https%3A%2F%2Fdiadoc.kontur.ru%2F")
         print("Auth contur Get - OK")
