@@ -67,8 +67,12 @@ class Supplier(models.Model):
     paymenttime = models.IntegerField('paymenttime', blank=True, default=None, null=True)
     balance = models.DecimalField('balance', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
     comment = models.CharField('comment', max_length=2555, blank=True, default=None, null=True)
-
-
+    invoices_non_program = models.CharField('invoices_non_program', max_length=5000, blank=True, default='', null=True)
+    invoice_program = models.CharField('invoices_program', max_length=5000, blank=True, default='', null=True)
+class Position(models.Model):
+    position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
+    position_amount = models.DecimalField("position_amount", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    position_sum = models.DecimalField("position_sum", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
 class Invoice(models.Model):
     id_dreem = models.IntegerField('id_dreem', blank=True, default=None, null=True)
     supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
@@ -86,7 +90,8 @@ class Invoice(models.Model):
     hide_comment = models.CharField('Комментарий \ Причина того что накладная не видна', max_length=255, blank=True, default=None, null=True)
     ignore_problem = models.BooleanField('Игнорировать ли возможную проблему с накладной?', null=True, blank=True, default=False)
     printed = models.BooleanField('Was it printed?', null=True, blank=True, default=False)
-
+    created_via_program = models.BooleanField('Created via program?', null=True, blank=True, default=False)
+    positions = models.ManyToManyField(Position)
     # linked_documents = models.ManyToManyField("self", blank=True)
 
     @property
@@ -153,6 +158,23 @@ class Invoice(models.Model):
             document = DREAM_KAS_API.get_document(id_dreem)
             invoice, invoice_create = Invoice.objects.update(id_dreem=document['id'], defaults={
                 'invoice_status': True if "ACCEPTED" in document["status"] else False})
+
+class DailyInvoiceReport(models.Model):
+    date = models.DateField('Date Of Report', blank=True, default=None, null=True)
+    invoice_list = models.ManyToManyField(Invoice)
+    spendings = models.DecimalField('Spendings', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    estimated_profit = models.DecimalField('Estimated Profit', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+
+    @staticmethod
+    def generate_invoice_report(date,invoice_list):
+
+
+           # DREAM_KAS_API.get_receipts(date_from, date_to, item)
+
+        DailyInvoiceReport.objects.update_or_create(date=datetime.date.today(), defaults={
+
+        })
+
 
 class LinkedDocuments(models.Model):
     class DocumentTypesList(models.TextChoices):

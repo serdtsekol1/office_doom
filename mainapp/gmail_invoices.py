@@ -28,10 +28,10 @@ def open_document_as_data_dict(document_path):
     return pandas_document
 
 
-def get_gmail_messages():
+def get_gmail_messages(days=14):
     gmail = simplegmail.Gmail()
     query_params = {
-        "newer_than": (14, "day")
+        "newer_than": (days, "day")
     }
     result = gmail.get_messages(query=construct_query(query_params))
     return result
@@ -75,7 +75,7 @@ def create_document_from_excel(document_path):
             continue
 
         try:
-            if company["company_unique_information"] in pandas_document.iloc[company["company_unique_information_row"], company["company_unique_information_col"]]:
+            if company["company_unique_information"] in str(pandas_document.iloc[company["company_unique_information_row"], company["company_unique_information_col"]]):
                 partnerid = DREAM_KAS_API.search_partner_id_by_inn(company["company_inn"])
 
                 try:
@@ -110,6 +110,13 @@ def create_document_from_excel(document_path):
                 product_nds = None
                 product_amount = None
                 product_sum = None
+                product_code_priority = 0
+                # 0 - default
+                # 1 - name
+                try:
+                    product_code_priority = company['product_code_priority']
+                except:
+                    pass
                 if company["product_name_row"] is not None:
                     conditions = conditions + 1
                 if company["product_code_row"] is not None:
@@ -170,9 +177,12 @@ def create_document_from_excel(document_path):
 
                     except Exception as ex:
                         continue
+                if goods_list == []:
+                    print("0 goods error")
+                    continue
                 for good in goods_list:
                     resulting_good = DREAM_KAS_API.search_goods_gmail(prefix=company["company_prefix"], product_name=good["product_name"], product_code=good["product_code"],
-                                                                      product_amount=good["product_amount"], product_sum=good["product_sum"])
+                                                                      product_amount=good["product_amount"], product_sum=good["product_sum"], priority=product_code_priority)
                     resulting_goods_list.append(resulting_good)
                     print(resulting_good)
                 print(resulting_goods_list)

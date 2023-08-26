@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import pickle
@@ -21,8 +22,8 @@ from simplegmail import gmail
 from simplegmail.query import construct_query
 
 from dremkas.settings import DREAM_KAS_API, DIADOC_API
-from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages
-from .gmail_invoices import create_document_from_excel
+from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport
+from .gmail_invoices import create_document_from_excel, get_gmail_messages
 from .helper import send_document, delete_file
 
 from django.core.validators import MinValueValidator, MaxValueValidator, EMPTY_VALUES
@@ -36,6 +37,11 @@ from django.db.models import Aggregate
 GOOGLEMAIL = [
     "auto_mail@mpk-skvortsovo.ru",
 ]
+# diadoc_suppliers = []
+# for file in os.listdir("media/diadoc_suppliers/"):
+#     company = []
+#     company.append(file['supplier_inn'])
+
 COMPANIES = [
     ('ooo_partner', 'OOO Partner'),
     ('ooo_VNNA', 'Vinniy Aliansv'),
@@ -176,8 +182,18 @@ class Preset(View):
 def get_index_page(request, keyword='index'):
     probelems = problematic_invoices()
     probelems_suppliers = get_suppliers_with_no_payment_time()
+    problems_goods_department = DREAM_KAS_API.goods_analyzer(date_from=(datetime.datetime.today()-datetime.timedelta(days=1)).strftime("%Y-%m-%d"), date_to=datetime.datetime.today().strftime("%Y-%m-%d"))
+    #,devices=[31391,34796,163617]
+    #invoice_report()
+    #problems_goods = DREAM_KAS_API.goods_analyzer(date_from=datetime.datetime.now() - datetime.timedelta(days=1), date_to=datetime.datetime.now(),devices=[31391,34796,163617])
 
-    return render(request, "mainapp/pages/index.html", {'problematic_invoices': probelems, 'problematic_suppliers': probelems_suppliers})
+    return render(request, "mainapp/pages/index.html", {'problematic_invoices': probelems, 'problematic_suppliers': probelems_suppliers, 'problematic_goods_department': problems_goods_department})
+
+@csrf_exempt
+def get_all_gmail_messages(request):
+    if request.method == 'GET':
+        messages = get_gmail_messages(120)
+        return render(request, 'mainapp/pages/gmail_all_messages.html', {'gmail_all_messages': messages})
 
 
 @csrf_exempt
@@ -425,7 +441,28 @@ def hide_invoice(request):
         invoice.save()
         return JsonResponse({"success": True})
 
+def invoice_origin_check():
+    for item in Invoice.objects.all().order_by("-issue_date"):
+        if item['created_via_program'] == False and item['created_via_program'] not in Supplier.objects.filter(name=item['supplier'])['invoice_non_program']:
+            Supplier.objects.update(name=item['supplier'], defaults={
+                                    'invoice_non_program': 'invoice_non_program' + item['id_dreem'] + ','})
+        if item['created_via_program'] == True and item['created_via_program'] not in Supplier.objects.filter(name=item['supplier'])['invoice_program']:
+            Supplier.objects.update(name=item['supplier'], defaults={
+                                    'invoice_program': 'invoice_program' + item['id_dreem'] + ','})
 
+##def goods_analyzer():
+
+## Todo: for positions in http responce - concat all positions for last 90 days
+##      then for positions get  dreamkas_good(position)
+##      if position invomce_invoice > 1 year old or  doesn't exist - flag it as problematic. Comment - Good is never received via invoice or received long time ago.
+##      if position Good Group = Null - flag it as problematic. Comment - Good is not assigned a group.
+##      if position last sale is not in in concat all positions  - flag as problematic. Comment - Goods is not being sold.
+##      if poisition income_invoice > 1 year old or doesn't exist and is in concat all positions - Flag is as double problematic. COmment - Goods is not received via invomce invoice or received long time ago BUT is being sold.
+##      if position count < 0 - flag it as problematic. Comment - Negative good amount.
+##      if position count < 0 and is in concat all position  - flag it as double problematic. Comment - Negative good amount of sold goods.
+##      for each day in concat all positons - get amount of sales of position.
+##      if sales_total / 90 * profit_per_good > average_profit_per_good - flag it as popular good.
+##      More scenarios need to be check and done.
 def dreamkas_invoice(request, invoiceid):
     print(invoiceid)
     invoice = DREAM_KAS_API.get_document(invoiceid)
@@ -590,6 +627,7 @@ def create_documents_from_gmail_message(request):
         for attachment in os.listdir("media/gmail_invoices"):
             try:
                 document = create_document_from_excel("media/gmail_invoices/" + attachment)
+
                 try:
                     result = DREAM_KAS_API.createdocument(
                         document["document_date"],
@@ -597,6 +635,29 @@ def create_documents_from_gmail_message(request):
                         document["partnerid"],
                         str(document["document_number"]),
                         positions=document["resulting_goods_list"])
+                    webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id'])
+                    supplier, supplier_create = Supplier.objects.update_or_create(name=result['sourceLegalEntity']['name'], defaults={})
+                    Invoice.objects.update_or_create(id_dreem=result['id'], defaults={
+                        'number': result['num'],
+                        'supplier': result['sourceLegalEntity']['name'],
+                        'supplier_fk': supplier,
+                        'sum': Decimal(int(result['totalSum']) / 100),
+                        'issue_date': result['issueDate'],
+                        'invoicetype': True if "НАЛ" in result['num'] else False,
+                        'overdue': False,
+                        'invoice_status': False,
+                        'printed': False,
+                        'hide': False,
+                        'created_via_program': True,
+                    })
+                    Invoice_obj = Invoice.objects.get(id_dreem=result['id'])
+                    for position in result['positions']:
+                        position = Position.objects.create(
+                            position_id=position['productId'] if position['productId'] else position['name'],
+                            position_amount=Decimal(Decimal(position['amount']) / 100),
+                            position_sum=Decimal(int(result['totalSum']) / 100)
+                        )
+                        Invoice_obj.positions.add(position)
                 except Exception as ex:
                     print("Failed to send document")
                     print(ex)
@@ -608,7 +669,7 @@ def create_documents_from_gmail_message(request):
                 print(ex)
         print("send_document_result_done")
         if result is not None:
-            return redirect(reverse('gmail_messages'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
+            return redirect(reverse('gmail_messages'))
         else:
             print("Что-то пошло не так. НУЖНО ЧИНИТЬ. ЧЕРТ.")
 
@@ -663,7 +724,19 @@ def create_document_from_diadoc(request):
             'invoice_status': False,
             'printed': False,
             'hide': False,
+            'created_via_program': True,
         })
+        positions = []
+        Invoice_obj =  Invoice.objects.get(id_dreem=result['id'])
+        for position in result['positions']:
+            position = Position.objects.create(
+                position_id=position['productId'],
+                position_amount=Decimal(Decimal(position['amount']) / 100),
+                position_sum=Decimal(int(result['totalSum']) / 100)
+            )
+            Invoice_obj.positions.add(position)
+        #return (webbrowser.open_new_tab("mainapp/pages/dreamkas_invoice/" + str(result['id'])))
+        #return redirect(reverse('dreamkas_invoice', args=[result['id']]))
         return redirect(reverse('invoices_diadoc'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
         # else:
         #    return JsonResponse({"status": True if result else False}, safe=True)

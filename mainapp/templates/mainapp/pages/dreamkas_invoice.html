@@ -3,12 +3,16 @@
 {% block body %}
 
     <ol class="list-group list-group-numbered">
-        {{ invoice.id }}
         {{ priced }}
 
         {% if priced != 0 %}
             123123
         {% endif %}
+        <div style="font-size: 16px;">
+            Идентификатор Документа :{{ invoice.id }}
+        </div>
+
+
         <div style="font-size: 16px;">
             Отправитель : {{ invoice.sourceLegalEntity.name }}
         </div>
@@ -16,7 +20,7 @@
             Получатель : {{ invoice.targetLegalEntity.name }}
         </div>
         <div>
-            Принят: {{ invoice.acceptedAt }}
+            Дата Документа: {{ invoice.acceptedAt }}
         </div>
         <div style="font-size: 24px; {% if priced != 0 %}color:green{% endif %}{% if priced == 0 %} color:red {% endif %}">
 
@@ -84,36 +88,6 @@
                 <div class="col-sm-1 text-right">{{ item.price|divide:item.costWithTax|subtract:1|floatformat:4|multiply:100|floatformat:2 }}%</div>
                 <div class="col-sm-1"></div>
             </div>
-            {% comment %}<li class="list-group-item d-flex justify-content-end align-items-center">
-                <div style="flex-basis: 35%; flex-grow: 1; border-right:1px solid red">
-                    {{ item.name }}
-                </div>
-                <div style="flex-basis: 10%">
-                    <select data-good_id="{{ item.productId }}" name="select" id="select" class="form-control selectpiker select_good_group" style="width:100%">
-                        {% for group in good_groups %}
-                            <option {% if group.group_id == item.product.categoryId %}selected="selected"{% endif %} value={{ group.group_id }}>{{ group.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div style="flex-basis: 10%">
-                    {{ item.amount|divide:1000 }}
-                </div>
-                <div style="flex-basis: 10%">
-                    {{ item.costWithTax|divide:100 }}
-                </div>
-                <div style="flex-basis: 10%">
-                    {% if item.price == null %}
-
-                    {% endif %}
-                    {{ item.price|divide:100 }}
-                </div>
-                <div style="flex-basis: 7%">
-                    {{ item.price|divide:item.costWithTax|subtract:1|floatformat:4|multiply:100|floatformat:2 }}%
-                </div>
-            </li>
-            <ul class="list-unstyled card-columns">
-                <li></li>
-            </ul>{% endcomment %}
         {% endfor %}
         <div class="row border bg-dark text-light">
             <div class="col-sm-4 col-lg-5"></div>
@@ -135,6 +109,46 @@
         </div>
     </ol>
     <script>
+        $(".delete_position").on('click', (e) => {
+
+            e.preventDefault()
+            let id_dreem = {{ invoice.id }};
+            let position_number =
+                $.ajax({
+                    type: "POST",
+                    url: '/delete_position_from_invoice//',
+                    data: {'id_dreem': id_dreem, 'position_number': comment},
+                    {#contentType: false,#}
+                    {#processData: false,#}
+                    {#async: false,#}
+                    success: function (data) {
+                        console.log(data)
+                        if (data.success === true) {
+                            const count_elements = $(e.currentTarget).parents('.duplicate-group').find('>li').length
+                            if (count_elements > 2) {
+                                $(e.currentTarget).parents('li').remove()
+                            } else {
+                                $(e.currentTarget).parents('.duplicate-group').remove()
+                            }
+                            Swal.fire({
+                                position: 'top-end',
+                                icon: 'success',
+                                title: `Накладная ${number} от ${supplier} за ${issue_date} отмечена как дубликат, и более не будет показываться`,
+                                showConfirmButton: false,
+                                timer: 2500,
+                                backdrop: false
+                            }).then(() => {
+                                document.location.reload()
+                            })
+
+
+                        }
+
+                    }
+                });
+
+        })
+
         $(".select_good_group").on('change', (e) => {
 
             let group_id = $(e.currentTarget).find("option:selected").val()

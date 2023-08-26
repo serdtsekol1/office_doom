@@ -6,6 +6,8 @@ from time import sleep
 from requests_html import HTMLSession
 
 
+
+
 class DiadocApi():
     LIST_DOCUMENTS = []
     USER_BOX_ID = "09cbea0c-f483-4fa2-801a-bb4bd31c5e41"
@@ -44,6 +46,7 @@ class DiadocApi():
     def login_http(self):
         import undetected_chromedriver as uc
         from selenium.webdriver.common.by import By
+        from dremkas.settings import BASE_DIR
         """
         Можливо колись понадобиться стандартний логін через https
         :return:
@@ -51,12 +54,14 @@ class DiadocApi():
         BASE_PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
 
         # Path to the chromedriver executable
-        CHROME_DRIVER_PATH = f'{BASE_PROJECT_PATH}/chromedriver.exe'
+
+        CHROME_DRIVER_PATH = f'{BASE_DIR}/chromedriver.exe'
 
         options = uc.ChromeOptions()
         options.add_argument('--headless')
         options.add_argument('--disable-gpu')
-        driver = uc.Chrome(options=options)
+        #driver = uc.Chrome(options=options, executable_path=CHROME_DRIVER_PATH)
+        driver = uc.Chrome(options=options,driver_executable_path=CHROME_DRIVER_PATH)
         print("Driver - OK")
         # Navigate to the desired URL
         driver.get("https://auth.kontur.ru/?customize=diadoc&back=https%3A%2F%2Fdiadoc.kontur.ru%2F")

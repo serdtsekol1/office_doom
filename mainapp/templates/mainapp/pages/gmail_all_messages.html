@@ -1,0 +1,35 @@
+{% extends "wrapper.html" %}
+
+{% load mainapp_tags %}
+{% block body %}
+    <ol>
+        {% for message in gmail_all_messages %}
+            <li class="list-group-item d-flex justify-content-end align-items-center">
+                <div style="flex-basis: 50%; flex-grow: 1">
+                    <div style="font-size: 16px; font-weight: 500;" class="fw-bold"> {{ message.sender }}</div>
+                    <div class="text-dark">{{ message.date }}</div>
+                    <div class="text-dark">{{ message.subject }}</div>
+                    {% for attachment in message.attachments %}
+                        <div class="text-dark">{{ attachment.filename }}</div>
+                    {% endfor %}
+
+                    <div class="text-dark">{{ message.id }}</div>
+
+                </div>
+                {#                <div style="margin-right: 70px">#}
+                {#                    {% for diadoc_invoce in matching_invoices %}#}
+                {#                        {% if diadoc_invoce.number == invoice.number %}#}
+                {#                            {% if diadoc_invoce.supplier == invoice.kontragent %}#}
+                {#                                {% if diadoc_invoce.issue_date == invoice.issue_date %}#}
+                {#                                    <button type="submit" class="btn btn-primary">Просмотреть накладную</button>#}
+                {#                                {% endif %}#}
+                {#                            {% endif %}#}
+                {#                        {% endif %}#}
+                {#                    {% endfor %}#}
+
+
+                {#                </div>#}
+            </li>
+        {% endfor %}
+    </ol>
+{% endblock %}

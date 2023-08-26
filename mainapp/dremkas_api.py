@@ -214,6 +214,45 @@ class DreamKasApi:
         else:
             return products
 
+    def get_devices(self):
+        return self.session.get("https://kabinet.dreamkas.ru/api/devices").json()
+
+    def goods_analyzer(self, date_from, date_to):
+        departments = self.get_departments()
+        valid_Departments = []
+        for department in departments:
+            if "[" in department['name'] and "]" in department['name']:
+                valid_Departments.append(department['id'])
+        devices = self.get_devices()
+        problematic_goods_invalid_department = []
+        for device in devices:
+            result = self.get_receipts(date_from, date_to, device['id'])
+            for receipt in result['data']:
+                for position in receipt['positions']:
+                    if position['departmentId'] not in valid_Departments:
+                        problematic_good = [position['departmentId'],position['id'], position['name']]
+                        if problematic_good not in problematic_goods_invalid_department:
+                            problematic_goods_invalid_department.append(problematic_good)
+        return(problematic_goods_invalid_department)
+
+    def get_departments(self):
+        return self.session.get("https://kabinet.dreamkas.ru/api/departments").json()
+
+    def get_receipts(self,date_from = None, date_to = None, device = None):
+        if date_from == None:
+            date_from = ''
+        else:
+            date_from = '&from=' + str(date_from) + "T00:00:00Z"
+        if date_to == None:
+            date_to = ''
+        else:
+            date_to = '&to=' + str(date_to) + "T00:00:00Z"
+        if device == None:
+            device = ''
+        else:
+            device = '&devices=' + str(device)
+        return self.session.get("https://kabinet.dreamkas.ru/api/receipts?" + date_from + date_to + device + "&limit=1000").json()
+
 
     def createdocument(self, dataofdocument, comment, partner_id, doc_id, target_store_id=185449, positions=None):
         if not positions:
@@ -399,22 +438,24 @@ class DreamKasApi:
     def document_status(self):
         documents = self.get_documents(250)
 
-    def search_goods_gmail(self,prefix,product_name,product_code,product_amount,product_sum):
+    def search_goods_gmail(self,prefix,product_name,product_code,product_amount,product_sum,priority=0):
+        #0 - default
+        #1 - Name
         found_product = None
         productcode = None
         try:
             if self.check_code(product_code):
-                productcode = product_code
+
                 print("Product is EAC8/13")
-                found_product = self.search_goods(str(productcode).strip())
+                found_product = self.search_goods(str(product_code).strip())
         except:
             print("EAC8/13 check, product not found or error")
             pass
-        if found_product is None and productcode is not None:
+        if found_product is None and product_code is not None:
             try:
-                found_product = self.search_goods(prefix + str(productcode))
+                found_product = self.search_goods(prefix + str(product_code))
                 if productcode is None:
-                    productcode = prefix + str(productcode)
+                    productcode = prefix + str(product_code)
                     print()
             except:
                 pass
@@ -433,6 +474,8 @@ class DreamKasApi:
                         pass
                 found_product = self.search_goods(prefix + tempproductcode)
                 if productcode is None:
+                    productcode = prefix + tempproductcode
+                if priority == 1:
                     productcode = prefix + tempproductcode
             except:
                 pass
