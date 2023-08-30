@@ -1,0 +1,117 @@
+{% extends "wrapper.html" %}
+{% block body %}
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Recipient's username" aria-label="Recipient's username" aria-describedby="basic-addon2">
+    </div>
+    <form action="{% url "generate_goods_report" %}" method="post">
+        <button type="submit" class="btn btn-primary">Сгенерировать отчет по товарам</button>
+    </form>
+    {#    {{ problematic_goods_department }}#}
+    <ol class="list-group list-group-numbered">
+        {% for good in problematic_goods_department %}
+            <li class="list-group-item d-flex justify-content-start align-items-center one_good_group">
+                <div class="input-group mb-3" style="flex-basis: 33%; text-align: left;">
+                    <input data-good_id="{{ good.good_id }}" type="text" class="form-control" name="Good name" aria-describedby="basic-addon2" value="{{ good.good_name }}">
+                </div>
+                <div class="mb-3" style="flex-basis: 20%; text-align: left;">
+                </div>
+                <div>
+
+                    <select data-good_id="{{ good.good_id }}" name="select" id="select" class="form-control selectpiker select_good_group" style="width:100%">
+                        {% for group in good_groups %}
+                            <option {% if group.group_id == good.department_id %} selected="selected" {% endif %} value={{ group.group_id }}>{{ group.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </li>
+        {% endfor %}
+    </ol>
+    <script>
+        var typingTimer;
+        var doneTypingInterval = 400;
+
+        $(".select_good_group").on('change', (e) => {
+
+            let group_id = $(e.currentTarget).find("option:selected").val()
+            let good_id = e.currentTarget.dataset.good_id;
+            {#$.ajax({#}
+            {#    type: "POST",#}
+            {#    url: '/update_item_group/',#}
+            {#    data: {'good_id': good_id, 'group_id': group_id},#}
+            {#contentType: false,#}
+            {#processData: false,#}
+            {#async: false,#}
+            {#  });#}
+            $.ajax({
+                type: "POST",
+                url: "/edit_existing_report/",
+                data: {
+                    'good_id': good_id, "group_id": group_id,
+                    success: function () {
+                        document.location.reload()
+                    }
+                }
+            })
+        })
+        $(".one_good_group input").on('focusout', (e) => {
+            {#clearTimeout(typingTimer);#}
+            {#typingTimer = setTimeout(doneTyping(ekement), doneTypingInterval);#}
+            let element = e.currentTarget
+            let good_id = e.currentTarget.dataset.good_id;
+            let good_name = $(element).val()
+
+            console.log(good_id)
+            console.log(good_name)
+            $.ajax({
+                type: "POST",
+                url: '/update_item_group/',
+                data: {'good_id': good_id, 'good_name': good_name},
+                {#contentType: false,#}
+                {#processData: false,#}
+                {#async: false,#}
+            });
+            $.ajax({
+                type: "POST",
+                url: "/edit_existing_report/",
+                data: {
+                    'item_to_change': good_id, 'edited_item': {"group_id": group_id},
+                    success: function () {
+                        document.location.reload()
+                    }
+                }
+            })
+        })
+        {#$(".one_good_group input").on('keydown', (e) => {#}
+        {#    clearTimeout(typingTimer);#}
+        {# });#}
+        {##}
+        {#function doneTyping(element) {#}
+        {#    let good_id = $(element).dataset.good_id;#}
+        {#    let good_name = $(element).val()#}
+        {##}
+        {#    console.log(good_id)#}
+        {#    console.log(good_name)#}
+        {# } #}
+
+
+        {#console.log($(element).attr("name"))#}
+        {#console.log($(element).parent().parent().attr("id"))#}
+        {#let data = {#}
+        {#    'id': $(element).parent().parent().attr("id"),#}
+        {#    'field_name': $(element).attr("name"),#}
+        {#    'field_value': $(element).val(),#}
+        {# } #}
+        {#$.ajax({#}
+        {#    type: "POST",#}
+        {#    url: '/good_groups_user_form/',#}
+        {#    data: data,#}
+        {#contentType: false,#}
+        {#processData: false,#}
+        {#    async: false,#}
+        {#    success: function (data) {#}
+        {#        console.log(data)#}
+        {#    }#}
+        {#  }); #}
+
+    </script>
+{% endblock %}

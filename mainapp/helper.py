@@ -1,5 +1,5 @@
 import os
-
+import json
 import pandas as pd
 import xlrd
 import xmltodict
@@ -36,6 +36,13 @@ def normalizer_xls(file_name):
                     xls.iloc[row, col] = str(xls.iloc[row, col]).zfill(len(format_str))
     xls.to_excel(f"{file_name.replace('.xls', '_temp.xls')}")
     return f"{file_name.replace('.xls', '_temp.xls')}"
+
+def save_to_json(filepath, content):
+    content_to_dump = json.dumps(content)
+
+    with open(filepath, "w") as file:
+        file.write(content_to_dump)
+        file.flush()
 
 
 def send_document(company, file, DREAM_KAS_API):

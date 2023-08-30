@@ -79,7 +79,7 @@
                 <div class="col-sm-2">
                     <select data-good_id="{{ item.productId }}" name="select" id="select" class="form-control selectpiker select_good_group" style="width:100%">
                         {% for group in good_groups %}
-                            <option {% if group.group_id == item.product.categoryId %}selected="selected"{% endif %} value={{ group.group_id }}>{{ group.name }}</option>
+                            <option {% if group.group_id == item.product.categoryId %} selected="selected" {% endif %} value={{ group.group_id }}>{{ group.name }}</option>
                         {% endfor %}
                     </select></div>
                 <div class="col-sm-1 text-right">{{ item.amount|divide:1000 }}</div>

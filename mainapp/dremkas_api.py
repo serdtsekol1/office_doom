@@ -11,7 +11,7 @@ from requests.auth import HTTPBasicAuth
 from requests_html import HTMLSession
 
 # from dremkas.settings import MEDIA_ROOT
-from mainapp.helper import open_file_type
+from mainapp.helper import open_file_type, save_to_json
 
 
 class DocType(Enum):
@@ -150,9 +150,9 @@ class DreamKasApi:
         print("a")
 
 
-    def update_good_group(self, good_id, newgroup):
+    def update_good(self, good_id, group_id=None):
         response = self.session.get(f"https://kabinet.dreamkas.ru/api/v2/products/{good_id}/").json()
-        response["departmentId"] = str(newgroup)
+        response["departmentId"] = str(group_id)
         asd = self.session.patch(f"https://kabinet.dreamkas.ru/api/v2/products/{good_id}/", json=response)
         print(asd)
 
@@ -230,10 +230,18 @@ class DreamKasApi:
             for receipt in result['data']:
                 for position in receipt['positions']:
                     if position['departmentId'] not in valid_Departments:
-                        problematic_good = [position['departmentId'],position['id'], position['name']]
+                        problematic_good = position['id']
                         if problematic_good not in problematic_goods_invalid_department:
                             problematic_goods_invalid_department.append(problematic_good)
-        return(problematic_goods_invalid_department)
+        resulting_list_problematic_goods_invalid_department = []
+        for good in problematic_goods_invalid_department:
+            responce = self.session.get(f"https://kabinet.dreamkas.ru/api/v2/products/{good}").json()
+            new_good = {'good_id' : responce['id'],  "good_name": responce['name'], "department_id": responce['departmentId']}
+
+            resulting_list_problematic_goods_invalid_department.append(new_good)
+        date = datetime.datetime.strftime(datetime.datetime.today(), "%d-%m-%Y")
+        save_to_json(f"media/report_technical_files/report_goods_invalid_department_{date}.json",resulting_list_problematic_goods_invalid_department)
+        return None
 
     def get_departments(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/departments").json()

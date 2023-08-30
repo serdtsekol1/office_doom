@@ -24,7 +24,7 @@ from simplegmail.query import construct_query
 from dremkas.settings import DREAM_KAS_API, DIADOC_API
 from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport
 from .gmail_invoices import create_document_from_excel, get_gmail_messages
-from .helper import send_document, delete_file
+from .helper import send_document, delete_file, save_to_json
 
 from django.core.validators import MinValueValidator, MaxValueValidator, EMPTY_VALUES
 from django.utils import timezone
@@ -43,7 +43,7 @@ GOOGLEMAIL = [
 #     company.append(file['supplier_inn'])
 
 COMPANIES = [
-    ('ooo_partner', 'OOO Partner'),
+    ('ooo_partner', 'OOO Partnfer'),
     ('ooo_VNNA', 'Vinniy Aliansv'),
     ('ip_baykov', 'IP Baykov'),
     ('ooo_invest_torg', 'OOO Invest Torg'),
@@ -80,8 +80,6 @@ COMPANIES = [
     ('ip_desna_vasility_anatolievich', ", IP Desna Vasiliy Anatolievich"),
     ('ip_trusov_A_Yu', ", IP Trusov Aleksandr Yurievich"),
     ('ip_goliakov_vitaliy_viktorovich', ", IP Goliakov Vitaliy Viktorovich"),
-
-
 
 ]
 
@@ -183,12 +181,14 @@ class Preset(View):
 def get_index_page(request, keyword='index'):
     probelems = problematic_invoices()
     probelems_suppliers = get_suppliers_with_no_payment_time()
-    problems_goods_department = DREAM_KAS_API.goods_analyzer(date_from=(datetime.datetime.today()-datetime.timedelta(days=1)).strftime("%Y-%m-%d"), date_to=datetime.datetime.today().strftime("%Y-%m-%d"))
-    #,devices=[31391,34796,163617]
-    #invoice_report()
-    #problems_goods = DREAM_KAS_API.goods_analyzer(date_from=datetime.datetime.now() - datetime.timedelta(days=1), date_to=datetime.datetime.now(),devices=[31391,34796,163617])
+    problems_goods_department = DREAM_KAS_API.goods_analyzer(date_from=(datetime.datetime.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+                                                             date_to=datetime.datetime.today().strftime("%Y-%m-%d"))
+    # ,devices=[31391,34796,163617]
+    # invoice_report()
+    # problems_goods = DREAM_KAS_API.goods_analyzer(date_from=datetime.datetime.now() - datetime.timedelta(days=1), date_to=datetime.datetime.now(),devices=[31391,34796,163617])
 
     return render(request, "mainapp/pages/index.html", {'problematic_invoices': probelems, 'problematic_suppliers': probelems_suppliers, 'problematic_goods_department': problems_goods_department})
+
 
 @csrf_exempt
 def get_all_gmail_messages(request):
@@ -235,6 +235,66 @@ def good_groups(request, keyword='inaaadex'):
 def get_suppliers_with_no_payment_time():
     no_payment_suppliers = Supplier.objects.filter(paymenttime__isnull=True)
     return no_payment_suppliers
+
+
+@csrf_exempt
+def test_page(request):
+    good_groups = GoodGroups.objects.all()
+    problems_goods_department = None
+    # problems_goods_department = DREAM_KAS_API.goods_analyzer(date_from=(datetime.datetime.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+    #                                                          date_to=datetime.datetime.today().strftime("%Y-%m-%d"))
+    date = datetime.datetime.strftime(datetime.datetime.today(), "%d-%m-%Y")
+    if os.path.exists(f"media/report_technical_files/report_goods_invalid_department_{date}.json"):
+        with open(f"media/report_technical_files/report_goods_invalid_department_{date}.json", "rb") as file:
+            problems_goods_department = json.load(file)
+    return render(request, "mainapp/pages/testpage.html", {'good_groups': good_groups, 'problematic_goods_department': problems_goods_department})
+
+
+@csrf_exempt
+def edit_existing_report(request):
+    report = datetime.datetime.strftime(datetime.datetime.today(), "%d-%m-%Y")
+    if request.method - "POST":
+        with open(f"media/report_technical_files/report_goods_invalid_department_{report}.json", "rb") as file:
+            report_to_edit = json.load(file)
+        good_name = None
+        group_id = None
+        good_id = request.POST.get('good_id')
+        try:
+            good_name = request.POST.get('good_name')
+            print("good_name = " + good_name)
+
+        except:
+            pass
+        try:
+            group_id = request.POST.get('group_id')
+            print("group_id = " + group_id)
+        except:
+            pass
+
+        if group_id is not None:
+            for item in report_to_edit:
+                if item['id'] == good_id:
+                    item['group'] = group_id
+        if good_name is not None:
+            for item in report_to_edit:
+                if item['id'] == good_id:
+                    item['good_name'] = good_name
+        save_to_json(f"media/report_technical_files/report_goods_invalid_department_{report}.json", report_to_edit)
+        return redirect(reverse('test_page'))
+
+
+@csrf_exempt
+def generate_goods_report(request):
+    if "media" not in os.listdir():
+        os.mkdir("media")
+    if "report_technical_files" not in os.listdir("media"):
+        os.mkdir("media/report_technical_files")
+    if request.method == "POST":
+        date = datetime.datetime.strftime(datetime.datetime.today(), "%d-%m-%Y")
+        if not os.path.exists(f"media/report_technical_files/report_goods_invalid_department_{date}.json"):
+            DREAM_KAS_API.goods_analyzer(date_from=(datetime.datetime.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+                                         date_to=datetime.datetime.today().strftime("%Y-%m-%d"))
+    return redirect(reverse('test_page'))
 
 
 @csrf_exempt
@@ -338,7 +398,7 @@ def problematic_invoices():
     possible_problematic_invoices_sum |= dublicate_invoices
     possible_problematic_invoices_supplier |= possible_problematic_invoices_sum | dublicate_invoices
 
-    #Get objects with ids provided from previous 3 actions:
+    # Get objects with ids provided from previous 3 actions:
 
     dupes = []
     for item in dublicate_invoices:
@@ -361,7 +421,7 @@ def problematic_invoices():
             group.append(Invoice.objects.filter(id=id).get())
         supplier_dupes_objects.append(group)
 
-    #Remove duplicates that can be cross-found.
+    # Remove duplicates that can be cross-found.
     sum_dupes_result = []
     for item in sum_dupes:
         if item not in dupes:
@@ -442,14 +502,16 @@ def hide_invoice(request):
         invoice.save()
         return JsonResponse({"success": True})
 
+
 def invoice_origin_check():
     for item in Invoice.objects.all().order_by("-issue_date"):
         if item['created_via_program'] == False and item['created_via_program'] not in Supplier.objects.filter(name=item['supplier'])['invoice_non_program']:
             Supplier.objects.update(name=item['supplier'], defaults={
-                                    'invoice_non_program': 'invoice_non_program' + item['id_dreem'] + ','})
+                'invoice_non_program': 'invoice_non_program' + item['id_dreem'] + ','})
         if item['created_via_program'] == True and item['created_via_program'] not in Supplier.objects.filter(name=item['supplier'])['invoice_program']:
             Supplier.objects.update(name=item['supplier'], defaults={
-                                    'invoice_program': 'invoice_program' + item['id_dreem'] + ','})
+                'invoice_program': 'invoice_program' + item['id_dreem'] + ','})
+
 
 ##def goods_analyzer():
 
@@ -468,7 +530,7 @@ def dreamkas_invoice(request, invoiceid):
     print(invoiceid)
     invoice = DREAM_KAS_API.get_document(invoiceid)
     Invoice.objects.update_or_create(id_dreem=invoiceid, defaults={
-        "invoice_status" : True if invoice['status'] == "ACCEPTED" else False,
+        "invoice_status": True if invoice['status'] == "ACCEPTED" else False,
     })
     try:
         Supplier.objects.update_or_create(name=invoice['sourceLegalEntity']['name'], defaults={
@@ -495,7 +557,7 @@ def dreamkas_invoice(request, invoiceid):
     if priced == 0:
         invoice['positions'] = DREAM_KAS_API.price_invoice(invoice['positions'])
     total = 0
-    #for item in invoice['positions']:
+    # for item in invoice['positions']:
     #        total = total + int(item['costWithTax']) / 1000
     print(invoice)
     return render(request, 'mainapp/pages/dreamkas_invoice.html', {'invoice': invoice, 'good_groups': GoodGroups.objects.all(), 'priced': priced, 'total': total})
@@ -536,7 +598,7 @@ def update_item_group(request):
         group_id = request.POST.get("group_id")
         print(good_id)
         print(group_id)
-        DREAM_KAS_API.update_good_group(good_id, group_id)
+        DREAM_KAS_API.update_good(good_id, group_id=group_id)
         return JsonResponse({})
 
 
@@ -728,7 +790,7 @@ def create_document_from_diadoc(request):
             'created_via_program': True,
         })
         positions = []
-        Invoice_obj =  Invoice.objects.get(id_dreem=result['id'])
+        Invoice_obj = Invoice.objects.get(id_dreem=result['id'])
         for position in result['positions']:
             position = Position.objects.create(
                 position_id=position['productId'],
@@ -736,8 +798,8 @@ def create_document_from_diadoc(request):
                 position_sum=Decimal(int(result['totalSum']) / 100)
             )
             Invoice_obj.positions.add(position)
-        #return (webbrowser.open_new_tab("mainapp/pages/dreamkas_invoice/" + str(result['id'])))
-        #return redirect(reverse('dreamkas_invoice', args=[result['id']]))
+        # return (webbrowser.open_new_tab("mainapp/pages/dreamkas_invoice/" + str(result['id'])))
+        # return redirect(reverse('dreamkas_invoice', args=[result['id']]))
         return redirect(reverse('invoices_diadoc'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
         # else:
         #    return JsonResponse({"status": True if result else False}, safe=True)
