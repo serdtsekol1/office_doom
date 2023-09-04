@@ -179,15 +179,24 @@ class Preset(View):
 
 @csrf_exempt
 def get_index_page(request, keyword='index'):
-    probelems = problematic_invoices()
-    probelems_suppliers = get_suppliers_with_no_payment_time()
-    problems_goods_department = DREAM_KAS_API.goods_analyzer(date_from=(datetime.datetime.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
-                                                             date_to=datetime.datetime.today().strftime("%Y-%m-%d"))
+
+
+
+
+    # probelems = problematic_invoices()
+    # probelems_suppliers = get_suppliers_with_no_payment_time()
+    # problems_goods_department = DREAM_KAS_API.goods_analyzer(date_from=(datetime.datetime.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
+    #                                                          date_to=datetime.datetime.today().strftime("%Y-%m-%d"))
+    #
+    #
+
+
     # ,devices=[31391,34796,163617]
     # invoice_report()
     # problems_goods = DREAM_KAS_API.goods_analyzer(date_from=datetime.datetime.now() - datetime.timedelta(days=1), date_to=datetime.datetime.now(),devices=[31391,34796,163617])
 
-    return render(request, "mainapp/pages/index.html", {'problematic_invoices': probelems, 'problematic_suppliers': probelems_suppliers, 'problematic_goods_department': problems_goods_department})
+    return render(request, "mainapp/pages/index.html",)
+                  #{'problematic_invoices': probelems, 'problematic_suppliers': probelems_suppliers, 'problematic_goods_department': problems_goods_department})
 
 
 @csrf_exempt
@@ -282,6 +291,16 @@ def edit_existing_report(request):
         save_to_json(f"media/report_technical_files/report_goods_invalid_department_{report}.json", report_to_edit)
         return redirect(reverse('test_page'))
 
+@csrf_exempt
+def generate_daily_report(request):
+    DailyInvoiceReport.generate_invoice_report()
+@csrf_exempt
+def overall_reports(request):
+    try:
+        date = request.POST.get("date")
+    except:
+        date = datetime.date.today()
+    selected_invoice_report = DailyInvoiceReport.objects.filter(date=date)
 
 @csrf_exempt
 def generate_goods_report(request):
@@ -690,7 +709,8 @@ def create_documents_from_gmail_message(request):
         for attachment in os.listdir("media/gmail_invoices"):
             try:
                 document = create_document_from_excel("media/gmail_invoices/" + attachment)
-
+                if document == None:
+                    continue
                 try:
                     result = DREAM_KAS_API.createdocument(
                         document["document_date"],
@@ -742,7 +762,7 @@ def show_excel_document(request):
     if request.method == "POST":
         if request.FILES:
             result = request.FILES['file']
-            pandas_document = pandas.read_excel(result, keep_default_na=False).transpose()
+            pandas_document = pandas.read_excel(result, keep_default_na=False, header=None).transpose()
             return JsonResponse({"document_html": pandas_document.to_html()}, safe=False)
     # document = document.to_html()
     return render(request, 'mainapp/pages/supplier_ruleset_editor.html')

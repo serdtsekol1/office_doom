@@ -2,7 +2,7 @@ from django.urls import path
 from mainapp.views import get_index_page, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
     update_diadoc_invoices, create_document_from_diadoc, dreamkas_invoice, update_item_group, dreamkas_suppliers, dreamkas_supplier, supplier_paymenttime_update, gmail_messages, update_gmail_messages, \
     inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document, hide_invoice, get_all_gmail_messages, test_page, \
-    generate_goods_report, edit_existing_report
+    generate_goods_report, edit_existing_report, overall_reports
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -14,6 +14,7 @@ urlpatterns = [
     path('test_page/', test_page, name="test_page"),
     path('good_groups/', good_groups, name="good_groups"),
     path('generate_goods_report/', generate_goods_report, name="generate_goods_report"),
+    path('overall_reports/', overall_reports, name="overall_reports"),
 
     ##DREAMKAS INVOICES
     path('invoices/', invoices, name="invoices"),

@@ -173,6 +173,13 @@ class DreamKasApi:
         search_res = [f for f in response if f.get("inn", None) == inn]
         if full_info:
             return search_res[0] if search_res else None
+        if search_res == []:
+            search_res = [f for f in response if f.get("inn", None) == str(inn)] # ЦЯ ХУЙНЯ ІСНУЄ БО ДРУМКАС ЯКОГОСЬ ХУЯ ПРИСОБАЧІЛИ ЗАМІСТЬ ІНТУ... ОДНОМУ
+            ## СУКА!
+            ## ОДНОМУ ПОСТАВЩИКУ ЗІ ВСЬОГО СПИСКУ ІНН В ВИДІ СТРІНГУ А НЕ ІНТУ. СУКААААААА НАХУУУУУУУУУЙ Я ЄБУ БЛЕАТЬ РОЗБИРАТИСЬ В ЇХ ФАКАПАХ. ЦЕ ДИБІЛІСТИКА НАХУЙ БЛЕАТЬ. ЯКОГО ХУЯ ВОНИ ЦЕ РОБЛЯТЬ?
+            ## ЦЕ Ж ЗРОБЛЕНО ПО ДОЛБОЙОБСЬКІ
+            if full_info:
+                return search_res[0] if search_res else None
         return search_res[0]['id'] if search_res else None
         # ddata = Dadata("991a11385053e95d9e289b4d65c87e7cecf50e7d")
         # try:

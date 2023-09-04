@@ -69,10 +69,14 @@ class Supplier(models.Model):
     comment = models.CharField('comment', max_length=2555, blank=True, default=None, null=True)
     invoices_non_program = models.CharField('invoices_non_program', max_length=5000, blank=True, default='', null=True)
     invoice_program = models.CharField('invoices_program', max_length=5000, blank=True, default='', null=True)
+
+
 class Position(models.Model):
     position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
     position_amount = models.DecimalField("position_amount", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
     position_sum = models.DecimalField("position_sum", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+
+
 class Invoice(models.Model):
     id_dreem = models.IntegerField('id_dreem', blank=True, default=None, null=True)
     supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
@@ -92,6 +96,7 @@ class Invoice(models.Model):
     printed = models.BooleanField('Was it printed?', null=True, blank=True, default=False)
     created_via_program = models.BooleanField('Created via program?', null=True, blank=True, default=False)
     positions = models.ManyToManyField(Position)
+
     # linked_documents = models.ManyToManyField("self", blank=True)
 
     @property
@@ -112,9 +117,18 @@ class Invoice(models.Model):
             if len(document['children']) > 1:
                 pricing_invoice = DREAM_KAS_API.get_document(document['children'])
                 # print(pricing_invoice)
-            supplier, supplier_create = Supplier.objects.update_or_create(name=document['sourceName'], defaults={
 
-            })
+            document_source = None
+            try:
+                document_source = document['sourceName']
+            except:
+                print(document)
+                continue
+            if document_source != None:
+
+                supplier, supplier_create = Supplier.objects.update_or_create(name=document['sourceName'], defaults={
+
+                 })
             # True if date.today() > document['issueDate'] + timedelta(days=supplier.paymenttime) else False,
             overdue = False
 
@@ -122,23 +136,32 @@ class Invoice(models.Model):
                 django_date = timezone.make_aware(datetime2.strptime(document['issueDate'], '%Y-%m-%d')).date()
                 if date.today() > django_date + timedelta(days=supplier.paymenttime):
                     overdue = True
+            if Invoice.objects.filter(id_dreem = document['id']) == [] : # If it doesnt exist - create one, with the flags set as default(like - printed)
+                                                                            # else - just update it without setting flags such as printed True
+                invoice, invoice_create = Invoice.objects.update_or_create(id_dreem=document['id'], defaults={
+                    'number': document['num'],
+                    'supplier': document['sourceName'],
+                    'supplier_fk': supplier,
+                    'sum': Decimal(int(document['totalSum']) / 100),
+                    'issue_date': document['issueDate'],
+                    'invoicetype': True if "НАЛ" in document['num'] else False,
+                    'overdue': overdue,
+                    'printed': False,
+                    'invoice_status': True if "ACCEPTED" in document["status"] else False
+                })
+            else:
+                if Invoice.objects.filter(id_dreem = document['id']).__len__() == 1:
+                    invoice, invoice_create = Invoice.objects.update_or_create(id_dreem=document['id'], defaults={
+                        'number': document['num'],
+                        'supplier': document['sourceName'],
+                        'supplier_fk': supplier,
+                        'sum': Decimal(int(document['totalSum']) / 100),
+                        'issue_date': document['issueDate'],
+                        'invoicetype': True if "НАЛ" in document['num'] else False,
+                        'overdue': overdue,
+                        'invoice_status': True if "ACCEPTED" in document["status"] else False
+                    })
 
-            invoice, invoice_create = Invoice.objects.update_or_create(id_dreem=document['id'], defaults={
-                'number': document['num'],
-                'supplier': document['sourceName'],
-                'supplier_fk': supplier,
-                'sum': Decimal(int(document['totalSum']) / 100),
-                'issue_date': document['issueDate'],
-                'invoicetype': True if "НАЛ" in document['num'] else False,
-                'overdue': overdue,
-                'printed': False,
-                'invoice_status': True if "ACCEPTED" in document["status"] else False
-
-                # 'invoicetype': True if "НАЛИЧНЫЙ РАССЧЕТ" in document.get('comment', "") else False, #document.get'comment, "" писля комменту - це для того, шоб воно не вибивало еррор, якшо комменту немаэ в ивнойси
-
-                # 'issue_date': str(document['issueDate'].split("-")[2])+"."+str(document['issueDate'].split("-")[1])+"."+str(document['issueDate'].split("-")[0])
-                # 'issue_date': document['issueDate'],
-            })
             count = Invoice.objects.all().count()
             # Invoice.objects.filter(id_dreem__in=[1234,12345]).update()
             documents_to_delete = []
@@ -154,10 +177,12 @@ class Invoice(models.Model):
                     'invoice_status': True if "ACCEPTED" in document["status"] else False})
         for item in documents_to_delete:
             Invoice.objects.filter(id_dreem=item).delete()
+
         def update_invoice(id_dreem):
             document = DREAM_KAS_API.get_document(id_dreem)
             invoice, invoice_create = Invoice.objects.update(id_dreem=document['id'], defaults={
                 'invoice_status': True if "ACCEPTED" in document["status"] else False})
+
 
 class DailyInvoiceReport(models.Model):
     date = models.DateField('Date Of Report', blank=True, default=None, null=True)
@@ -166,15 +191,89 @@ class DailyInvoiceReport(models.Model):
     estimated_profit = models.DecimalField('Estimated Profit', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
 
     @staticmethod
-    def generate_invoice_report(date,invoice_list):
+    def generate_invoice_report(date=None):
+        if date == None:
+            date = datetime.datetime.today().date()
+        if DailyInvoiceReport.objects.filter(date=date) == []:
+            pass
+        else:
+            return
+        Invoice.update_invoices()
+        non_printed_invoices = Invoice.objects.filter(printed=False, hide=False)
+        print(non_printed_invoices.__len__())
+        ##TODO: Change Printed to id of report.
+
+        for invoice in non_printed_invoices:
+            if invoice.invoice_status == False:
+                continue
+            if invoice.profit == None:
+                id_checker = None
+                invoice.profit = 0  # Profit not counted. Need to count it
+            #    print("Debug: invoice profit = 0 , counting profit.")
+                http_invoice = DREAM_KAS_API.get_document(invoice.id_dreem)  # get that document with no profit
+                if http_invoice['children'] == []:  # Document has no pricing order. profit = 0 , continue with next document
+             #       print("0 children documents, profit = 0")
+                    continue
+
+                for children_document in http_invoice['children']:  # Document has children. Check if any of them are pricing order.
+                    invoice_profit = 0
+                    children_document_id = children_document['id']
+                    if children_document['type'] == 'PRICING_ORDER': # Pricing ordder. Operation begins.
+                        pricing_order_document = DREAM_KAS_API.get_document(children_document_id)  # Document is pricing order, get it by id.
+              #          print("Got Document " + children_document_id)
+                        if pricing_order_document['status'] == 'DRAFT':  # Pricing order not valid, skipping
+                            continue
+               #             print("Pricing order = Draft, skipping")
+                        else:
+                            goods_that_need_to_be_priced_amount = http_invoice['positions'].__len__() #Pricing is valid. Getting amount of goods in invoice
+                            total_priced_goods = 0 #setting amount of goods that correctly priced to 0. Increase it with each correct pricing.
+                            for good in http_invoice['positions']:
+                                for priced_good in pricing_order_document['positions']:
+                                    if good['productId'] == priced_good['productId']: # IF goods match - calculate profit from good.
+                                        total_priced_goods = total_priced_goods + 1
+                                        invoice_profit = invoice_profit + float(good['amount'])/1000*float(priced_good['price'])/1000
+                   #                     print(good['name'])
+                  #                      print(float(good['amount'])/1000)
+                 #                       print(float(priced_good['price'])/1000)
+                #                        print('Income_for_this_good:' + str( float(good['amount'])/1000 * float(priced_good['price'])/1000))
+
+                            if total_priced_goods != goods_that_need_to_be_priced_amount:
+                                invoice_profit = -505
+                    if invoice.profit is not 0 and invoice_profit >= 0:
+                        print(0)
+                        if children_document_id > id_checker:
+                            invoice.profit = invoice_profit
+                        else:
+                            pass
+                    if invoice.profit == 0 and invoice_profit >= 0:
+                        invoice.profit = invoice_profit
+                        id_checker = children_document_id
+                    if invoice_profit <0:
+                        invoice.profit = invoice_profit
+                        print("ERROR INVOICE. INVOICE PRICING STATUS" , invoice_profit)
+                        print('Invoice info:')
+                        print('Invoice number: ' , invoice.number)
+                        print('Invoice id_dreem:' , invoice.id_dreem)
+                        print('Invoice supplier:' , invoice.supplier)
+                        print('Invoice sum:' , invoice.sum)
+                        print("Please Look into that invoice and create a proper pricing invoice.")
 
 
-           # DREAM_KAS_API.get_receipts(date_from, date_to, item)
+                invoice.save()
+        total_estimated_profit = 0
+        total_spendings = 0
+        for invoice in non_printed_invoices:
+            if invoice.profit > 0:
+                total_profit = total_estimated_profit + invoice.profit
+            total_spendings = total_spendings + invoice.sum
 
-        DailyInvoiceReport.objects.update_or_create(date=datetime.date.today(), defaults={
-
+        new_daily_report = DailyInvoiceReport.objects.update_or_create(date=datetime.date.today(), defaults={
+            'date': date,
+            'spendings' : total_spendings,
+            'estimated_profit' : total_estimated_profit
         })
-
+        new_daily_report[0].save()
+        new_daily_report[0].invoice_list.set(non_printed_invoices)
 
 class LinkedDocuments(models.Model):
     class DocumentTypesList(models.TextChoices):
@@ -208,7 +307,7 @@ class DiadocInvoice(models.Model):
                 'number': item['num'],
                 'issue_date': datetime2.strptime(item['date'], "%d.%m.%Y").strftime("%Y-%m-%d"),
                 # ({"date": datetime.datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
-                'status': item['status'],
+                'invoice_status': item['status'],
                 'downloadlink': item['link_document_attachment'],
             })
         return
