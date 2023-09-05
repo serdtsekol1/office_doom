@@ -293,7 +293,7 @@ class DiadocInvoice(models.Model):
     sum = models.CharField('Сумма', max_length=255, blank=True, default=None, null=True)
     # sum = models.DecimalField('Сумма', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
     issue_date = models.DateField('Дата', blank=True, default=None, null=True)
-    status = models.CharField('Статус', max_length=255, blank=True, default=None, null=True)
+    invoice_status = models.CharField('Статус', max_length=255, blank=True, default=None, null=True)
     downloadlink = models.CharField('Статус', max_length=1000, blank=True, default=None, null=True)
     invoices = models.ManyToManyField(Invoice)
 
