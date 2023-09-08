@@ -295,13 +295,41 @@ def edit_existing_report(request):
 def generate_daily_report(request):
     DailyInvoiceReport.generate_invoice_report()
 @csrf_exempt
-def overall_reports(request):
-    try:
-        date = request.POST.get("date")
-    except:
+def reports(request):
+    if request.method == "GET":
         date = datetime.date.today()
-    selected_invoice_report = DailyInvoiceReport.objects.filter(date=date)
-
+        try:
+            selected_invoice_report = DailyInvoiceReport.objects.filter(date=date)[0]
+        except:
+            selected_invoice_report = -1
+        if str(date.month).__len__() == 1:
+            date_month = "0" + str(date.month)
+        else:
+            date_month = str(date.month)
+        if str(date.day).__len__() == 1:
+            date_day = "0" + str(date.day)
+        else:
+            date_day = str(date.day)
+        date_formatted = str(date.year) + "-" + date_month + "-" + date_day
+        return render(request, 'mainapp/pages/reports.html', {'selected_invoice_report': selected_invoice_report, 'selected_date' : date, 'date_formatted' : date_formatted})
+    if request.method == "POST":
+        date = request.POST.get("date")
+        try:
+            selected_invoice_report = DailyInvoiceReport.objects.filter(date=date)[0]
+        except:
+            selected_invoice_report = -1
+        if str(date.month).__len__() == 1:
+            date_month = "0" + str(date.month)
+        else:
+            date_month = str(date.month)
+        if str(date.day).__len__() == 1:
+            date_day = "0" + str(date.day)
+        else:
+            date_day = str(date.day)
+        date_formatted = str(date.year) + "-" + date_month + "-" + date_day
+        return {
+            'selected_invoice_report' : selected_invoice_report, 'selected_date' : date, 'date_formatted' : date_formatted,
+        }
 @csrf_exempt
 def generate_goods_report(request):
     if "media" not in os.listdir():

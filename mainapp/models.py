@@ -117,7 +117,8 @@ class Invoice(models.Model):
             if len(document['children']) > 1:
                 pricing_invoice = DREAM_KAS_API.get_document(document['children'])
                 # print(pricing_invoice)
-
+            if str(document['id']) == "61344055":
+                print(document['id'])
             document_source = None
             try:
                 document_source = document['sourceName']
@@ -136,7 +137,7 @@ class Invoice(models.Model):
                 django_date = timezone.make_aware(datetime2.strptime(document['issueDate'], '%Y-%m-%d')).date()
                 if date.today() > django_date + timedelta(days=supplier.paymenttime):
                     overdue = True
-            if Invoice.objects.filter(id_dreem = document['id']) == [] : # If it doesnt exist - create one, with the flags set as default(like - printed)
+            if Invoice.objects.filter(id_dreem = document['id']).__len__() == 0 : # If it doesnt exist - create one, with the flags set as default(like - printed)
                                                                             # else - just update it without setting flags such as printed True
                 invoice, invoice_create = Invoice.objects.update_or_create(id_dreem=document['id'], defaults={
                     'number': document['num'],
@@ -147,7 +148,8 @@ class Invoice(models.Model):
                     'invoicetype': True if "НАЛ" in document['num'] else False,
                     'overdue': overdue,
                     'printed': False,
-                    'invoice_status': True if "ACCEPTED" in document["status"] else False
+                    'invoice_status': True if "ACCEPTED" in document["status"] else False,
+                    'hide' : False,
                 })
             else:
                 if Invoice.objects.filter(id_dreem = document['id']).__len__() == 1:
@@ -164,7 +166,7 @@ class Invoice(models.Model):
 
             count = Invoice.objects.all().count()
             # Invoice.objects.filter(id_dreem__in=[1234,12345]).update()
-            documents_to_delete = []
+        documents_to_delete = []
         for i, invoice in enumerate(Invoice.objects.all()):
             if invoice.invoice_status is not True:
                 print(i, count)
@@ -377,14 +379,18 @@ class Gmail_Messages(models.Model):
                     for ruleset in companies_list:
                         if message.sender[message.sender.find("<"):].replace("<", "").replace(">", "") == ruleset[0]:
                             message_date = datetime.datetime.strptime(message.date, ruleset[1])
+                            message_sender = message.sender[message.sender.find("<"):].replace("<", "").replace(">", "")
+                        if message.sender == ruleset[0]:
+                            message_date =datetime.datetime.strptime(message.date, ruleset[1])
+                            message_sender = message.sender
                 except:
+                    message_sender = message.sender
                     pass
                 if message_date == None:
-                    print("sender:" + message.sender[message.sender.find("<"):].replace("<", "").replace(">", ""))
+                    print("sender:" , message_sender)
                     print("name:" + message.subject)
                     print("Не найдена дата либо ошибка даты или ее формата либо данный отправитель не числится в списке отправителей")
                     continue
-                message_sender = message.sender[message.sender.find("<"):].replace("<", "").replace(">", "")
                 attachments_gmail = [f.filename for f in message.attachments]
                 gmail_message = Gmail_Messages.objects.filter(
                     message_sender=message_sender,
