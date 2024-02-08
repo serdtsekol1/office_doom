@@ -251,7 +251,7 @@ def Products_update():
             product_internal = existing_products_map[product_external['id_out']]
             if product_internal.updatedAt != product_external['updatedAt']:
                 product_internal.name = product_external['name']
-                product_internal.type = product_external['unit']
+                product_internal.type = product_external['type'] # Type here because unit is loaded into type when doing lists of products
                 product_internal.marked_good = product_external['marked_good']
                 product_internal.nds = product_external['nds']
                 product_internal.group_id = product_external['group_id'] if 'group_id' in product_external else None
@@ -261,7 +261,7 @@ def Products_update():
             product_data = Product(
                 id_out=product_external['id_out'],
                 name=product_external['name'],
-                type=product_external['unit'],
+                type=product_external['type'], # Type here because unit is loaded into type when doing lists of products
                 marked_good=product_external['marked_good'],
                 nds=product_external['nds'],
                 group_id=product_external['group_id'] if 'group_id' in product_external else None,
