@@ -4,6 +4,7 @@ import os
 from mainapp.diadoc_api import DiadocApi
 from mainapp.dremkas_api import DreamKasApi
 import dotenv
+
 dotenv.load_dotenv(override=True)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.sitemaps',
     'mainapp.apps.MainappConfig',
     'django_tables2',
+    'django_dump_load_utf8',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -136,6 +138,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.i18n',
+
             ],
         },
     },
@@ -286,7 +289,6 @@ FILEBROWSER_EXTENSIONS = {
     'Audio': ['.mp3', '.mp4', '.wav', '.aiff', '.midi', '.m4p']
 }
 
-
 JQUERY_URL = False  # smart_selects
 # USE_DJANGO_JQUERY = True # smart_selects
 SHOP_AMOUNT = os.environ.get('SHOP_AMOUNT')
@@ -297,9 +299,9 @@ DREAMKAS_LOGIN = os.environ.get('DREAMKAS_LOGIN')
 DREAMKAS_PASSWORD = os.environ.get('DREAMKAS_PASSWORD')
 TOKEN = os.environ.get(f'CURRENT_SHOP_{os.environ.get("DREAMKAS_TOKEN")}')
 DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
-DIADOC_LOGIN=os.environ.get('DIADOC_LOGIN')
-DIADOC_PASSWORD=os.environ.get('DIADOC_PASSWORD')
-DIADOC_ID=os.environ.get('DIADOC_ID')
+DIADOC_LOGIN = os.environ.get('DIADOC_LOGIN')
+DIADOC_PASSWORD = os.environ.get('DIADOC_PASSWORD')
+DIADOC_ID = os.environ.get('DIADOC_ID')
 print("Diadoc Login , PW - OK")
-DIADOC_API = DiadocApi(DIADOC_LOGIN,DIADOC_PASSWORD,DIADOC_ID)
+DIADOC_API = DiadocApi(DIADOC_LOGIN, DIADOC_PASSWORD, DIADOC_ID)
 print(DIADOC_LOGIN)
