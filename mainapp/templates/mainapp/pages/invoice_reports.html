@@ -1,0 +1,94 @@
+{% extends "wrapper.html" %}
+
+{% load mainapp_tags %}
+{% block body %}
+    <div>
+        <input type="date" id="start" name="trip-start" value="{{ date_formatted }}" min="2023-03-01" max="2041-01-01"/>
+        {#        {% if selected_invoice_report == -1 %}#}
+        <form action="{% url "generate_invoice_report" %}" method="post">
+            <button type="submit" class="btn btn-success generate-daily-invoice-report">
+                <span style="display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
+                <span role="status">Сгенерировать Отчет</span>
+            </button>
+        </form>
+        {#        {% endif %}#}
+    </div>
+    <div class="row border bg-dark text-light">
+        <div class="col-sm-4 col-lg-5">Товар</div>
+        <div class="col-sm-2"><span class="ml-3">Категория</span></div>
+        <div class="col-sm-1 text-right">Количество</div>
+        <div class="col-sm-1 text-right">Цена</div>
+        <div class="col-sm-2 col-lg-1 text-right">Цена продажи</div>
+        <div class="col-sm-1 text-right">Наценка</div>
+        <div class="col-sm-1"></div>
+    </div>
+    <div class="row border bg-dark text-light">
+        <div style='flex: 0 0 12%'>Контрагент</div>
+        <div style='flex: 0 0 10%'>Номер</div>
+        <div style='flex: 0 0 7%'>Дата</div>
+        <div style='flex: 0 0 7%'>Сумма</div>
+        <div style='flex: 0 0 7%'>Приход</div>
+        <div style='flex: 0 0 7%'>Прибыль</div>
+    </div>
+    {% for invoice in selected_invoice_report.invoice_list.all %}
+        <div class="row border bg-light text-dark">
+            <div style='flex: 0 0 12%'>{{ invoice.supplier }}</div>
+            <div style='flex: 0 0 10%'>{{ invoice.number }}</div>
+            <div style='flex: 0 0 7%'>{{ invoice.date }}</div>
+            <div style='flex: 0 0 7%'>{{ invoice.sum }}</div>
+            <div style='flex: 0 0 7%'>
+                {% if invoice.income != None or invoice.income == "0,00" %}{{ income.income }}{% endif %}
+                {% if invoice.income == None %}
+                    Накладная Не расценена либо не расценена корректно.
+                    <a href="/dreamkas_invoice/{{ invoice.id_dreem }}">
+                    <button>Просмотреть</button>
+
+                    </a>
+
+                {% endif %}</div>
+            <div style='flex: 0 0 7%'>Прибыль</div>
+        </div>
+    {% endfor %}
+
+
+    {{ selected_invoice_report.invoice_list.all }}
+
+    {{ selected_date }}
+    {{ selected_date.year }}
+    {{ selected_invoice_report }}
+    <script>
+        $(".generate-daily-invoice-report").on('click', (e) => {
+                e.preventDefault()
+                let spinner = $(".generate-daily-invoice-report span.loading-spinner-stuff");
+                spinner.css("display", "inherit")
+                {#element.getElementById('update-diadoc-invoices').setAttribute(class, "btn btn-success refresh-diadoc-invoices spinner-border spinner-border-sm")#}
+                $.ajax({
+                    type: "POST",
+                    url: '/generate_invoice_report/',
+                    {#contentType: false,#}
+                    {#processData: false,#}
+                    {#async: false,#}
+
+                    success: function (data) {
+                        console.log(data)
+                        if (data.success === true) {
+                            document.location.reload()
+                        } else {
+                            Swal.fire({
+                                position: 'top-end',
+                                title: `Произошла Ошибка. Попробуйте позже либо обратитесь к администиатору`,
+                                showConfirmButton: false,
+                                timer: 10000,
+                                backdrop: false
+                            })
+                            spinner.css("display", "none")
+                        }
+
+                    }
+                })
+            }
+        )
+
+
+    </script>
+{% endblock %}

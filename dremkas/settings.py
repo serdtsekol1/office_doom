@@ -146,27 +146,29 @@ WSGI_APPLICATION = 'dremkas.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'OPTIONS': {
-            'timeout': 20,
-        }
-    }
-}
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.environ.get('MYSQL_DATABASE', 'my-app-db'),
-#         'USER': os.environ.get('MYSQL_USER', 'root'),
-#         'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'password'),
-#         'HOST': os.environ.get('MYSQL_HOST', 'db'),
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #         'OPTIONS': {
-#             'charset': 'utf8',
-#         },
+#             'timeout': 20,
+#         }
 #     }
 # }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('MYSQL_DATABASE', 'my-app-db'),
+        'USER': os.environ.get('MYSQL_USER', 'root'),
+        'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'password'),
+        'HOST': os.environ.get('MYSQL_HOST', 'db'),
+        'CONN_MAX_AGE': 3600,
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES';",
+            'charset': 'utf8',
+        },
+    }
+}
 
 # DATABASES = {
 #     'default': {
@@ -287,14 +289,17 @@ FILEBROWSER_EXTENSIONS = {
 
 JQUERY_URL = False  # smart_selects
 # USE_DJANGO_JQUERY = True # smart_selects
-
-
+SHOP_AMOUNT = os.environ.get('SHOP_AMOUNT')
+CURRENT_IDS = os.environ.get(f'SHOP_{os.environ.get("CURRENT_SHOP")}')
+print(CURRENT_IDS)
 # DEFAULT_FILE_STORAGE = 'storages.backends.overwrite.OverwriteStorage'
 DREAMKAS_LOGIN = os.environ.get('DREAMKAS_LOGIN')
 DREAMKAS_PASSWORD = os.environ.get('DREAMKAS_PASSWORD')
+TOKEN = os.environ.get(f'CURRENT_SHOP_{os.environ.get("DREAMKAS_TOKEN")}')
 DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
 DIADOC_LOGIN=os.environ.get('DIADOC_LOGIN')
 DIADOC_PASSWORD=os.environ.get('DIADOC_PASSWORD')
+DIADOC_ID=os.environ.get('DIADOC_ID')
 print("Diadoc Login , PW - OK")
-DIADOC_API = DiadocApi(DIADOC_LOGIN,DIADOC_PASSWORD)
+DIADOC_API = DiadocApi(DIADOC_LOGIN,DIADOC_PASSWORD,DIADOC_ID)
 print(DIADOC_LOGIN)

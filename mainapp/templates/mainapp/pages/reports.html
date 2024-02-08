@@ -1,8 +1,0 @@
-{% extends "wrapper.html" %}
-
-{% load mainapp_tags %}
-{% block body %}
-    <input type="date" id="start" name="trip-start" value="{{ date_formatted }}" min="2023-03-01" max="2031-01-01" />
-    {{ selected_date }}
-    {{ selected_date.year}}
-{% endblock %}

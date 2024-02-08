@@ -2,7 +2,8 @@ from django.urls import path
 from mainapp.views import get_index_page, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
     update_diadoc_invoices, create_document_from_diadoc, dreamkas_invoice, update_item_group, dreamkas_suppliers, dreamkas_supplier, supplier_paymenttime_update, gmail_messages, update_gmail_messages, \
     inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document, hide_invoice, get_all_gmail_messages, test_page, \
-    generate_goods_report, edit_existing_report, reports
+    generate_goods_report, edit_existing_report, invoice_reports, generate_invoice_report, update_all_goods, generate_xlsx_file_for_printer, display_all_goods_for_printer, products, \
+    update_one_product, create_or_change_printer_code_for_product, change_printer_file_location
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -14,7 +15,16 @@ urlpatterns = [
     path('test_page/', test_page, name="test_page"),
     path('good_groups/', good_groups, name="good_groups"),
     path('generate_goods_report/', generate_goods_report, name="generate_goods_report"),
-    path('reports/', reports, name="overall_reports"),
+    path('invoice_reports/', invoice_reports, name="overall_reports"),
+    path('generate_invoice_report/',generate_invoice_report, name='generate_invoice_report'),
+    path('update_all_goods/',update_all_goods, name='update_all_goods'),
+    path('display_all_goods_for_printer/',display_all_goods_for_printer, name='display_all_goods_for_printer'),
+    path('products/',products, name='products'),
+    path('update_one_product/<str:id_out>/',update_one_product,name="update_one_product"),
+    path('generate_xlsx_file_for_printer/',generate_xlsx_file_for_printer, name='generate_xlsx_file_for_printer'),
+    path('create_or_change_printer_code_for_product/',create_or_change_printer_code_for_product, name='create_or_change_printer_code_for_product'),
+    path('change_printer_file_location',change_printer_file_location,name='change_printer_file_location'),
+
 
     ##DREAMKAS INVOICES
     path('invoices/', invoices, name="invoices"),

@@ -1,4 +1,5 @@
 {% extends 'wrapper.html' %}
+{% load mainapp_tags %}
 {% block body %}
     {% include "mainapp/parts/pagination.html" with page=invoices %}
     <form action="{% url "invoices_update" %}" method="post">
@@ -16,7 +17,7 @@
 
                 <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.paid %} list-group-item-success {% endif %}">
 
-                    <div style="flex-basis: 50%; flex-grow: 1">
+                    <div style="flex-basis: 30%; flex-grow: 1">
 
                         <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.id_dreem %}">{{ invoice.number }}</a></div>
                         <div class="text-dark">{{ invoice.supplier }}</div>
@@ -24,19 +25,11 @@
 
                     </div>
                     <div style="flex-basis: 100px">
-                    <div>
-                        {% if invoice.invoice_status == False%}
-                            ЧЕРНОВИК
-                        {% endif %}
-                    </div>
-                        {% for linkeddocument in invoice.linkeddocuments_set.all %}
-                            {{ linkeddocument }}
-                            {% if linkeddocument.document_status == True %}
-                                {% if linkeddocument.document_type == "PRICING" %}
-                                    НАКЛАДНАЯ РАСЦЕНЕНА
-                                {% endif %}
+                        <div>
+                            {% if invoice.invoice_status == False %}
+                                ЧЕРНОВИК
                             {% endif %}
-                        {% endfor %}
+                        </div>
                     </div>
                     <div style="flex-basis: 100px">
                         {% if invoice.invoicetype %}
@@ -58,8 +51,19 @@
                         <button class="btn btn-secondary"><i class="fa-solid fa-file-invoice"></i></button>
                         <button class="btn btn-info"><i class="fa-solid fa-file-arrow-down"></i></button>
                     </div>
-                    <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
-                        <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
+                    <div style="flex-basis: 250px; margin-left: 70px; text-align: left;">
+                        {% if invoice.income != 0 and invoice.income != None %}
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Сумма : {{ invoice.sum }}</div>
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Приход : {{ invoice.income }}</div>
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Прибыль : {{ invoice.income|subtract:invoice.sum }}</div>
+
+
+                        {% elif invoice.invoice_status == True and invoice.income == None or invoice.invoice_status == True and invoice.income == 0%}
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Сумма : {{ invoice.sum }}</div>
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Приход : {{ invoice.income }} Указать вручную.</div>
+                        {% else %}
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Сумма : {{ invoice.sum }}</div>
+                        {% endif %}
                     </div>
 
                 </li>

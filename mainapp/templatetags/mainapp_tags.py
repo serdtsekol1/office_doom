@@ -109,3 +109,9 @@ def add_language_to_link(url, lng):
     url = url.split('/')
     url[2] = f"{url[2]}/{lng}"
     return '/'.join(url)
+@register.simple_tag
+def get_printer_code_from_barcode(barcodes):
+    for barcode in barcodes:
+        if str(barcode.barcode).startswith('999999999'):
+            return {'barcode_id' : barcode.id,'printer_code': barcode.barcode[9:12]}
+    return {'barcode_id' : None, 'printer_code': None}

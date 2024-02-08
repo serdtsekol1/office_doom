@@ -1,5 +1,8 @@
 {% extends "wrapper.html" %}
 {% block body %}
+    <div>
+        <input type="text" class="test-for-stuffs">
+    </div>
     <div class="input-group mb-3">
         <input type="text" class="form-control" placeholder="Recipient's username" aria-label="Recipient's username" aria-describedby="basic-addon2">
     </div>
@@ -112,6 +115,27 @@
         {#        console.log(data)#}
         {#    }#}
         {#  }); #}
+        var typingTimer;                //timer identifier
+        var doneTypingInterval = 500;  //time in ms, 5 seconds for example
+        var $input = $('.test-for-stuffs');
+
+        //on keyup, start the countdown
+        $input.on('keyup', function () {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(doneTyping, doneTypingInterval);
+        });
+
+        //on keydown, clear the countdown
+        $input.on('keydown', function () {
+            clearTimeout(typingTimer);
+        });
+
+        //user is "finished typing," do something
+        function doneTyping() {
+            console.log("asdasd")
+            //do something
+        }
+
 
     </script>
 {% endblock %}

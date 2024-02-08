@@ -1,17 +1,12 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from mainapp.models import Product, Barcodes, Prices, Invoice, GoodGroups, DiadocInvoice, LinkedDocuments
+from mainapp.models import Product, Invoice, GoodGroups, DiadocInvoice, LinkedDocuments
 
 
-class BarcodesInline(admin.TabularInline):
-    model = Barcodes
-    extra = 0
 
 
-class PricesInline(admin.TabularInline):
-    model = Prices
-    extra = 0
+
 
 class LinkedDocumentsInline(admin.TabularInline):
     model = LinkedDocuments
@@ -30,10 +25,10 @@ class AdminProduct(admin.ModelAdmin):
     list_display = ['id', 'diadoc_id', 'number']
 @admin.register(Product)
 class AdminProduct(admin.ModelAdmin):
-    search_fields = ['id', 'barcodes__code', 'name']
-    list_display = ['id', 'name', 'price', 'codes']
-    list_editable = ['price', ]
-    inlines = [BarcodesInline, PricesInline]
+    search_fields = ['id', 'name']
+    list_display = ['id', 'name']
+    list_editable = []
+    inlines = []
 
     def save_model(self, request, obj, form, change):
         try:

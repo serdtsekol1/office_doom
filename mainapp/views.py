@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import pickle
+import re
 import webbrowser
 from dataclasses import dataclass
 from decimal import Decimal
@@ -11,9 +12,11 @@ import requests
 import simplegmail
 from django.core.files.uploadedfile import UploadedFile
 from django.core.paginator import Paginator
-from django.db.models import Sum, Value
+from django.db.models import Sum, Value, Q, OuterRef, Prefetch
+from django.db.models.functions import Lower
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -21,8 +24,11 @@ from django.views.decorators.csrf import csrf_exempt
 from simplegmail import gmail
 from simplegmail.query import construct_query
 
-from dremkas.settings import DREAM_KAS_API, DIADOC_API
-from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport
+import mainapp
+from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
+from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices
+from .dreamkas_Products import product_update, Find_and_delete_barcode, Create_barcode_for_product
+from .dreamkas_to_massaK import create_or_change_massak_codes_for_product, create_excel_document_for_massaK
 from .gmail_invoices import create_document_from_excel, get_gmail_messages
 from .helper import send_document, delete_file, save_to_json
 
@@ -43,6 +49,7 @@ GOOGLEMAIL = [
 #     company.append(file['supplier_inn'])
 
 COMPANIES = [
+    ('ip_martovoy', 'ИП Мартовой'),
     ('ooo_partner', 'OOO Partnfer'),
     ('ooo_VNNA', 'Vinniy Aliansv'),
     ('ip_baykov', 'IP Baykov'),
@@ -102,13 +109,14 @@ class PresetModelValue:
 
 class Concat(Aggregate):
     function = 'GROUP_CONCAT'
-    # template = '%(function)s(%(distinct)s%(expressions)s)'
+    template = "%(function)s(%(distinct)s%(expressions)s SEPARATOR '%(separator)s')"
     allow_distinct = True
 
-    def __init__(self, expression, distinct=False, **extra):
+    def __init__(self, expression, distinct=False, separator=',', **extra):
         super(Concat, self).__init__(
             expression,
             distinct='DISTINCT ' if distinct else '',
+            separator=separator,
             output_field=models.CharField(),
             **extra
         )
@@ -176,29 +184,100 @@ class Preset(View):
     def patch(self, request):
         return JsonResponse({}, safe=False)
 
+### Goods Related ###
+@csrf_exempt
+def change_printer_file_location(request):
+    if request.method == 'POST':
+        new_path = request.POST.get('file_location')
+        if not os.path.exists('config.json'):
+            # If file does not exist, create it
+            with open('config.json', 'w') as f:
+                json.dump({}, f)
+        with open('config.json', 'r') as f:
+            loaded_data = json.load(f)
+        loaded_data['file_location'] = new_path
+        with open('config.json', 'w') as f:
+            json.dump(loaded_data, f)
+        return JsonResponse({'success': True}, safe=False)
+
+@csrf_exempt
+def create_or_change_printer_code_for_product(request):
+    if request.method == 'POST':
+        status, code = create_or_change_massak_codes_for_product(request.POST.get("id_out",None),request.POST.get("printer_code",None))
+
+        if status is False:
+            return JsonResponse({'success': False, 'message' : f'Код {code} уже занят продуктом {status}'}, safe=False)
+        elif status is True:
+            return JsonResponse({'success' : True})
+        else:
+            return JsonResponse({'success': False, 'message': f'Код {code} является неверным. Проверьте код'}, safe=False)
+
+
+@csrf_exempt
+def update_one_product(request,id_out):
+    if request.method == 'GET':
+        product_update(id_out)
+        return redirect(reverse('products'))
+@csrf_exempt
+def display_all_goods_for_printer(request):
+    if request.method == 'GET':
+        return render(request, "mainapp/pages/display_products.html", {'list_of_goods': Product.objects.filter(barcodes__barcode__startswith='999999999')})
+@csrf_exempt
+def products(request):
+    with open('config.json', 'r') as f:
+        loaded_data = json.load(f)
+    current_printer_file_location = loaded_data['file_location']
+    current_shop_ids = []
+    for shop_id in CURRENT_IDS.split(','):
+        current_shop_ids.append(shop_id)
+    if request.method == 'GET':
+        products = Product.objects.all().order_by('name')
+        page = Paginator(products, 250).page(request.GET.get("page", 1))
+        # products = products.prefetch_related(
+        #     Prefetch('prices_set', queryset=Prices.objects.filter(device_id__in=current_shop_ids)[:1], to_attr='filtered_prices')
+        # )
+        # for product in products:
+        #     print(product.filtered_prices)
+        return render(request, "mainapp/pages/display_products.html", {'list_of_goods': page, 'current_shop_ids' : current_shop_ids, 'current_printer_file_location': current_printer_file_location})
+    if request.method == 'POST':
+        query = request.GET.get("query", None)
+        if query:
+            products = Product.objects.filter(
+                Q(barcodes__barcode__icontains=query.lower()) | Q(name__icontains=query.lower())
+            ).annotate(
+                barcode_list=Concat('barcodes__barcode')
+            ).order_by('name')
+        else:
+            products = Product.objects.all().order_by('name')
+        page = Paginator(products, 250).page(request.GET.get("page", 1))
+        products_list_contents = render_to_string( 'mainapp/parts/product_list_display.html', {'list_of_goods': page, 'current_shop_ids' : current_shop_ids},request)
+        return JsonResponse({"products_list_contents": products_list_contents}, safe=False)
+
+
+@csrf_exempt
+def update_all_goods(request):
+    if request.method == 'POST' or request.method == 'GET':
+        from mainapp.dreamkas_Products import Products_update
+        Products_update()
+        return redirect(reverse('display_all_goods_for_printer'))
+
+@csrf_exempt
+def generate_xlsx_file_for_printer(request):
+    if request.method == 'POST' or request.method == 'GET':
+        with open('config.json', 'r') as f:
+            loaded_data = json.load(f)
+        try:
+            file_path = loaded_data['file_location']
+        except:
+            return JsonResponse({'success': False})
+        create_excel_document_for_massaK(file_path)
+        return JsonResponse({'success': True})
+
 
 @csrf_exempt
 def get_index_page(request, keyword='index'):
-
-
-
-
-    # probelems = problematic_invoices()
-    # probelems_suppliers = get_suppliers_with_no_payment_time()
-    # problems_goods_department = DREAM_KAS_API.goods_analyzer(date_from=(datetime.datetime.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d"),
-    #                                                          date_to=datetime.datetime.today().strftime("%Y-%m-%d"))
-    #
-    #
-
-
-    # ,devices=[31391,34796,163617]
-    # invoice_report()
-    # problems_goods = DREAM_KAS_API.goods_analyzer(date_from=datetime.datetime.now() - datetime.timedelta(days=1), date_to=datetime.datetime.now(),devices=[31391,34796,163617])
-
-    return render(request, "mainapp/pages/index.html",)
-                  #{'problematic_invoices': probelems, 'problematic_suppliers': probelems_suppliers, 'problematic_goods_department': problems_goods_department})
-
-
+    #aaaa = Product.update_products()
+    return render(request, "mainapp/pages/index.html", )
 @csrf_exempt
 def get_all_gmail_messages(request):
     if request.method == 'GET':
@@ -211,33 +290,6 @@ def good_groups(request, keyword='inaaadex'):
     if request.method == 'POST':
         GoodGroups.update_good_groups()
         return redirect(request.path)
-    # list_of_groups_from_dreamkas = DREAM_KAS_API.get_groups()['categories']
-    # file = 0
-    # try:
-    #     list_from_file = pickle.load(open("D:\groups", "rb"))
-    #     file = 1
-    # except:
-    #     file = 0
-    # compare_list_from_file = []
-    # compare_list_from_dreamkas = []
-    # if file == 1:
-    #     for item in list_from_file:
-    #         compare_list_from_file.append({'id': item['id']})
-    #     for item in list_of_groups_from_dreamkas:
-    #         compare_list_from_dreamkas.append({'id': item['id']})
-    #     print(compare_list_from_file)
-    #     print(compare_list_from_dreamkas)
-    #     for item in compare_list_from_dreamkas:
-    #         if item not in compare_list_from_file:
-    #             compare_list_from_file.append({'name': item['name'], 'id': item['id'], 'pricingpercent': '0', 'roundnumber': '0', 'rule': '0'})
-    # if file == 0:
-    #     for item in list_of_groups_from_dreamkas:
-    #         compare_list_from_file.append({'name': item['name'], 'id': item['id'], 'pricingpercent': '0', 'roundnumber': '0', 'rule': '0'})
-
-    # pickle.dump(compare_list_from_file, open(f"D:\groups", "wb"))
-    # list_from_file = pickle.load(open("D:\groups", "rb"))
-
-    # return render(request, "mainapp/pages/good_groups.html", {'list_from_file': list_from_file, 'good_groups': GoodGroups.objects.all()})
     return render(request, "mainapp/pages/good_groups.html", {'good_groups': GoodGroups.objects.all()})
 
 
@@ -291,11 +343,16 @@ def edit_existing_report(request):
         save_to_json(f"media/report_technical_files/report_goods_invalid_department_{report}.json", report_to_edit)
         return redirect(reverse('test_page'))
 
+
 @csrf_exempt
-def generate_daily_report(request):
-    DailyInvoiceReport.generate_invoice_report()
+def generate_invoice_report(request):
+    if request.method == "POST":
+        DailyInvoiceReport.generate_invoice_report()
+        return JsonResponse({'success': True})
+
+
 @csrf_exempt
-def reports(request):
+def invoice_reports(request):
     if request.method == "GET":
         date = datetime.date.today()
         try:
@@ -311,7 +368,7 @@ def reports(request):
         else:
             date_day = str(date.day)
         date_formatted = str(date.year) + "-" + date_month + "-" + date_day
-        return render(request, 'mainapp/pages/reports.html', {'selected_invoice_report': selected_invoice_report, 'selected_date' : date, 'date_formatted' : date_formatted})
+        return render(request, 'mainapp/pages/invoice_reports.html', {'selected_invoice_report': selected_invoice_report, 'selected_date': date, 'date_formatted': date_formatted})
     if request.method == "POST":
         date = request.POST.get("date")
         try:
@@ -327,9 +384,15 @@ def reports(request):
         else:
             date_day = str(date.day)
         date_formatted = str(date.year) + "-" + date_month + "-" + date_day
-        return {
-            'selected_invoice_report' : selected_invoice_report, 'selected_date' : date, 'date_formatted' : date_formatted,
-        }
+        return (JsonResponse
+            ({
+            'success': True,
+            'selected_invoice_report': selected_invoice_report,
+            'selected_date': date,
+            'date_formatted': date_formatted,
+        }))
+
+
 @csrf_exempt
 def generate_goods_report(request):
     if "media" not in os.listdir():
@@ -367,21 +430,29 @@ def manual_invoice(request, keyword='index'):
 
 
 def test(request):
-    documents = DREAM_KAS_API.get_documents(limit=1000)
-    count = 0
-    for document in documents:
-        count += 1
-        print(count, document)
-        Invoice.objects.update_or_create(id_dreem=document['id'], defaults={
-            'number': document['num'],
-            'supplier': document['sourceName'],
-            'sum': Decimal(int(document['totalSum']) / 100),
-            'issue_date': document['issueDate'],
-            # 'issue_date': str(document['issueDate'].split("-")[2])+"."+str(document['issueDate'].split("-")[1])+"."+str(document['issueDate'].split("-")[0])
-            # 'issue_date': document['issueDate'],
-        })
+    create_excel_document_for_massaK()
+    #create_massak_codes('8854878a-82d7-4973-a0b6-8211bd4909d6',55)
+    #Create_barcode_for_product(0,0)
+    #Find_and_delete_barcode('Тест1')
+    #resp = DREAM_KAS_API.search_goods('Тест1')
+    #print(resp)
 
-    return JsonResponse({}, safe=False)
+
+    # documents = DREAM_KAS_API.get_documents(limit=1000)
+    # count = 0
+    # for document in documents:
+    #     count += 1
+    #     print(count, document)
+    #     Invoice.objects.update_or_create(id_dreem=document['id'], defaults={
+    #         'number': document['num'],
+    #         'supplier': document['sourceName'],
+    #         'sum': Decimal(int(document['totalSum']) / 100),
+    #         'issue_date': document['issueDate'],
+    #         # 'issue_date': str(document['issueDate'].split("-")[2])+"."+str(document['issueDate'].split("-")[1])+"."+str(document['issueDate'].split("-")[0])
+    #         # 'issue_date': document['issueDate'],
+    #     })
+    #
+    # return JsonResponse({}, safe=False)
 
 
 @csrf_exempt
@@ -607,6 +678,10 @@ def dreamkas_invoice(request, invoiceid):
     # for item in invoice['positions']:
     #        total = total + int(item['costWithTax']) / 1000
     print(invoice)
+    i = 1
+    for position in invoice['positions']:
+        position['position_position'] = i
+        i = i + 1
     return render(request, 'mainapp/pages/dreamkas_invoice.html', {'invoice': invoice, 'good_groups': GoodGroups.objects.all(), 'priced': priced, 'total': total})
 
 

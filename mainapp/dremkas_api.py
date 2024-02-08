@@ -36,12 +36,12 @@ class DocType(Enum):
 
 
 class DreamKasApi:
-    TOKEN = "aa9967bf-677e-47a5-bf5d-159900e5a407"
     URL_HOST = "https://kabinet.dreamkas.ru"
     URL_LOGIN_API = f"{URL_HOST}/app/login"
     URL_DOCUMENTS_API = f"{URL_HOST}/api/documents"
     URL_DOCUMENTS_v1_API = f"{URL_HOST}/api/v1/documents"
     URL_PRODUCTS_API = f"{URL_HOST}/api/products"
+    URL_PRODUCTS_API_V2 = f"{URL_HOST}/api/products"
     URL_PRODUCTS_SEARCH_API = f"{URL_HOST}/api/v2/products/search"
     URL_CONTACTS_PARTNERS_API = f"{URL_HOST}/api/v1/edx/paper/contacts"
     URL_STORE_VIEW = f"{URL_HOST}/api/v1/ui/products/store_view"
@@ -84,7 +84,7 @@ class DreamKasApi:
         Можливо колись понадобиться стандартний логін через https
         :return:
         """
-        response = self.session.post(f'https://kabinet.dreamkas.ru/app/login', json={
+        response = self.session.post(f'https://kabinet.dreamkas.ru/app/login', verify=True, json={
             "login": self.LOGIN,
             "password": self.PASSWORD
         })
@@ -148,6 +148,12 @@ class DreamKasApi:
 
         responce = self.session.patch(f"https://kabinet.dreamkas.ru/api/v1/documents/{inventory_check_id}/", json=edited_inventory_check)
         print("a")
+    def update_product(self, id_out, json):
+        resp = self.session.get(f"https://kabinet.dreamkas.ru/api/v2/products/{id_out}/").json()
+        resp = self.session.patch(f"https://kabinet.dreamkas.ru/api/v2/products/{id_out}/", json=json)
+        print(resp)
+        return resp
+
 
 
     def update_good(self, good_id, group_id=None):
@@ -157,7 +163,8 @@ class DreamKasApi:
         print(asd)
 
         ## Get : https://kabinet.dreamkas.ru/api/v2/products/[id]9f60977e-5e8e-4724-aaa3-3447a3ef0af4
-
+    # Цей метод - старий і використвоується тільки для групп. Його збережено шоб не їбатись з переробкою.
+    # Але потім - треба змінити на апдейт продукт, де буде прийматись змінений товар і просто ід.
 
     def search_partner_id_by_inn(self, inn, full_info=False):
         """
@@ -189,11 +196,11 @@ class DreamKasApi:
         #     return None
 
 
-    def search_goods(self, q, q_is_vendor_code=True, limit=1, use_stock=True, use_mrp_price=True):
+    def search_goods(self, q, q_is_vendor_code=True, limit=10, use_stock=True, use_mrp_price=True):
         """
         Пошук товарів/товару
         :param q: Строка пошуку товару Example: "Курточка синя"
-        :param q_is_vendor_code: True = Шукається тільки по вендор коду, False По всіх полях
+        :param q_is_vendor_code: True = Шукається тільки по вендор коду та штрихкоду, False = По всіх полях
         :param limit: Кількість товарів в результаті. Default 1
         :param use_stock:
         :param use_mrp_price:
@@ -216,11 +223,10 @@ class DreamKasApi:
                     if str(q) in product["barcodes"]:
                         return product
                 except:
-                    return None
-            return None
+                    pass
         else:
             return products
-
+        return None
     def get_devices(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/devices").json()
 
@@ -392,7 +398,44 @@ class DreamKasApi:
     #         self.session.get
         return "Work in progress"
 
-    def get_documents(self, limit=100):
+    def get_products(self):
+        offset = 0
+        products_list = []
+        existing_ids = set()  # Множина для зберігання існуючих id_out
+
+        while True:
+            response = self.session.get(f"https://kabinet.dreamkas.ru/api/products?limit=1000&offset={offset}")
+            products_data = response.json()
+
+            if not products_data:
+                break
+
+            print(f'Скачиваются продукты. Прогресс - {offset}')
+            offset += 1000
+
+            for item in products_data:
+                if item['id'] in existing_ids:  # Перевірка на існуючий id_out
+                    continue
+                product = {
+                    'id_out': item['id'],
+                    'name': item['name'],
+                    'type': item['unit'],
+                    'prices': item['prices'],
+                    'marked_good': item['isMarked'] is True,
+                    'nds': item['tax'],
+                    'updatedAt' : item['updatedAt']
+                }
+
+                if 'department' in item:
+                    product['group_id'] = item['department']['id']
+                if 'barcodes' in item:
+                    product['barcodes'] = item['barcodes']
+
+                products_list.append(product)
+                existing_ids.add(item['id'])  # Додавання id_out до множини існуючих
+
+        return products_list
+    def get_documents(self, limit=100, document_type="5,13"):
         # 0: {label: "Перемещение", value: 2}
         # 1: {label: "Оприходование", value: 3}
         # 2: {label: "Списание", value: 4}
@@ -404,10 +447,10 @@ class DreamKasApi:
 
         # https://kabinet.dreamkas.ru/api/v1/documents?limit=1000&filter[type]=5&filter[source]=PAPER,KABINET
         # Request URL: https://kabinet.dreamkas.ru/api/v1/documents?limit=30&offset=0&filter[type]=5,13&filter[preset]=DOCUMENTS
-
-        response = self.session.get(f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={DocType.PRIHODNAYA_NAKLADNAYA.value}&filter[preset]=PAPER,DOCUMENTS")
-        print(f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={DocType.PRIHODNAYA_NAKLADNAYA.value}&filter[preset]=PAPER,DOCUMENTS")
+        print("Послан запрос на получение документов.")
+        response = self.session.get(f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS")
         if response.status_code == 200:
+            print("Документы получены")
             return response.json()
         else:
             print("Login failed")
@@ -425,6 +468,9 @@ class DreamKasApi:
 
     def get_product(self, id_product):
         response = self.session.get(f"{self.URL_PRODUCTS_API}/{id_product}")
+        return response.json()
+    def get_product_v2(self, id_product):
+        response = self.session.get(f"https://kabinet.dreamkas.ru/api/v2/products/{id_product}")
         return response.json()
 
 
@@ -695,6 +741,29 @@ class DreamKasApi:
         data.update({"date": datetime.datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
         data.update({"inn": data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвИП"]["@ИННФЛ"]})
         if data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвИП"]["@ИННФЛ"] != "910906800293":
+            return
+        data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерСчФ"]})
+        # creating JSON object using dictionary object
+        goods = []
+        for item in data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов']:
+            if item == "@НомСтр":
+                new_position = self.search_goods_xml_diadoc(prefix, data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов'])
+                print(new_position)
+                goods.append(new_position)
+                break
+            new_position = self.search_goods_xml_diadoc(prefix, item)
+            print(new_position)
+            goods.append(new_position)
+        data.update({"positions": goods})
+        return data
+
+    def generate_document_ip_martovoy(self, file_path=None):
+        prefix = "MRTV"
+        data = {}
+        data_dict = open_file_type(file_path=file_path)
+        data.update({"date": datetime.datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
+        data.update({"inn": data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвИП"]["@ИННФЛ"]})
+        if data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвИП"]["@ИННФЛ"] != "910703005363":
             return
         data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерСчФ"]})
         # creating JSON object using dictionary object

@@ -4,21 +4,21 @@
     </div>
 
     <ul class="list-unstyled components">
-{#        <p>Dummy Heading</p>#}
-{#        <li class="active">#}
-{#            <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Home</a>#}
-{#            <ul class="collapse list-unstyled" id="homeSubmenu">#}
-{#                <li>#}
-{#                    <a href="#">Home 1</a>#}
-{#                </li>#}
-{#                <li>#}
-{#                    <a href="#">Home 2</a>#}
-{#                </li>#}
-{#                <li>#}
-{#                    <a href="#">Home 3</a>#}
-{#                </li>#}
-{#            </ul>#}
-{#        </li>#}
+        {#        <p>Dummy Heading</p>#}
+        {#        <li class="active">#}
+        {#            <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Home</a>#}
+        {#            <ul class="collapse list-unstyled" id="homeSubmenu">#}
+        {#                <li>#}
+        {#                    <a href="#">Home 1</a>#}
+        {#                </li>#}
+        {#                <li>#}
+        {#                    <a href="#">Home 2</a>#}
+        {#                </li>#}
+        {#                <li>#}
+        {#                    <a href="#">Home 3</a>#}
+        {#                </li>#}
+        {#            </ul>#}
+        {#        </li>#}
         <li>
             <a href="/">Главная Страница</a>
         </li>
@@ -26,20 +26,20 @@
             <a href="/manual_invoice">Ручная Приемка Накладных</a>
         </li>
 
-{#        <li>#}
-{#            <a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Pages</a>#}
-{#            <ul class="collapse list-unstyled" id="pageSubmenu">#}
-{#                <li>#}
-{#                    <a href="#">Page 1</a>#}
-{#                </li>#}
-{#                <li>#}
-{#                    <a href="#">Page 2</a>#}
-{#                </li>#}
-{#                <li>#}
-{#                    <a href="#">Page 3</a>#}
-{#                </li>#}
-{#            </ul>#}
-{#        </li>#}
+        {#        <li>#}
+        {#            <a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Pages</a>#}
+        {#            <ul class="collapse list-unstyled" id="pageSubmenu">#}
+        {#                <li>#}
+        {#                    <a href="#">Page 1</a>#}
+        {#                </li>#}
+        {#                <li>#}
+        {#                    <a href="#">Page 2</a>#}
+        {#                </li>#}
+        {#                <li>#}
+        {#                    <a href="#">Page 3</a>#}
+        {#                </li>#}
+        {#            </ul>#}
+        {#        </li>#}
         <li>
             <a href="/test_union">Накладные по поставщикам</a>
         </li>
@@ -59,10 +59,31 @@
             <a href="/suppliers">Поставщики</a>
         </li>
         <li>
-            <a href="/inventory_checks">Инвентаризации</a>
+            <a href="/products">Товары</a>
         </li>
         <li>
-            <a href="#">Статистика</a>
+            <a href="/inventory_checks">Инвентаризации</a>
+        </li>
+        <li class="active">
+            <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Отчеты</a>
+            <ul class="collapse list-unstyled" id="homeSubmenu">
+                <li>
+                    <a href="/invoice_reports">Накладные за день</a>
+                </li>
+                <li>
+                    <a href="#">Товары с неправильной группой</a>
+                </li>
+                <li>
+                    <a href="#">Товары с невправильным остатком</a>
+                </li>
+                <li>
+                    <a href="#">Товары которые не продаются</a>
+                </li>
+                <li>
+                    <a href="#">Продающиеся товары без прихода</a>
+                </li>
+
+            </ul>
         </li>
     </ul>
 </nav>

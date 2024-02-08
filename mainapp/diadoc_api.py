@@ -1,6 +1,7 @@
 import errno
 import os
 import json
+import pickle
 from time import sleep
 
 from requests_html import HTMLSession
@@ -10,13 +11,13 @@ from requests_html import HTMLSession
 
 class DiadocApi():
     LIST_DOCUMENTS = []
-    USER_BOX_ID = "09cbea0c-f483-4fa2-801a-bb4bd31c5e41"
+    #USER_BOX_ID = "09cbea0c-f483-4fa2-801a-bb4bd31c5e41"
     LOGIN_URL = "https://auth.kontur.ru/?back=https%3A%2F%2Fcabinet.kontur.ru%2F%3Fp%3D1210%26utm_referer%3Dauth.kontur.ru%26utm_startpage%3Dkontur.ru%26utm_orderpage%3Dkontur.ru"
     session = None
     LOGIN = None
     PASSWORD = None
 
-    def __init__(self, login, password):
+    def __init__(self, login, password,userid):
         print(login, password)
         self.session = HTMLSession()
         print("HTML Session - OK")
@@ -37,16 +38,21 @@ class DiadocApi():
 
         }
         print("Headers - OK")
-
+        self.USER_BOX_ID = userid
         self.LOGIN = login
         self.PASSWORD = password
         print("Login and Password to self - OK")
         self.login_http()
-
+    def login_check(self):
+        login_check = self.session.get("https://diadoc.kontur.ru/Box/Selection", allow_redirects=False)
+        status_code = login_check.status_code
+        return True if status_code == 200 else False
+        #return False if 'AccessDenied' in str(login_check.content) else True
     def login_http(self):
         import undetected_chromedriver as uc
         from selenium.webdriver.common.by import By
         from dremkas.settings import BASE_DIR
+
         """
         Можливо колись понадобиться стандартний логін через https
         :return:
@@ -56,42 +62,54 @@ class DiadocApi():
         # Path to the chromedriver executable
 
         CHROME_DRIVER_PATH = f'{BASE_DIR}/chromedriver.exe'
+        if os.path.exists("session_data.pkl"):
+            with open("session_data.pkl", "rb") as file:
+                self.session = pickle.load(file)
+        if not self.login_check() :
+            options = uc.ChromeOptions()
+            #options.add_argument('--headless')
+            options.add_argument('--disable-gpu')
+            #driver = uc.Chrome(options=options, executable_path=CHROME_DRIVER_PATH)
+            driver = uc.Chrome(options=options,driver_executable_path=CHROME_DRIVER_PATH)
+            print("Driver - OK")
+            # Navigate to the desired URL
+            driver.get("https://auth.kontur.ru/?customize=diadoc&back=https%3A%2F%2Fdiadoc.kontur.ru%2F")
+            print("Auth contur Get - OK")
 
-        options = uc.ChromeOptions()
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        #driver = uc.Chrome(options=options, executable_path=CHROME_DRIVER_PATH)
-        driver = uc.Chrome(options=options,driver_executable_path=CHROME_DRIVER_PATH)
-        print("Driver - OK")
-        # Navigate to the desired URL
-        driver.get("https://auth.kontur.ru/?customize=diadoc&back=https%3A%2F%2Fdiadoc.kontur.ru%2F")
-        print("Auth contur Get - OK")
+            # Find element with data-tid="tab_login"
+            sleep(2)
+            login_tab = driver.find_element(By.XPATH, "//*[contains(@data-tid, 'tab_login')]")
+            login_tab.click()
+            sleep(3)
+            print("Login Tab Click - OK")
 
-        # Find element with data-tid="tab_login"
-        login_tab = driver.find_element(By.XPATH, "//*[contains(@data-tid, 'tab_login')]")
-        login_tab.click()
-        print("Login Tab Click - OK")
+            # Find element with name="login"
+            login_field = driver.find_element(By.NAME, "login")
+            login_field.send_keys(self.LOGIN)
+            print("Login Field Send - OK")
 
-        # Find element with name="login"
-        login_field = driver.find_element(By.NAME, "login")
-        login_field.send_keys(self.LOGIN)
-        print("Login Field Send - OK")
+            # Find element with type="password"
+            password_field = driver.find_element(By.CSS_SELECTOR, "*[type='password']")
+            password_field.send_keys(self.PASSWORD)
+            print("Password Field Send - OK")
+            # Find element with data-tid="Button__root"
+            login_button = driver.find_element(By.XPATH, "//*[contains(@data-tid, 'Button__root')]")
+            login_button.click()
+            print("Login Button Click - OK")
+            sleep(3)
+            # Fetch cookies
+            cookies = driver.get_cookies()
+            print("Cookies - OK")
 
-        # Find element with type="password"
-        password_field = driver.find_element(By.CSS_SELECTOR, "*[type='password']")
-        password_field.send_keys(self.PASSWORD)
-        print("Password Field Send - OK")
-        # Find element with data-tid="Button__root"
-        login_button = driver.find_element(By.XPATH, "//*[contains(@data-tid, 'Button__root')]")
-        login_button.click()
-        print("Login Button Click - OK")
-        sleep(3)
-        # Fetch cookies
-        cookies = driver.get_cookies()
-        print("Cookies - OK")
+            for cookie in cookies:
+                self.session.cookies.set(cookie['name'], cookie['value'])
+            #login_check = driver.find_element(By.CSS_SELECTOR, 'div[tid="profile"]')
+            if self.login_check():
+                with open("session_data.pkl", "wb") as file:
+                    pickle.dump(self.session, file)
 
-        for cookie in cookies:
-            self.session.cookies.set(cookie['name'], cookie['value'])
+
+
 
         # authpage = self.session.get(self.LOGIN_URL)
         #

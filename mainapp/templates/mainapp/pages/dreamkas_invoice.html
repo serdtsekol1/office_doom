@@ -3,13 +3,13 @@
 {% block body %}
 
     <ol class="list-group list-group-numbered">
-        {{ priced }}
-
-        {% if priced != 0 %}
-            123123
-        {% endif %}
+        <div style="font-size: 32px">
+            {% if invoice.status == "DRAFT" %}Черновик Документа{% endif %}
+            {% if invoice.status == "ACCEPTED" %}Приходная Накладная{% endif %}
+        </div>
         <div style="font-size: 16px;">
             Идентификатор Документа :{{ invoice.id }}
+            {{ invoice.invoice_status }}asd{{ invoice.invoice_status }}
         </div>
 
 
@@ -65,28 +65,70 @@
             {% endif %}
         </div>
         <div class="row border bg-dark text-light">
-            <div class="col-sm-4 col-lg-5">Товар</div>
-            <div class="col-sm-2"><span class="ml-3">Категория</span></div>
-            <div class="col-sm-1 text-right">Количество</div>
-            <div class="col-sm-1 text-right">Цена</div>
-            <div class="col-sm-2 col-lg-1 text-right">Цена продажи</div>
-            <div class="col-sm-1 text-right">Наценка</div>
-            <div class="col-sm-1"></div>
+            <div style="flex:5px"></div>
+            <div style="flex:12px">№</div>
+            <div style="flex:1%"></div>
+            <div style="flex:40%">Товар</div>
+            <div style="flex:15%"><span class="ml-3">Категория</span></div>
+            <div style="flex:8%">Количество</div>
+            <div style="flex:8%">Цена</div>
+            <div style="flex:8%">Сумма</div>
+            <div style="flex:8%">
+                {% if invoice.status == "ACCEPTED" %}Цена продажи{% endif %}
+                {% if invoice.status == "DRAFT" %}{% endif %}
+            </div>
+            <div style="flex:8%">
+                {% if invoice.status == "ACCEPTED" %}Наценка{% endif %}
+                {% if invoice.status == "DRAFT" %}{% endif %}
+            </div>
+            <div style="flex:8%"></div>
         </div>
         {% for item in invoice.positions %}
-            <div class="row border bg-white align-items-center">
-                <div class="col-sm-4 col-lg-5">{{ item.name }}</div>
-                <div class="col-sm-2">
+            <div class="row border bg-white align-items-center invoice-item">
+                <div style="flex:5px"></div>
+                <div style="flex:12px;" class="text-center">{{ item.position_position }}</div>
+                <div style="flex:1%"></div>
+                <div style="flex:40%" class="text-left">{{ item.name }}</div>
+                <div style="flex:15%" class="text-right">
                     <select data-good_id="{{ item.productId }}" name="select" id="select" class="form-control selectpiker select_good_group" style="width:100%">
                         {% for group in good_groups %}
                             <option {% if group.group_id == item.product.categoryId %} selected="selected" {% endif %} value={{ group.group_id }}>{{ group.name }}</option>
                         {% endfor %}
                     </select></div>
-                <div class="col-sm-1 text-right">{{ item.amount|divide:1000 }}</div>
-                <div class="col-sm-1 text-right">{{ item.costWithTax|divide:100 }}</div>
-                <div class="col-sm-2 col-lg-1 text-right">{{ item.price|divide:100 }}</div>
-                <div class="col-sm-1 text-right">{{ item.price|divide:item.costWithTax|subtract:1|floatformat:4|multiply:100|floatformat:2 }}%</div>
-                <div class="col-sm-1"></div>
+                <div style="flex:8%" class="text-right">
+                    {% if invoice.status == "ACCEPTED" %}{{ item.amount|divide:1000 }}{% endif %}
+                    {% if invoice.status == "DRAFT" %}
+                        <input class="item-amount" style="width : 100%" type="text" value="{{ item.amount|divide:1000 }}">
+                    {% endif %}
+                </div>
+                <div style="flex:8%" class="text-right">
+                    {% if invoice.status == "ACCEPTED" %}{{ item.costWithTax|divide:100 }}{% endif %}
+                    {% if invoice.status == "DRAFT" %}
+                        <input class="item-cost-with-tax" style="width : 100%" type="text" value="{{ item.costWithTax|divide:100 }}">
+                    {% endif %}
+                </div>
+                <div style="flex:8%" class="text-right">
+                    {% if invoice.status == "ACCEPTED" %}{{ item.sumCost|divide:100 }}{% endif %}
+                    {% if invoice.status == "DRAFT" %}
+                        <input class="item-sum" style="width : 100%" type="text" value="{{ item.sumCost|divide:100 }}">
+                    {% endif %}
+                </div>
+                <div style="flex:8%" class="text-right">
+                    {% if invoice.status == "ACCEPTED" %}{{ item.price|divide:100 }}{% endif %}
+                    {% if invoice.status == "DRAFT" %}
+                        {#                        <input class="item-selling-price" style="width : 100%" type="text" value="{{ item.price|divide:100 }}">#}
+                    {% endif %}
+                </div>
+
+                <div style="flex:8%" class="text-right">
+                    {% if invoice.status == "ACCEPTED" %}
+                        {{ item.price|divide:item.costWithTax|subtract:1|floatformat:4|multiply:100|floatformat:2 }}%
+                    {% endif %}
+                    {% if invoice.status == "DRAFT" %}
+                        {#                        <input class="item-selling-price" style="width : 100%" type="text" value="{{ item.price|divide:100 }}">#}
+                    {% endif %}
+                </div>
+                <div style="flex:8%"></div>
             </div>
         {% endfor %}
         <div class="row border bg-dark text-light">
@@ -149,6 +191,37 @@
 
         })
 
+        var typingTimer;                //timer identifier
+        var doneTypingInterval = 500;  //time in ms, 5 seconds for example
+        var $input = $('.item-amount');
+
+        //on keyup, start the countdown
+        $input.on('keyup', function () {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(doneTyping, doneTypingInterval);
+        });
+
+        //on keydown, clear the countdown
+        $input.on('keydown', function () {
+            clearTimeout(typingTimer);
+        });
+
+        //user is "finished typing," do something
+        function doneTyping() {
+            console.log("asdasd")
+           all_elements = document.getElementsByClassName('invoice-item')
+        for (let i = 0; i < all_elements.length; i++) {
+            console.log(i)
+            let item_amount = document.getElementsByClassName('item-amount')[i].value;
+            let item_price = document.getElementsByClassName('item-cost-with-tax')[i].value;
+            let item_sum = document.getElementsByClassName('item-sum')[i].value;
+            console.log(item_amount);
+            console.log(item_price);
+            console.log(item_sum);
+        }
+            //do something
+        }
+
         $(".select_good_group").on('change', (e) => {
 
             let group_id = $(e.currentTarget).find("option:selected").val()
@@ -164,6 +237,17 @@
                     document.location.reload()
                 }
             });
+        })
+        document.addEventListener("keypress", function (event) {
+            if (event.keyCode == 13) {
+                alert('You just hit enter.');
+            } else if (event.keyCode == 65) {
+                alert('You just press A.');
+            } else if (event.keyCode == 97) {
+                alert('You just hit a.');
+            } else {
+                alert('You press something other than A, a and ENTER key');
+            }
         })
     </script>
 {% endblock %}

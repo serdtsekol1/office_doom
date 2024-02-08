@@ -1,0 +1,28 @@
+{% load mainapp_tags %}
+{% for product in list_of_goods %}
+    <li class="list-group-item d-flex justify-content-start align-items-center">
+        <div style="flex-basis: 40%">
+            {{ product.name }}
+        </div>
+        <div style="flex-basis: 20%">
+            {% for barcode in product.barcodes_set.all %}
+                <div>
+                    {{ barcode.barcode }}
+                </div>
+            {% endfor %}
+        </div>
+        <div style="flex-basis: 20%">
+            {{ product.price_for_shop.value }}
+        </div>
+        <div style="flex-basis: 10%">
+            <div>Код для весов:</div>
+            {% get_printer_code_from_barcode product.barcodes_set.all as printer_code %}
+            <div><input class="js_printed_code" data-id_out="{{ product.id_out }}" id="printer_code" value="{% if printer_code.printer_code %}{{ printer_code.printer_code }}{% endif %}"
+                        placeholder=""></div>
+        </div>
+        <div style="flex-basis: 10%">
+        </div>
+    </li>
+
+
+{% endfor %}
