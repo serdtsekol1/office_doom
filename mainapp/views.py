@@ -224,9 +224,12 @@ def display_all_goods_for_printer(request):
         return render(request, "mainapp/pages/display_products.html", {'list_of_goods': Product.objects.filter(barcodes__barcode__startswith='999999999')})
 @csrf_exempt
 def products(request):
-    with open('config.json', 'r') as f:
-        loaded_data = json.load(f)
-    current_printer_file_location = loaded_data['file_location']
+    try:
+        with open('config.json', 'r') as f:
+            loaded_data = json.load(f)
+            current_printer_file_location = loaded_data['file_location']
+    except:
+        current_printer_file_location = None
     current_shop_ids = []
     for shop_id in CURRENT_IDS.split(','):
         current_shop_ids.append(shop_id)
