@@ -198,7 +198,7 @@ class Prices(models.Model):
 
 
 class Supplier(models.Model):
-    inn = models.IntegerField('inn', blank=True, default=None, null=True)
+    inn = models.BigIntegerField('inn', blank=True, default=None, null=True)
     name = models.CharField('name', max_length=255, blank=True, default=None, null=True)
     paymenttime = models.IntegerField('paymenttime', blank=True, default=None, null=True)
     balance = models.DecimalField('balance', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
@@ -214,12 +214,12 @@ class Position(models.Model):
 
 
 class Document(models.Model):
-    id_dreem = models.IntegerField('id_dreem', blank=True, default=None, null=True)
+    id_dreem = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     document_type = models.Choices
 
 
 class Invoice(models.Model):
-    id_dreem = models.IntegerField('id_dreem', blank=True, default=None, null=True)
+    id_dreem = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     latest_edit_id_dreem = models.IntegerField('id_dreem', blank=True, default=None, null=True)
     supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
     supplier_fk = models.ForeignKey(Supplier, max_length=255, blank=True, default=None, null=True, on_delete=models.SET_NULL)
