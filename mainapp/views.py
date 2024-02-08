@@ -204,7 +204,6 @@ def change_printer_file_location(request):
 def create_or_change_printer_code_for_product(request):
     if request.method == 'POST':
         status, code = create_or_change_massak_codes_for_product(request.POST.get("id_out",None),request.POST.get("printer_code",None))
-
         if status is False:
             return JsonResponse({'success': False, 'message' : f'Код {code} уже занят продуктом {status}'}, safe=False)
         elif status is True:

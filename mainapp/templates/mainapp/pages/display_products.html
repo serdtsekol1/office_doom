@@ -93,7 +93,7 @@
             });
         }, 250)
 
-        $(".js_printed_code").on('input', (e) => {
+        $("body").on('input', ".js_printed_code",  (e) => {
             create_or_change_barcodes_from_printer_code(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
         })
 
