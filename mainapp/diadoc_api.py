@@ -130,10 +130,13 @@ class DiadocApi():
         # print(diadoc)
 
     def get_documents(self):
+        print('5')
         self.LIST_DOCUMENTS = []
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{self.USER_BOX_ID}/Folder/Inbox")
+        print('6')
+        print()
         list_elements_with_document = page_list_documents.html.find("#letterList > li")
-
+        page_list_documents
         for element_with_document in list_elements_with_document:
             list_elements_with_document_attach = element_with_document.find("ul[ft-name='attachments-list'] > li")
             for element_with_document_attach in list_elements_with_document_attach:
