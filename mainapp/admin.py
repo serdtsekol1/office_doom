@@ -1,11 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from mainapp.models import Product, Invoice, GoodGroups, DiadocInvoice, LinkedDocuments
-
-
-
-
+from mainapp.models import Product, Invoice, GoodGroups, DiadocInvoice, LinkedDocuments, Supplier
 
 
 class LinkedDocumentsInline(admin.TabularInline):
@@ -18,6 +14,11 @@ class AdminGoodGroups(admin.ModelAdmin):
     list_display = ['id', 'group_id', 'name', 'pricingpercent', 'roundnumber', 'rule']
     list_editable = ['name', 'pricingpercent', 'roundnumber', 'rule']
 
+@admin.register(Supplier)
+class AdminSupplier(admin.ModelAdmin):
+    list_display = ['id', 'name']
+    search_fields = ['name']
+    pass
 
 @admin.register(DiadocInvoice)
 class AdminProduct(admin.ModelAdmin):

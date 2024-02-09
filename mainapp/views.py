@@ -712,7 +712,8 @@ def invoices_diadoc(request):
         for dreamkas_invoice in dreamkas_invoices:
             if dreamkas_invoice.number == diadoc_invoice.number and dreamkas_invoice.issue_date == diadoc_invoice.issue_date and dreamkas_invoice.supplier == diadoc_invoice.kontragent:
                 matching_invoices.append(dreamkas_invoice)
-    return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': diadocinvoices, 'matching_invoices': matching_invoices})
+    page = Paginator(diadocinvoices, 1000).page(request.GET.get("page", 1))
+    return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
 
 
 @csrf_exempt

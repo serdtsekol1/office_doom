@@ -493,6 +493,7 @@ class Invoice(models.Model):
                 print('Cannot find sourcename of document' , document)
                 continue
             if document_source != None:
+                print(document['sourceName'])
                 supplier, supplier_create = Supplier.objects.update_or_create(name=document['sourceName'], defaults={})
             # Update Overdue status
 
@@ -587,10 +588,10 @@ class Invoice(models.Model):
                     invoice.linkeddocuments_set.update_or_create(document_id=linked_document['id'], document_type=linked_document['type'], document_status=True)
                     if linked_document_http['type'] == 'INCOME_INVOICE_CORRECTION':
                         invoicecorrections = +1
-
+        print(document)
         invoice, invoice_create = Invoice.objects.update_or_create(id_dreem=document['id'], defaults={
             'number': document['num'],
-            'supplier': document['sourceName'],
+            'supplier': document['sourceLegalEntity']['name'],
             'supplier_fk': supplier,
             'sum': Decimal(int(document['totalSum']) / 100),
             'issue_date': document['issueDate'],
