@@ -729,6 +729,7 @@ def update_item_group(request):
 
 @csrf_exempt
 def update_diadoc_invoices(request):
+    print('remove these prints later. Debug stuff!')
     print('1')
     if request.method == 'POST':
         print('2')
