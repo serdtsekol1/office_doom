@@ -729,7 +729,9 @@ def update_item_group(request):
 
 @csrf_exempt
 def update_diadoc_invoices(request):
+    print('1')
     if request.method == 'POST':
+        print('2')
         try:
             DiadocInvoice.update_diadoc_invoices()
             return JsonResponse({'success': True})

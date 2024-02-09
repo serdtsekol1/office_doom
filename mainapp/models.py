@@ -719,9 +719,12 @@ class DiadocInvoice(models.Model):
 
     @staticmethod
     def update_diadoc_invoices():
+        print('3')
         invoices = DIADOC_API.get_documents()
+        print('4')
+        print(invoices)
         for item in invoices:
-            DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
+            diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
                 'kontragent': item['kontragent'],
                 'sum': item['sum'],
                 'number': item['num'],
@@ -730,6 +733,11 @@ class DiadocInvoice(models.Model):
                 'invoice_status': item['status'],
                 'downloadlink': item['link_document_attachment'],
             })
+            print(diadoc_invoice_status)
+            print(diadoc_invoice.kontragent)
+            print(diadoc_invoice.number)
+            print(diadoc_invoice.issue_date)
+
         return
 
 
