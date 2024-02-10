@@ -57,12 +57,12 @@ def create_or_change_massak_codes_for_product(id_out,code):
     code = str(code).zfill(3)
     product_external = DREAM_KAS_API.get_product_v2(id_out)
     if 'status' in product_external:
-        return False, code
+        return None, code
     for barcode in product_external['barcodes']:
         if str(barcode).startswith('999999999') and str(barcode).__len__() == 13:
             Delete_barcode_for_product(id_out,barcode)
     for vendorCode in product_external['vendorCodes']:
-        if str(vendorCode).startswith('2999') and str(barcode).__len__() == 7:
+        if str(vendorCode).startswith('2999') and str(vendorCode).__len__() == 7:
             Delete_barcode_for_product(id_out,vendorCode)
 
     # unit 796 - countable, do 1 barcode
@@ -70,21 +70,21 @@ def create_or_change_massak_codes_for_product(id_out,code):
     if product_external['unit'] == str(796):
         code_to_add = create_massak_code(code,mode=0)
         resp = Create_barcode_for_product(id_out,code_to_add)
-        if resp is not False:
-            return resp, code_to_add
+        if resp is not True:
+            return resp, code
         return True, code_to_add
 
     if product_external['unit'] == str(166):
         code_to_add = create_massak_code(code,mode=0)
         resp = Create_barcode_for_product(id_out,code_to_add)
-        if resp is not False:
-            return resp, code_to_add
+        if resp is not True:
+            return resp, code
         code_to_add = create_massak_code(code,mode=1)
         resp = Create_barcode_for_product(id_out,code_to_add)
-        if resp is not False:
-            Delete_barcode_for_product(id_out, create_massak_code(code,mode=0))
-            return resp, code_to_add
-        return True, code_to_add
+        if resp is not True:
+            Delete_barcode_for_product(id_out, create_massak_code(code, mode=0))
+            return resp, code
+        return True, code
     return False, code
 
 def check_code_massaK(barcode):
@@ -103,3 +103,13 @@ def create_massak_code(code,mode):
     if mode == 1:
         return(f'2999{code}')
     raise ValueError
+def get_massak_code_from_code(code):
+    if code.isdigit() is False:
+        return None
+    if code.__len__() != 13 and code.__len__() != 7:
+        return None
+    if code.__len__() == 13:
+        return str(code)[9:12]
+    if code.__len__() == 7:
+        return str(code)[4:7]
+    return

@@ -197,6 +197,8 @@ def product_update(id_out, debug=0):
 #         return search_result['name']
 #     return True
 def Create_barcode_for_product(id_out, barcode):
+    #True - OK
+    #Else - Not OK, name of product is returned.
     search_result = DREAM_KAS_API.search_goods(barcode)
     if search_result is not None:
         print('Данный штрихкод или код уже существует и пренадлежит какому-то товару. Удалите данный штрихкод с другого товара!')

@@ -132,6 +132,7 @@ class DiadocApi():
     def get_documents(self):
         print('5')
         self.LIST_DOCUMENTS = []
+        print(f"https://diadoc.kontur.ru/{self.USER_BOX_ID}/Folder/Inbox")
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{self.USER_BOX_ID}/Folder/Inbox")
         print('6')
         print(page_list_documents)

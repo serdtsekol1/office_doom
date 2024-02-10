@@ -149,7 +149,7 @@ class DreamKasApi:
         responce = self.session.patch(f"https://kabinet.dreamkas.ru/api/v1/documents/{inventory_check_id}/", json=edited_inventory_check)
         print("a")
     def update_product(self, id_out, json):
-        resp = self.session.get(f"https://kabinet.dreamkas.ru/api/v2/products/{id_out}/").json()
+        #resp = self.session.get(f"https://kabinet.dreamkas.ru/api/v2/products/{id_out}/").json()
         resp = self.session.patch(f"https://kabinet.dreamkas.ru/api/v2/products/{id_out}/", json=json)
         print(resp)
         return resp
