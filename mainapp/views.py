@@ -207,7 +207,7 @@ def create_or_change_printer_code_for_product(request):
         if status is None:
             return JsonResponse({'success': False, 'message': f'Код {code} или Товар является неверным'}, safe=False)
         elif status is True:
-            return JsonResponse({'success' : True})
+            return JsonResponse({'success' : True,'message': f'Успешно'})
         else:
             return JsonResponse({'success': False, 'message': f'Код {code} уже занят продуктом {status}'}, safe=False)
 

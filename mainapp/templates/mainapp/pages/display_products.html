@@ -85,13 +85,13 @@
                     $(".js_error").remove()
                     console.log(data)
                     if (data.success) {
-
+                        $(element).after(`<div class="js_error">${data.message}</div>`)
                     } else {
                         $(element).after(`<div class="js_error">${data.message}</div>`)
                     }
                 }
             });
-        }, 250)
+        }, 750)
 
         $("body").on('input', ".js_printed_code",  (e) => {
             create_or_change_barcodes_from_printer_code(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
