@@ -779,6 +779,7 @@ class DreamKasApi:
             goods.append(new_position)
         data.update({"positions": goods})
         return data
+
     def generate_document_ip_atamanov_aleksandr_evgenievich(self, file_path=None):
         prefix = "ATMV"
         data = {}
@@ -857,6 +858,29 @@ class DreamKasApi:
         data.update({"date": datetime.datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
         data.update({"inn": data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвЮЛУч"]["@ИННЮЛ"]})
         if data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвЮЛУч"]["@ИННЮЛ"] != "9102195718":
+            return
+        data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерСчФ"]})
+        # creating JSON object using dictionary object
+        goods = []
+        for item in data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов']:
+            if item == "@НомСтр":
+                new_position = self.search_goods_xml_diadoc(prefix, data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов'])
+                print(new_position)
+                goods.append(new_position)
+                break
+            new_position = self.search_goods_xml_diadoc(prefix, item)
+            print(new_position)
+            goods.append(new_position)
+        data.update({"positions": goods})
+        return data
+
+    def generate_document_ooo_yusan(self, file_path=None):
+        prefix = "YSN"
+        data = {}
+        data_dict = open_file_type(file_path=file_path)
+        data.update({"date": datetime.datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
+        data.update({"inn": data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвЮЛУч"]["@ИННЮЛ"]})
+        if data_dict["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвЮЛУч"]["@ИННЮЛ"] != "9102001352":
             return
         data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерСчФ"]})
         # creating JSON object using dictionary object
