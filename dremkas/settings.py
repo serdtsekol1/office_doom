@@ -1,3 +1,4 @@
+import json
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -288,7 +289,9 @@ FILEBROWSER_EXTENSIONS = {
     'Video': ['.mov', '.wmv', '.mpeg', '.mpg', '.avi', '.rm'],
     'Audio': ['.mp3', '.mp4', '.wav', '.aiff', '.midi', '.m4p']
 }
-
+with open('config.json', 'r') as f:
+    loaded_data = json.load(f)
+current_store_id = loaded_data['current_store_id']
 JQUERY_URL = False  # smart_selects
 # USE_DJANGO_JQUERY = True # smart_selects
 SHOP_AMOUNT = os.environ.get('SHOP_AMOUNT')

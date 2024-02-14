@@ -11,9 +11,20 @@ from django.utils import timezone
 
 from datetime import timedelta, date
 
-from dremkas.settings import DREAM_KAS_API, DIADOC_API
+from dremkas.settings import DREAM_KAS_API, DIADOC_API, current_store_id
 from mainapp.gmail_invoices import get_gmail_messages
-
+class Store(models.Model):
+    store_id = models.IntegerField('store_id', blank=True, null=True)
+    @property
+    def store_devices(self):
+        devices = Device.objects.filter(store_id=current_store_id)
+        store_devices = []
+        for device in devices:
+            store_devices.append(device.device_id)
+        return store_devices
+class Device(models.Model):
+    device_id = models.IntegerField('device_id')
+    store_id = models.IntegerField('owner_store_id')
 
 class Product(models.Model):
     id_out = models.CharField('id_out', max_length=255, blank=True, default=None, null=True)
@@ -240,6 +251,7 @@ class Invoice(models.Model):
     created_via_program = models.BooleanField('Created via program?', null=True, blank=True, default=False)
     previous_snapshot = models.TextField('Snapshot', null=True, blank=True, default=None)
     positions = models.ManyToManyField(Position)
+
 
     # linked_documents = models.ManyToManyField("self", blank=True)
 

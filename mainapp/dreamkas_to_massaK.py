@@ -52,6 +52,15 @@ def create_excel_document_for_massaK(file_path):
 def create_or_change_massak_codes_for_product(id_out,code):
     # zfill(3) :5 = 005, 55 = 055, 555 = 555
     # zfill(4) :5 = 0005, 55 = 0055, 555 = 0555
+    if code == '':
+        product_external = DREAM_KAS_API.get_product_v2(id_out)
+        for barcode in product_external['barcodes']:
+            if str(barcode).startswith('999999999') and str(barcode).__len__() == 13:
+                Delete_barcode_for_product(id_out, barcode)
+        for vendorCode in product_external['vendorCodes']:
+            if str(vendorCode).startswith('2999') and str(vendorCode).__len__() == 7:
+                Delete_barcode_for_product(id_out, vendorCode)
+        return True, code
     if code.__len__() > 3 or code.isdigit() is False:
         return None, code
     code = str(code).zfill(3)
