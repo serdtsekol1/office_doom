@@ -166,6 +166,7 @@ def find_duplicate_invoices():
         i = i + 1
         if invoice.id_dreem not in invoice_map:
             print('non dupe')
+            print(i)
             invoice_map.append(invoice.id_dreem)
             continue
         print('dupe found')
