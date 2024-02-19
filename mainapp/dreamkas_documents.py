@@ -8,6 +8,10 @@ from datetime import timedelta, date
 
 def delete_all_suppliers():
     Supplier.objects.all().delete()
+def delete_broken_suppliers():
+    for supplier_obj in Supplier.objects.all():
+        if supplier_obj.supplier_name_set.all().__len__() == 0 and supplier_obj.inn == None:
+            supplier_obj.delete()
 
 def dreamkas_update_suppliers():
     supplier_list = DREAM_KAS_API.get_suppliers()
@@ -165,8 +169,6 @@ def find_duplicate_invoices():
     for invoice in Invoice.objects.all():
         i = i + 1
         if invoice.id_dreem not in invoice_map:
-            print('non dupe')
-            print(i)
             invoice_map.append(invoice.id_dreem)
             continue
         print('dupe found')

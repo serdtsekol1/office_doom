@@ -293,6 +293,10 @@ def update_stores_and_devices(request):
 def delete_all_suppliers(request):
     dreamkas_documents.delete_all_suppliers()
     return redirect(reverse('dreamkas_suppliers'))
+@csrf_exempt
+def delete_broken_suppliers(request):
+    dreamkas_documents.delete_broken_suppliers()
+    return redirect(reverse('dreamkas_suppliers'))
 
 @csrf_exempt
 def update_all_suppliers(request):

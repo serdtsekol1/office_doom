@@ -44,6 +44,7 @@ urlpatterns = [
     path('good_groups_user_form/', good_groups_user_form, name="good_groups_user_form"),
     path('test_union/', test_union, name="test_union"),
     path('delete_all_suppliers/',delete_all_suppliers, name="delete_all_suppliers"),
+    path('delete_broken_suppliers/',delete_broken_suppliers, name="delete_broken_suppliers"),
     path('update_all_suppliers/',update_all_suppliers, name="delete_all_suppliers"),
 
     path('preset/', Preset.as_view(), name="preset"),
