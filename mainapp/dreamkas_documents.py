@@ -61,7 +61,7 @@ def dreamkas_update_suppliers():
 
     return
 def update_invoices():
-    documents = DREAM_KAS_API.get_documents(limit=500)
+    documents = DREAM_KAS_API.get_documents(limit=1000)
     source_map_external = []
     external_dreamkas_documents_map = []
     internal_dreamkas_documents_map = []
