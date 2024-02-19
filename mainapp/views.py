@@ -285,7 +285,8 @@ def generate_xlsx_file_for_printer(request):
         return JsonResponse({'success': True})
 
 @csrf_exempt
-def update_stores_and_devices():
+def update_stores_and_devices(request):
+    print('test')
     Store.update_stores_and_devices()
     return redirect(reverse('invoices'))
 @csrf_exempt
