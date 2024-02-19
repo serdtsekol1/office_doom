@@ -27,6 +27,8 @@ from simplegmail.query import construct_query
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
 from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices
+from . import dreamkas_documents
+from .dreamkas_documents import dreamkas_update_suppliers
 from .dreamkas_Products import product_update, Find_and_delete_barcode, Create_barcode_for_product
 from .dreamkas_to_massaK import create_or_change_massak_codes_for_product, create_excel_document_for_massaK
 from .gmail_invoices import create_document_from_excel, get_gmail_messages
@@ -184,7 +186,11 @@ class Preset(View):
 
     def patch(self, request):
         return JsonResponse({}, safe=False)
-
+### Store / Device Related ###
+@csrf_exempt
+def set_store_id(request):
+    request.session['store_id'] = request.POST.get('store_id')
+    return redirect("/")
 ### Goods Related ###
 @csrf_exempt
 def change_printer_file_location(request):
@@ -236,11 +242,6 @@ def products(request):
     if request.method == 'GET':
         products = Product.objects.all().order_by('name')
         page = Paginator(products, 250).page(request.GET.get("page", 1))
-        # products = products.prefetch_related(
-        #     Prefetch('prices_set', queryset=Prices.objects.filter(device_id__in=current_shop_ids)[:1], to_attr='filtered_prices')
-        # )
-        # for product in products:
-        #     print(product.filtered_prices)
         return render(request, "mainapp/pages/display_products.html", {'list_of_goods': page, 'current_shop_ids' : current_shop_ids, 'current_printer_file_location': current_printer_file_location})
     if request.method == 'POST':
         query = request.GET.get("query", None)
@@ -255,6 +256,13 @@ def products(request):
         page = Paginator(products, 250).page(request.GET.get("page", 1))
         products_list_contents = render_to_string( 'mainapp/parts/product_list_display.html', {'list_of_goods': page, 'current_shop_ids' : current_shop_ids},request)
         return JsonResponse({"products_list_contents": products_list_contents}, safe=False)
+
+@csrf_exempt
+def good_groups(request, keyword='inaaadex'):
+    if request.method == 'POST':
+        GoodGroups.update_good_groups()
+        return redirect(request.path)
+    return render(request, "mainapp/pages/good_groups.html", {'good_groups': GoodGroups.objects.all()})
 
 
 @csrf_exempt
@@ -276,6 +284,15 @@ def generate_xlsx_file_for_printer(request):
         create_excel_document_for_massaK(file_path)
         return JsonResponse({'success': True})
 
+@csrf_exempt
+def delete_all_suppliers(request):
+    dreamkas_documents.delete_all_suppliers()
+    return redirect(reverse('dreamkas_suppliers'))
+
+@csrf_exempt
+def update_all_suppliers(request):
+    dreamkas_documents.dreamkas_update_suppliers()
+    return redirect(reverse('dreamkas_suppliers'))
 
 @csrf_exempt
 def get_index_page(request, keyword='index'):
@@ -287,13 +304,6 @@ def get_all_gmail_messages(request):
         messages = get_gmail_messages(120)
         return render(request, 'mainapp/pages/gmail_all_messages.html', {'gmail_all_messages': messages})
 
-
-@csrf_exempt
-def good_groups(request, keyword='inaaadex'):
-    if request.method == 'POST':
-        GoodGroups.update_good_groups()
-        return redirect(request.path)
-    return render(request, "mainapp/pages/good_groups.html", {'good_groups': GoodGroups.objects.all()})
 
 
 def get_suppliers_with_no_payment_time():
@@ -468,7 +478,7 @@ def create_pricing_order(request):
 @csrf_exempt
 def invoices_update(request):
     if request.method == 'POST':
-        Invoice.update_invoices()
+        dreamkas_documents.update_invoices()
         return redirect(reverse('invoices'))
 
 
@@ -558,54 +568,6 @@ def problematic_invoices():
         'possible_problematic_invoices_supplier': supplier_dupes_result
     }
 
-
-# def problematic_invoices():
-#     dublicate_invoices = Invoice.objects.filter(hide=False).values("number", "sum", "issue_date", "supplier").annotate(
-#         number_c=Concat("number"),
-#         id_2=Concat("id"),
-#         supplier_c=Concat("supplier"),
-#         sum_c=Concat("sum"),
-#         issue_date_c=Concat("issue_date"),
-#         count=Count("number")
-#     ).filter(count__gte=2).values(
-#         "id_2",
-#         "number_c",
-#         "supplier_c",
-#         "sum_c",
-#         "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')  # після валуес можна спокійно робити ордер бай.
-#     possible_problematic_invoices_sum = Invoice.objects.values("number", "issue_date", "supplier").annotate(
-#         number_c=Concat("number"),
-#         id_2=Concat("id"),
-#         supplier_c=Concat("supplier"),
-#         issue_date_c=Concat("issue_date"),
-#         count=Count("number")
-#     ).filter(count__gte=2).values(
-#         "id_2",
-#         "number_c",
-#         "supplier_c",
-#         "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')
-#     possible_problematic_invoices_supplier = Invoice.objects.values("number", "sum", "issue_date").annotate(
-#         number_c=Concat("number"),
-#         id_2=Concat("id"),
-#         sum_c=Concat("sum"),
-#         issue_date_c=Concat("issue_date"),
-#         count=Count("number")
-#     ).filter(count__gte=2).values(
-#         "id_2",
-#         "number_c",
-#         "sum_c",
-#         "issue_date_c").aggregate(id3=Concat('id_2'))['id3'].split(',')
-#
-#     possible_problematic_invoices_sum = list(set(possible_problematic_invoices_sum) - set(dublicate_invoices))
-#     possible_problematic_invoices_supplier = list(set(possible_problematic_invoices_supplier) - set(possible_problematic_invoices_sum) - set(dublicate_invoices))
-#
-#     return {
-#         'duplicate_invoices': Invoice.objects.filter(id__in=dublicate_invoices),
-#         'possible_problematic_invoices_sum': Invoice.objects.filter(id__in=possible_problematic_invoices_sum),
-#         'possible_problematic_invoices_supplier': Invoice.objects.filter(id__in=possible_problematic_invoices_supplier)
-#     }
-
-
 def invoices(request):
     invoices = Invoice.objects.all().filter(hide=False).order_by("-issue_date")
     page = Paginator(invoices, 500).page(request.GET.get("page", 1))
@@ -694,10 +656,13 @@ def dreamkas_suppliers(request):
     return render(request, 'mainapp/pages/suppliers.html', {'suppliers': suppliers})  #
 
 
-def dreamkas_supplier(request, supplier_name):
-    supplier = Supplier.objects.get(name=supplier_name)
+def dreamkas_supplier(request, supplier_inn):
+    supplier = Supplier.objects.get(inn=supplier_inn)
+    supplier_names = []
+    for supplier_name_obj in supplier.supplier_name_set.all():
+        supplier_names.append(supplier_name_obj.name)
     dreamkas_invoices = Invoice.objects.filter(hide=False).order_by("-issue_date")
-    return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices})
+    return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices, 'supplier_names' : supplier_names})
 
 
 def invoices_diadoc(request):

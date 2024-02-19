@@ -227,6 +227,8 @@ class DreamKasApi:
         else:
             return products
         return None
+    def get_stores(self):
+        return self.session.get("https://kabinet.dreamkas.ru/api/v1/shops?").json()
     def get_devices(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/devices").json()
 
@@ -435,6 +437,9 @@ class DreamKasApi:
                 existing_ids.add(item['id'])  # Додавання id_out до множини існуючих
 
         return products_list
+
+    def get_suppliers(self):
+        return self.session.get("https://kabinet.dreamkas.ru/api/v1/edx/paper/contacts").json()
     def get_documents(self, limit=100, document_type="5,13"):
         # 0: {label: "Перемещение", value: 2}
         # 1: {label: "Оприходование", value: 3}

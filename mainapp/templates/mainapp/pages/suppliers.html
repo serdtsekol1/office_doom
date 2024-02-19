@@ -8,8 +8,8 @@
             <li class="list-group-item d-flex justify-content-end align-items-center">
 
                 <div style="flex-basis: 50%; flex-grow: 1">
-                    <a href="{% url "dreamkas_supplier" supplier_name=supplier.name %}">
-                        <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.name }}</div>
+                    <a href="{% url "dreamkas_supplier" supplier_inn=supplier.inn %}">
+                        <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.supplier_name_set.all.0.name }}</div>
                         <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
                     </a>
                 </div>

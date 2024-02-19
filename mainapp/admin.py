@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from mainapp.models import Product, Invoice, GoodGroups, DiadocInvoice, LinkedDocuments, Supplier
+from mainapp.models import Product, Invoice, GoodGroups, DiadocInvoice, LinkedDocuments, Supplier, Store
 
 
 class LinkedDocumentsInline(admin.TabularInline):
@@ -18,6 +18,11 @@ class AdminGoodGroups(admin.ModelAdmin):
 class AdminSupplier(admin.ModelAdmin):
     list_display = ['id', 'name']
     search_fields = ['name']
+    pass
+@admin.register(Store)
+class AdminStore(admin.ModelAdmin):
+    list_display = ['store_id', 'store_name']
+    search_fields = ['store_name']
     pass
 
 @admin.register(DiadocInvoice)

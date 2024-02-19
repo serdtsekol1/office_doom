@@ -12,7 +12,7 @@
             {% endfor %}
         </div>
         <div style="flex-basis: 20%">
-            {{ product.price_for_shop.value }}
+            {{ product.prices_set.all|get_price_for_device:CURRENT_STORE }}
         </div>
         <div style="flex-basis: 10%">
             <div>Код для весов:</div>

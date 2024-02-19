@@ -13,6 +13,7 @@ from django.utils.translation import gettext as _, get_language
 import json
 
 from dremkas.settings import MEDIA_ROOT
+from mainapp.models import Device, Store
 
 register = template.Library()
 
@@ -109,6 +110,13 @@ def add_language_to_link(url, lng):
     url = url.split('/')
     url[2] = f"{url[2]}/{lng}"
     return '/'.join(url)
+@register.filter
+def get_price_for_device(prices,store):
+    device_ids = Device.objects.filter(store_id=store.store_id).values_list('device_id',flat=True)
+    price_obj = prices.filter(device_id__in=device_ids).first()
+    return price_obj.value/100 if price_obj else None
+
+
 @register.simple_tag
 def get_printer_code_from_barcode(barcodes):
     for barcode in barcodes:

@@ -14,6 +14,7 @@ from datetime import timedelta, date
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, current_store_id
 from mainapp.gmail_invoices import get_gmail_messages
 class Store(models.Model):
+    store_name = models.CharField('store_name', blank=True, null=True, max_length=255,default=None)
     store_id = models.IntegerField('store_id', blank=True, null=True)
     @property
     def store_devices(self):
@@ -22,6 +23,13 @@ class Store(models.Model):
         for device in devices:
             store_devices.append(device.device_id)
         return store_devices
+    @staticmethod
+    def update_stores():
+        for store in DREAM_KAS_API.get_stores():
+            Store.objects.update_or_create(store_id=store['id'], store_name=store['name'])
+        for device in DREAM_KAS_API.get_devices():
+            Device.objects.update_or_create(device_id=device['id'], store_id=device['groupId'])
+
 class Device(models.Model):
     device_id = models.IntegerField('device_id')
     store_id = models.IntegerField('owner_store_id')
@@ -216,6 +224,12 @@ class Supplier(models.Model):
     comment = models.CharField('comment', max_length=2555, blank=True, default=None, null=True)
     invoices_non_program = models.CharField('invoices_non_program', max_length=5000, blank=True, default='', null=True)
     invoice_program = models.CharField('invoices_program', max_length=5000, blank=True, default='', null=True)
+class Supplier_name(models.Model):
+    name = models.CharField('name',blank=True,default=None,null=True,max_length=255)
+    supplier_fk = models.ForeignKey(Supplier,on_delete=models.CASCADE)
+class Supplier_id_dreamkas(models.Model):
+    dreamkas_id = models.BigIntegerField('id',blank=True,default=None,null=True)
+    supplier_fk = models.ForeignKey(Supplier,on_delete=models.CASCADE)
 
 
 class Position(models.Model):
@@ -251,6 +265,9 @@ class Invoice(models.Model):
     created_via_program = models.BooleanField('Created via program?', null=True, blank=True, default=False)
     previous_snapshot = models.TextField('Snapshot', null=True, blank=True, default=None)
     positions = models.ManyToManyField(Position)
+    #store_id = models.IntegerField('receiver_id', null=True,blank=True,default=None)
+    store = models.ForeignKey(Store , on_delete=models.CASCADE, null=True)
+
 
 
     # linked_documents = models.ManyToManyField("self", blank=True)

@@ -1,10 +1,9 @@
 {% extends 'wrapper.html' %}
 
 {% block body %}
-
     <ol class="list-group list-group-numbered">
         <div style="flex-basis: 50%; flex-grow: 1">
-            <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.name }}</div>
+            <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.supplier_name_set.first.name }}</div>
             <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
             <div class="Paymentlimit row">
                 <div style="font-size: 18px;" class="text-dark col-12">Срок оплаты:
@@ -15,7 +14,7 @@
             </a>
         </div>
         {% for invoice in dreamkas_invoices %}
-            {% if invoice.supplier == supplier.name %}
+            {% if invoice.supplier in supplier_names %}
                 <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.paid %} list-group-item-success {% endif %}">
                     <div style="flex-basis: 50%; flex-grow: 1;" class="">
                         <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.id_dreem %}">{{ invoice.number }}</a></div>
@@ -32,7 +31,7 @@
 
                     </div>
                     {% if invoice.overdue and not invoice.paid %}
-                        ПРОСРОЧЕНА ОПЛАТА
+                       {#ПРОСРОЧЕНА ОПЛАТА  #} {# СНЯТЬ КОММЕНТАРИЙ КОГДА ПОФИКСИТСЯ! #}
                     {% endif %}
                     <div style="flex-basis: 100px; display:flex">
                     </div>

@@ -1,6 +1,19 @@
 <nav id="sidebar">
     <div class="sidebar-header">
         <h3>Внешняя оболочка Дримкас</h3>
+        {{ CURRENT_STORE.store_name }}
+        <form method="POST" action="{% url "set_store_id" %}">
+            <select name="store_id" id="store_id">
+                {% for store in STORES %}
+                    <option {% if store.store_id == CURRENT_STORE.store_id %} selected {% endif %} value="{{ store.store_id }}">
+                    {{ store.store_name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button>
+                set get shit
+            </button>
+        </form>
     </div>
 
     <ul class="list-unstyled components">
