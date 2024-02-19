@@ -7,5 +7,8 @@ def get_settings(request):
     else:
         print("Default Store Selected auto")
         store = Store.objects.filter(store_id=185449).first()
-        request.session['store_id'] = store.store_id
+        try:
+            request.session['store_id'] = store.store_id
+        except:
+            pass
     return {'STORES':Store.objects.all(), 'CURRENT_STORE':store}
