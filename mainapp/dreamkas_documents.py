@@ -73,7 +73,8 @@ def update_invoices():
             if document['sourceName'] not in source_map_external:
                 source_map_external.append(document['sourceName'])
                 if Supplier_name.objects.filter(name=document['sourceName']).first() is None:
-                    Supplier.objects.update_or_create(name=document['sourceName'], defaults={})
+                    supplier_obj,supplier_status = Supplier.objects.update_or_create(name=document['sourceName'], defaults={})
+                    Supplier_name.objects.update_or_create(name=document['sourceName'],supplier_fk= supplier_obj )
     invoices_to_create = []
     invoices_to_update = []
     for document in documents:
@@ -157,7 +158,7 @@ def update_invoices():
         #         'invoicetype': True if "НАЛ" in document['num'] else False,
         #         'overdue': overdue if supplier.paymenttime is not None else False,
         #     })
-def delete_duplicate_invoices():
+def find_duplicate_invoices():
     invoice_map = []
     invoice_duplicate = []
     for invoice in Invoice.objects.all():
@@ -166,7 +167,8 @@ def delete_duplicate_invoices():
             continue
         invoice_duplicate.append(invoice.id_dreem)
     for invoice_dupe in invoice_duplicate:
-        Invoice.objects.filter(id_dreem=invoice_dupe).order_by('id').first().delete()
+        #Invoice.objects.filter(id_dreem=invoice_dupe).order_by('id').first().delete()
+        print('id_dreem:' ,invoice_dupe, ' - дупликат!')
 
 
 

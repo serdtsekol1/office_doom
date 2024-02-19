@@ -548,7 +548,10 @@ def problematic_invoices():
         'possible_problematic_invoices_sum': sum_dupes_result,
         'possible_problematic_invoices_supplier': supplier_dupes_result
     }
-
+@csrf_exempt
+def find_invoice_duplicates(request):
+    dreamkas_documents.find_duplicate_invoices()
+    return redirect(reverse('invoices'))
 def invoices(request):
     invoices = Invoice.objects.all().filter(hide=False).order_by("-issue_date")
     page = Paginator(invoices, 500).page(request.GET.get("page", 1))
