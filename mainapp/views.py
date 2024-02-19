@@ -26,7 +26,7 @@ from simplegmail.query import construct_query
 
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
-from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices
+from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store
 from . import dreamkas_documents
 from .dreamkas_documents import dreamkas_update_suppliers
 from .dreamkas_Products import product_update, Find_and_delete_barcode, Create_barcode_for_product
@@ -283,8 +283,10 @@ def generate_xlsx_file_for_printer(request):
             return JsonResponse({'success': False})
         create_excel_document_for_massaK(file_path)
         return JsonResponse({'success': True})
+
+@csrf_exempt
 def update_stores_and_devices():
-    update_stores_and_devices()
+    Store.update_stores_and_devices()
     return redirect(reverse('invoices'))
 @csrf_exempt
 def delete_all_suppliers(request):
