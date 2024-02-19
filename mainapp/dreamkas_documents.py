@@ -86,9 +86,6 @@ def update_invoices():
                 if date.today() > django_date + timedelta(days=supplier.paymenttime):
                     overdue = True
         if int(document['id']) not in internal_dreamkas_documents_map:
-
-            print("Создается накладная")
-            print(document)
             invoice_new = Invoice(
                 id_dreem=document['id'],
                 supplier=document['sourceName'] if 'sourceName' in document else None,
@@ -105,8 +102,6 @@ def update_invoices():
             invoices_to_create.append(invoice_new)
             continue
         else:
-            print("Обновляется накладная")
-            print(document)
             invoice_internal = Invoice.objects.filter(id_dreem=document['id']).first()
             invoice_internal.supplier = document['sourceName'] if 'sourceName' in document else None
             invoice_internal.supplier_fk = supplier if supplier else None
@@ -118,10 +113,9 @@ def update_invoices():
             invoice_internal.overdue = overdue
             invoice_internal.invoicetype = True if "[НАЛ]" in document['num'] else False
             invoices_to_update.append(invoice_internal)
-    print(Invoice.objects.all().count())
-    print('creating')
+    print('Создаются накладные. Кол-во - ', invoices_to_create.__len__())
+    print('Обновляются накладные. Кол-во - ', invoices_to_update.__len__())
     Invoice.objects.bulk_create(invoices_to_create)
-    print(Invoice.objects.all().count())
     Invoice.objects.bulk_update(invoices_to_update,['supplier','supplier_fk','number','issue_date','store','sum','invoice_status','overdue','invoicetype'])
     for invoice_internal in Invoice.objects.filter(invoice_status = False):
         if DREAM_KAS_API.get_document(invoice_internal.id_dreem)['status'] == 404:

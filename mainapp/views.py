@@ -283,7 +283,9 @@ def generate_xlsx_file_for_printer(request):
             return JsonResponse({'success': False})
         create_excel_document_for_massaK(file_path)
         return JsonResponse({'success': True})
-
+def update_stores_and_devices():
+    update_stores_and_devices()
+    return redirect(reverse('invoices'))
 @csrf_exempt
 def delete_all_suppliers(request):
     dreamkas_documents.delete_all_suppliers()
@@ -444,30 +446,6 @@ def manual_invoice(request, keyword='index'):
 
 def test(request):
     create_excel_document_for_massaK()
-    #create_massak_codes('8854878a-82d7-4973-a0b6-8211bd4909d6',55)
-    #Create_barcode_for_product(0,0)
-    #Find_and_delete_barcode('Тест1')
-    #resp = DREAM_KAS_API.search_goods('Тест1')
-    #print(resp)
-
-
-    # documents = DREAM_KAS_API.get_documents(limit=1000)
-    # count = 0
-    # for document in documents:
-    #     count += 1
-    #     print(count, document)
-    #     Invoice.objects.update_or_create(id_dreem=document['id'], defaults={
-    #         'number': document['num'],
-    #         'supplier': document['sourceName'],
-    #         'sum': Decimal(int(document['totalSum']) / 100),
-    #         'issue_date': document['issueDate'],
-    #         # 'issue_date': str(document['issueDate'].split("-")[2])+"."+str(document['issueDate'].split("-")[1])+"."+str(document['issueDate'].split("-")[0])
-    #         # 'issue_date': document['issueDate'],
-    #     })
-    #
-    # return JsonResponse({}, safe=False)
-
-
 @csrf_exempt
 def create_pricing_order(request):
     if request.method == 'POST':

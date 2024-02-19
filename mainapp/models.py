@@ -24,7 +24,7 @@ class Store(models.Model):
             store_devices.append(device.device_id)
         return store_devices
     @staticmethod
-    def update_stores():
+    def update_stores_and_devices():
         for store in DREAM_KAS_API.get_stores():
             Store.objects.update_or_create(store_id=store['id'], store_name=store['name'])
         for device in DREAM_KAS_API.get_devices():
