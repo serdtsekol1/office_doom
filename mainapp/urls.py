@@ -12,7 +12,7 @@ urlpatterns = [
     path('test/', test, name="test"),
     ##STORE and DEVICES
     path('set_store_id/', set_store_id, name="set_store_id"),
-    path('update_stores_and_devices', update_stores_and_devices, name="update_stores_and_devices"),
+    path('update_stores_and_devices/', update_stores_and_devices, name="update_stores_and_devices"),
 
     path('manual_invoice/', manual_invoice, name="manual_invoice"),
     path('test_page/', test_page, name="test_page"),
