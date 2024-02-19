@@ -161,10 +161,14 @@ def update_invoices():
 def find_duplicate_invoices():
     invoice_map = []
     invoice_duplicate = []
+    i = 0
     for invoice in Invoice.objects.all():
+        i = i + 1
         if invoice.id_dreem not in invoice_map:
+            print('non dupe')
             invoice_map.append(invoice.id_dreem)
             continue
+        print('dupe found')
         invoice_duplicate.append(invoice.id_dreem)
     for invoice_dupe in invoice_duplicate:
         #Invoice.objects.filter(id_dreem=invoice_dupe).order_by('id').first().delete()
