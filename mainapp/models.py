@@ -748,10 +748,8 @@ class DiadocInvoice(models.Model):
 
     @staticmethod
     def update_diadoc_invoices():
-        print('3')
         invoices = DIADOC_API.get_documents()
-        print('4')
-        print(invoices)
+        print('test_123')
         for item in invoices:
             diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
                 'kontragent': item['kontragent'],

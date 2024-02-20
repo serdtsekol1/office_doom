@@ -9,9 +9,19 @@ from datetime import timedelta, date
 def delete_all_suppliers():
     Supplier.objects.all().delete()
 def delete_broken_suppliers():
+    supplier_map = []
+    supplier_dupes = []
     for supplier_obj in Supplier.objects.all():
         if supplier_obj.supplier_name_set.all().__len__() == 0 and supplier_obj.inn == None:
             supplier_obj.delete()
+        if supplier_obj.inn is not None:
+            if supplier_obj.inn not in supplier_map:
+                supplier_map.append(supplier_obj.inn)
+                continue
+            supplier_dupes.append(supplier_obj.inn)
+    print(supplier_dupes)
+
+
 
 def dreamkas_update_suppliers():
     supplier_list = DREAM_KAS_API.get_suppliers()

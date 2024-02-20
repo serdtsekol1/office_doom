@@ -26,7 +26,7 @@ from simplegmail.query import construct_query
 
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
-from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store
+from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name
 from . import dreamkas_documents
 from .dreamkas_documents import dreamkas_update_suppliers
 from .dreamkas_Products import product_update, Find_and_delete_barcode, Create_barcode_for_product
@@ -644,8 +644,11 @@ def dreamkas_suppliers(request):
     return render(request, 'mainapp/pages/suppliers.html', {'suppliers': suppliers})  #
 
 
-def dreamkas_supplier(request, supplier_inn):
-    supplier = Supplier.objects.get(inn=supplier_inn)
+def dreamkas_supplier(request, supplier_data):
+    if supplier_data.isdigit():
+        supplier = Supplier.objects.get(inn=supplier_data)
+    else:
+        supplier = Supplier_name.objects.get(name=supplier_data).supplier_fk
     supplier_names = []
     for supplier_name_obj in supplier.supplier_name_set.all():
         supplier_names.append(supplier_name_obj.name)
@@ -658,18 +661,16 @@ def invoices_diadoc(request):
     dreamkas_invoices = Invoice.objects.all()
     matching_invoices = []
     for diadoc_invoice in diadocinvoices:
-
-        # dreamkas_invoices = Invoice.objects.filter(issue_date=diadoc_invoice.issue_date, supplier=diadoc_invoice.kontragent, number=diadoc_invoice.number).first()
-        # if dreamkas_invoices != None:
-        #     print(dreamkas_invoices.issue_date, dreamkas_invoices.supplier, dreamkas_invoices.number    )
-        #     matching_invoices.append(dreamkas_invoice)
         for dreamkas_invoice in dreamkas_invoices:
             if dreamkas_invoice.number == diadoc_invoice.number and dreamkas_invoice.issue_date == diadoc_invoice.issue_date and dreamkas_invoice.supplier == diadoc_invoice.kontragent:
                 matching_invoices.append(dreamkas_invoice)
     page = Paginator(diadocinvoices, 1000).page(request.GET.get("page", 1))
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
 
+@csrf_exempt
+def delete_duplicate_diadoc_invoices(request):
 
+    return redirect(reverse('invoices_diadoc'))
 @csrf_exempt
 def update_item_group(request):
     if request.method == 'POST':

@@ -39,7 +39,7 @@ urlpatterns = [
     path('find_invoice_duplicates/',find_invoice_duplicates,name="find_invoice_duplicates"),
     ##DREAMKAS RELATED
     path('suppliers/', dreamkas_suppliers, name="dreamkas_suppliers"),
-    path('dreamkas_supplier/<str:supplier_inn>', dreamkas_supplier, name="dreamkas_supplier"),
+    path('dreamkas_supplier/<str:supplier_data>', dreamkas_supplier, name="dreamkas_supplier"),
     path('supplier_paymenttime_update/', supplier_paymenttime_update, name="supplier_paymenttime_update"),
     path('good_groups_user_form/', good_groups_user_form, name="good_groups_user_form"),
     path('test_union/', test_union, name="test_union"),
