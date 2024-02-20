@@ -4,7 +4,7 @@ from mainapp.views import get_index_page, test, invoices, manual_invoice, good_g
     inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document, hide_invoice, get_all_gmail_messages, test_page, \
     generate_goods_report, edit_existing_report, invoice_reports, generate_invoice_report, update_all_goods, generate_xlsx_file_for_printer, display_all_goods_for_printer, products, \
     update_one_product, create_or_change_printer_code_for_product, change_printer_file_location, delete_all_suppliers, update_all_suppliers, set_store_id, update_stores_and_devices, \
-    find_invoice_duplicates, delete_broken_suppliers
+    find_invoice_duplicates, delete_broken_suppliers, show_duplicate_diadoc_invoices
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -60,7 +60,7 @@ urlpatterns = [
     path('invoices_diadoc/', invoices_diadoc, name="invoices_diadoc"),
     path('invoices_diadoc_update/', update_diadoc_invoices, name="invoices_diadoc_update"),
     path('create_document_from_diadoc/', create_document_from_diadoc, name="create_document_from_diadoc"),
-
+    path('show_duplicate_diadoc_invoices/',show_duplicate_diadoc_invoices,name="show_duplicate_diadoc_invoices"),
     ## GMAIL
     path('gmail_messages/', gmail_messages, name="gmail_messages"),
     path('gmail_all_messages/', get_all_gmail_messages, name="gmail_all_messages"),

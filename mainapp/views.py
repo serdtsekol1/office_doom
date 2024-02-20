@@ -668,8 +668,16 @@ def invoices_diadoc(request):
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
 
 @csrf_exempt
-def delete_duplicate_diadoc_invoices(request):
+def show_duplicate_diadoc_invoices(request):
+    diadoc_id_map = []
+    diadoc_dupe_map = []
+    for diadoc_invoice_obj in DiadocInvoice.objects.all():
+        if diadoc_invoice_obj.diadoc_id not in diadoc_id_map:
+            diadoc_id_map.append(diadoc_invoice_obj.diadoc_id)
+            continue
+        diadoc_dupe_map.append(diadoc_invoice_obj.diadoc_id)
 
+    print(diadoc_dupe_map)
     return redirect(reverse('invoices_diadoc'))
 @csrf_exempt
 def update_item_group(request):
