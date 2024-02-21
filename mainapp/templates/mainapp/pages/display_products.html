@@ -24,8 +24,8 @@
             </div>
         </div>
     </div>
-    <ol class="list-group list-group-numbered">
-        <li class="list-group-item d-flex justify-content-start align-items-center">
+    <div class="list-group list-group-numbered">
+        <div class="list-group-item d-flex justify-content-start align-items-center">
             <div style="flex-basis: 40%">
                 Название
             </div>
@@ -39,11 +39,11 @@
             </div>
             <div style="flex-basis: 10%">
             </div>
-        </li>
+        </div>
         <div id="products_list_contents">
             {% include 'mainapp/parts/product_list_display.html' %}
         </div>
-    </ol>
+    </div>
     <script>
         const search_product = debounce((query) => {
             $.ajax({
@@ -60,11 +60,11 @@
             search_product(e.currentTarget.value)
         })
 
-                const change_file_location = debounce((file_location) => {
+        const change_file_location = debounce((file_location) => {
             $.ajax({
                 type: "POST",
                 url: '{% url "change_printer_file_location" %}',
-                data: {'file_location' : file_location},
+                data: {'file_location': file_location},
                 success: function (data) {
                     console.log(data)
                 }
@@ -92,11 +92,28 @@
                 }
             });
         }, 750)
-
-        $("body").on('input', ".js_printed_code",  (e) => {
+        $("body").on('input', ".js_printed_code", (e) => {
             create_or_change_barcodes_from_printer_code(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
         })
 
+        $("body").on('input', ".js_short_name", (e) => {
+            create_or_change_short_name(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
+        })
+        const create_or_change_short_name = debounce((element, short_name, id_out) => {
+            $.ajax({
+                type: "POST",
+                url: '{% url "create_or_change_printer_code_for_product" %}',
+                data: {'printer_code': printer_code, 'id_out': id_out},
+                success: function (data) {
+                    console.log(data)
+                    if (data.success) {
+
+                    } else {
+
+                    }
+                }
+            });
+        }, 500)
         {% comment %}        $("#search").on('input', (e) => {
                     console.log(e.currentTarget.value)
                     $.ajax({

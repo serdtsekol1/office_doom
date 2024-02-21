@@ -218,7 +218,8 @@ def create_or_change_printer_code_for_product(request):
         else:
             return JsonResponse({'success': False, 'message': f'Код {code} уже занят продуктом {status}'}, safe=False)
 
-
+def create_or_change_short_name_for_product(request):
+    return
 @csrf_exempt
 def update_one_product(request,id_out):
     if request.method == 'GET':
@@ -603,12 +604,12 @@ def dreamkas_invoice(request, invoiceid):
     Invoice.objects.update_or_create(id_dreem=invoiceid, defaults={
         "invoice_status": True if invoice['status'] == "ACCEPTED" else False,
     })
-    try:
-        Supplier.objects.update_or_create(name=invoice['sourceLegalEntity']['name'], defaults={
-            'inn': invoice['sourceLegalEntity']['inn'],
-        })
-    except Exception as ex:
-        print(ex)
+    # try:
+    #     Supplier.objects.update_or_create(name=invoice['sourceLegalEntity']['name'], defaults={
+    #         'inn': invoice['sourceLegalEntity']['inn'],
+    #     })
+    # except Exception as ex:
+    #     print(ex)
     priced = 0
     if invoice.get('children'):
         for item in invoice['children']:

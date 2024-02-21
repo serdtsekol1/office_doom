@@ -4,7 +4,7 @@ from mainapp.views import get_index_page, test, invoices, manual_invoice, good_g
     inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document, hide_invoice, get_all_gmail_messages, test_page, \
     generate_goods_report, edit_existing_report, invoice_reports, generate_invoice_report, update_all_goods, generate_xlsx_file_for_printer, display_all_goods_for_printer, products, \
     update_one_product, create_or_change_printer_code_for_product, change_printer_file_location, delete_all_suppliers, update_all_suppliers, set_store_id, update_stores_and_devices, \
-    find_invoice_duplicates, delete_broken_suppliers, show_duplicate_diadoc_invoices
+    find_invoice_duplicates, delete_broken_suppliers, show_duplicate_diadoc_invoices, create_or_change_short_name_for_product
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -27,6 +27,7 @@ urlpatterns = [
     path('update_one_product/<str:id_out>/',update_one_product,name="update_one_product"),
     path('generate_xlsx_file_for_printer/',generate_xlsx_file_for_printer, name='generate_xlsx_file_for_printer'),
     path('create_or_change_printer_code_for_product/',create_or_change_printer_code_for_product, name='create_or_change_printer_code_for_product'),
+    path('create_or_change_short_name_for_product/',create_or_change_short_name_for_product, name='create_or_change_short_name_for_product'),
     path('change_printer_file_location',change_printer_file_location,name='change_printer_file_location'),
 
 
@@ -38,11 +39,13 @@ urlpatterns = [
     path('paid_update/', paid_update, name="paid_update"),
     path('find_invoice_duplicates/',find_invoice_duplicates,name="find_invoice_duplicates"),
     ##DREAMKAS RELATED
+
+    path('good_groups_user_form/', good_groups_user_form, name="good_groups_user_form"),
+    path('test_union/', test_union, name="test_union"),
+    #DREAMKAS SUPPLIER
     path('suppliers/', dreamkas_suppliers, name="dreamkas_suppliers"),
     path('dreamkas_supplier/<str:supplier_data>', dreamkas_supplier, name="dreamkas_supplier"),
     path('supplier_paymenttime_update/', supplier_paymenttime_update, name="supplier_paymenttime_update"),
-    path('good_groups_user_form/', good_groups_user_form, name="good_groups_user_form"),
-    path('test_union/', test_union, name="test_union"),
     path('delete_all_suppliers/',delete_all_suppliers, name="delete_all_suppliers"),
     path('delete_broken_suppliers/',delete_broken_suppliers, name="delete_broken_suppliers"),
     path('update_all_suppliers/',update_all_suppliers, name="delete_all_suppliers"),
