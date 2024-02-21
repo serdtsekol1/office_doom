@@ -4,7 +4,7 @@ import pandas as pd
 
 from dremkas.settings import DREAM_KAS_API, CURRENT_IDS
 from mainapp.dreamkas_Products import turn_number_to_ean_13, Create_barcode_for_product, Delete_barcode_for_product
-from mainapp.models import Barcodes
+from mainapp.models import Barcodes, Product
 
 
 #unit 796 - countable.
@@ -48,7 +48,13 @@ def create_excel_document_for_massaK(file_path):
         data.append(data_to_append)
     df = pd.DataFrame(data)
     df.to_excel(file_path + 'Файл_для_принтера.xlsx', index=False, header=False)
-
+def create_or_change_short_name_for_product(id_out,name):
+    product_internal = Product.objects.filter(id_out=id_out).first()
+    if product_internal is None:
+        return False
+    product_internal.short_name = name
+    product_internal.save()
+    return True
 def create_or_change_massak_codes_for_product(id_out,code):
     # zfill(3) :5 = 005, 55 = 055, 555 = 555
     # zfill(4) :5 = 0005, 55 = 0055, 555 = 0555

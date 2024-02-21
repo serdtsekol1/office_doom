@@ -27,7 +27,7 @@ from simplegmail.query import construct_query
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
 from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name
-from . import dreamkas_documents
+from . import dreamkas_documents, dreamkas_to_massaK
 from .dreamkas_documents import dreamkas_update_suppliers
 from .dreamkas_Products import product_update, Find_and_delete_barcode, Create_barcode_for_product
 from .dreamkas_to_massaK import create_or_change_massak_codes_for_product, create_excel_document_for_massaK
@@ -217,9 +217,13 @@ def create_or_change_printer_code_for_product(request):
             return JsonResponse({'success' : True,'message': 'Успешно'},safe=False)
         else:
             return JsonResponse({'success': False, 'message': f'Код {code} уже занят продуктом {status}'}, safe=False)
-
+@csrf_exempt
 def create_or_change_short_name_for_product(request):
-    return
+    print('asd')
+    if request.method == 'POST':
+        dreamkas_to_massaK.create_or_change_short_name_for_product(request.POST.get("id_out", None), request.POST.get("short_name", None))
+        return JsonResponse({'success':True})
+
 @csrf_exempt
 def update_one_product(request,id_out):
     if request.method == 'GET':
@@ -271,7 +275,7 @@ def update_all_goods(request):
     if request.method == 'POST' or request.method == 'GET':
         from mainapp.dreamkas_Products import Products_update
         Products_update()
-        return redirect(reverse('display_all_goods_for_printer'))
+        return redirect(reverse('products'))
 
 @csrf_exempt
 def generate_xlsx_file_for_printer(request):

@@ -23,8 +23,8 @@
         </div>
         <div style="flex-basis: 12%">
             <div>Название для весов:</div>
-            <input class="js_short_name" style="width: 100%" data-short_name="{{ product.short_name }}" id="short_name"
-                   value="{% if short_name %}{{ short_name }}{% endif %}"
+            <input class="js_short_name" style="width: 100%" data-id_out="{{ product.id_out }}" id="short_name"
+                   value="{% if product.short_name %}{{ product.short_name }}{% endif %}"
                    placeholder="">
         </div>
     </div>

@@ -102,8 +102,8 @@
         const create_or_change_short_name = debounce((element, short_name, id_out) => {
             $.ajax({
                 type: "POST",
-                url: '{% url "create_or_change_printer_code_for_product" %}',
-                data: {'printer_code': printer_code, 'id_out': id_out},
+                url: '{% url "create_or_change_short_name_for_product" %}',
+                data: {'short_name': short_name, 'id_out': id_out},
                 success: function (data) {
                     console.log(data)
                     if (data.success) {
