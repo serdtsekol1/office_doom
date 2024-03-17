@@ -10,12 +10,12 @@
 
             <li class="list-group-item d-flex justify-content-end align-items-center">
                 <div style="flex-basis: 50%; flex-grow: 1">
-                    <div style="font-size: 16px; font-weight: 500;" class="fw-bold"> {{ message.message_name }}</div>
-                    <div class="text-dark">{{ message.message_sender }}</div>
-                    <div class="text-dark">{{ message.message_date|date:"d.m.Y" }}</div>
-                        {% for attachment in message.attachments.all %}
-                            <div class="text-dark">{{ attachment.name }}</div>
-                        {% endfor %}
+                    <div style="font-size: 16px; font-weight: 500;" class="fw-bold"> {{ message.message_sender_display }}</div>
+                    <div class="text-dark" style="font-size: 12px;">{% if message.message_sender_display == 'Необработанное сообщение' %}Почта отправителя:{% endif %}{{ message.message_sender }}</div>
+                    <div class="text-dark">{% if message.message_date %}{{ message.message_date|date:"d.m.Y" }}{% else %}Формат даты сообщения:{{ message.message_date_str }}{% endif %}</div>
+                    {% for attachment in message.attachments.all %}
+                        <div class="text-dark">{{ attachment.name }}</div>
+                    {% endfor %}
 
                     <div class="text-dark">{{ message.message_id }}</div>
 
@@ -34,10 +34,12 @@
 
                 {#                </div>#}
                 <div class="">
-                    <form action="{% url "create_documents_from_gmail_message" %}" method="post">
-                        <input hidden type="text" name="gmail_message_id" id="gmail_message_id" value="{{ message.message_id }}">
-                        <button type="submit" class="btn btn-primary">Принять Накладную</button>
-                    </form>
+                    {% if message.message_sender_display != 'Необработанное сообщение' %}
+                        <form action="{% url "create_documents_from_gmail_message_v2" %}" method="post">
+                            <input hidden type="text" name="gmail_message_id" id="gmail_message_id" value="{{ message.message_id }}">
+                            <button type="submit" class="btn btn-primary">Принять Накладную</button>
+                        </form>
+                    {% endif %}
                 </div>
                 <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
                     <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
