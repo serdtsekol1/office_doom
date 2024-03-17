@@ -280,10 +280,16 @@ class DreamKasApi:
     def createdocument(self, dataofdocument, comment, partner_id, doc_id, target_store_id=185449, positions=None):
         if not positions:
             positions = []
-        data = {"num": doc_id, "type": "INCOME_INVOICE",
+        data = {
+                "num": doc_id,
+                "type": "INCOME_INVOICE",
                 "comment": comment,
-                "issueDate": dataofdocument, "partnerId": partner_id, "targetStoreId": target_store_id, "positions": positions,
-                "status": "DRAFT"}
+                "issueDate": dataofdocument,
+                "partnerId": partner_id,
+                "targetStoreId": target_store_id,
+                "positions": positions,
+                "status": "DRAFT"
+                }
         response = self.session.post(self.URL_DOCUMENTS_v1_API, json=data)
         return response.json()
 

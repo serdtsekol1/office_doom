@@ -3,6 +3,7 @@ import json
 import os
 import pickle
 import re
+import time
 import webbrowser
 from dataclasses import dataclass
 from decimal import Decimal
@@ -10,10 +11,14 @@ import py7zr
 import pandas
 import requests
 import simplegmail
+import xlrd
+from crispy_forms.helper import FormHelper
+from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import UploadedFile
 from django.core.paginator import Paginator
 from django.db.models import Sum, Value, Q, OuterRef, Prefetch
 from django.db.models.functions import Lower
+from django import forms
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
@@ -21,17 +26,20 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+import openpyxl
 from simplegmail import gmail
 from simplegmail.query import construct_query
 
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
-from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name
-from . import dreamkas_documents, dreamkas_to_massaK
+from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset
+from . import dreamkas_documents, dreamkas_to_massaK, diadoc_to_dreamkas, gmail_to_dreamkas
+from .diadoc_to_dreamkas import create_invoice_from_diadoc_document_v2
 from .dreamkas_documents import dreamkas_update_suppliers
 from .dreamkas_Products import product_update, Find_and_delete_barcode, Create_barcode_for_product
 from .dreamkas_to_massaK import create_or_change_massak_codes_for_product, create_excel_document_for_massaK
 from .gmail_invoices import create_document_from_excel, get_gmail_messages
+from .gmail_to_dreamkas import get_document_and_attachments_from_gmail, get_supplier_data_for_preset
 from .helper import send_document, delete_file, save_to_json
 
 from django.core.validators import MinValueValidator, MaxValueValidator, EMPTY_VALUES
@@ -186,11 +194,15 @@ class Preset(View):
 
     def patch(self, request):
         return JsonResponse({}, safe=False)
+
+
 ### Store / Device Related ###
 @csrf_exempt
 def set_store_id(request):
     request.session['store_id'] = request.POST.get('store_id')
     return redirect("/")
+
+
 ### Goods Related ###
 @csrf_exempt
 def change_printer_file_location(request):
@@ -207,32 +219,40 @@ def change_printer_file_location(request):
             json.dump(loaded_data, f)
         return JsonResponse({'success': True}, safe=False)
 
+
 @csrf_exempt
 def create_or_change_printer_code_for_product(request):
     if request.method == 'POST':
-        status, code = create_or_change_massak_codes_for_product(request.POST.get("id_out",None),request.POST.get("printer_code",None))
+        status, code = create_or_change_massak_codes_for_product(request.POST.get("id_out", None), request.POST.get("printer_code", None))
         if status is None:
             return JsonResponse({'success': False, 'message': f'Код {code} или Товар является неверным'}, safe=False)
         elif status is True:
-            return JsonResponse({'success' : True,'message': 'Успешно'},safe=False)
+            return JsonResponse({'success': True, 'message': 'Успешно'}, safe=False)
         else:
             return JsonResponse({'success': False, 'message': f'Код {code} уже занят продуктом {status}'}, safe=False)
+
+
 @csrf_exempt
 def create_or_change_short_name_for_product(request):
     print('asd')
     if request.method == 'POST':
         dreamkas_to_massaK.create_or_change_short_name_for_product(request.POST.get("id_out", None), request.POST.get("short_name", None))
-        return JsonResponse({'success':True})
+        return JsonResponse({'success': True})
+
 
 @csrf_exempt
-def update_one_product(request,id_out):
+def update_one_product(request, id_out):
     if request.method == 'GET':
         product_update(id_out)
         return redirect(reverse('products'))
+
+
 @csrf_exempt
 def display_all_goods_for_printer(request):
     if request.method == 'GET':
         return render(request, "mainapp/pages/display_products.html", {'list_of_goods': Product.objects.filter(barcodes__barcode__startswith='999999999')})
+
+
 @csrf_exempt
 def products(request):
     try:
@@ -247,7 +267,7 @@ def products(request):
     if request.method == 'GET':
         products = Product.objects.all().order_by('name')
         page = Paginator(products, 250).page(request.GET.get("page", 1))
-        return render(request, "mainapp/pages/display_products.html", {'list_of_goods': page, 'current_shop_ids' : current_shop_ids, 'current_printer_file_location': current_printer_file_location})
+        return render(request, "mainapp/pages/display_products.html", {'list_of_goods': page, 'current_shop_ids': current_shop_ids, 'current_printer_file_location': current_printer_file_location})
     if request.method == 'POST':
         query = request.GET.get("query", None)
         if query:
@@ -259,8 +279,9 @@ def products(request):
         else:
             products = Product.objects.all().order_by('name')
         page = Paginator(products, 250).page(request.GET.get("page", 1))
-        products_list_contents = render_to_string( 'mainapp/parts/product_list_display.html', {'list_of_goods': page, 'current_shop_ids' : current_shop_ids},request)
+        products_list_contents = render_to_string('mainapp/parts/product_list_display.html', {'list_of_goods': page, 'current_shop_ids': current_shop_ids}, request)
         return JsonResponse({"products_list_contents": products_list_contents}, safe=False)
+
 
 @csrf_exempt
 def good_groups(request, keyword='inaaadex'):
@@ -277,6 +298,7 @@ def update_all_goods(request):
         Products_update()
         return redirect(reverse('products'))
 
+
 @csrf_exempt
 def generate_xlsx_file_for_printer(request):
     if request.method == 'POST' or request.method == 'GET':
@@ -289,35 +311,52 @@ def generate_xlsx_file_for_printer(request):
         create_excel_document_for_massaK(file_path)
         return JsonResponse({'success': True})
 
+
 @csrf_exempt
 def update_stores_and_devices(request):
     print('test')
     Store.update_stores_and_devices()
     return redirect(reverse('invoices'))
+
+
 @csrf_exempt
 def delete_all_suppliers(request):
     dreamkas_documents.delete_all_suppliers()
     return redirect(reverse('dreamkas_suppliers'))
+
+
 @csrf_exempt
 def delete_broken_suppliers(request):
     dreamkas_documents.delete_broken_suppliers()
     return redirect(reverse('dreamkas_suppliers'))
 
+
 @csrf_exempt
 def update_all_suppliers(request):
     dreamkas_documents.dreamkas_update_suppliers()
+    map = []
+    for supplier_name in Supplier_name.objects.all():
+        if supplier_name.name not in map:
+            map.append(supplier_name.name)
+        else:
+            supplier_name.name = supplier_name.name + (' ИНН: ') + str(supplier_name.supplier_fk.inn)
+            print(supplier_name.name)
     return redirect(reverse('dreamkas_suppliers'))
+
 
 @csrf_exempt
 def get_index_page(request, keyword='index'):
-    #aaaa = Product.update_products()
+    # aaaa = Product.update_products()
     return render(request, "mainapp/pages/index.html", )
+
+
 @csrf_exempt
 def get_all_gmail_messages(request):
     if request.method == 'GET':
-        messages = get_gmail_messages(120)
+        store_id = request.session['store_id']
+        client_secret_json = Store.objects.filter(store_id=store_id).first().gmail_client_secret
+        messages = get_gmail_messages(28, client_secret_json)
         return render(request, 'mainapp/pages/gmail_all_messages.html', {'gmail_all_messages': messages})
-
 
 
 def get_suppliers_with_no_payment_time():
@@ -458,6 +497,8 @@ def manual_invoice(request, keyword='index'):
 
 def test(request):
     create_excel_document_for_massaK()
+
+
 @csrf_exempt
 def create_pricing_order(request):
     if request.method == 'POST':
@@ -557,10 +598,14 @@ def problematic_invoices():
         'possible_problematic_invoices_sum': sum_dupes_result,
         'possible_problematic_invoices_supplier': supplier_dupes_result
     }
+
+
 @csrf_exempt
 def find_invoice_duplicates(request):
     dreamkas_documents.find_duplicate_invoices()
     return redirect(reverse('invoices'))
+
+
 def invoices(request):
     invoices = Invoice.objects.all().filter(hide=False).order_by("-issue_date")
     page = Paginator(invoices, 500).page(request.GET.get("page", 1))
@@ -658,7 +703,13 @@ def dreamkas_supplier(request, supplier_data):
     for supplier_name_obj in supplier.supplier_name_set.all():
         supplier_names.append(supplier_name_obj.name)
     dreamkas_invoices = Invoice.objects.filter(hide=False).order_by("-issue_date")
-    return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices, 'supplier_names' : supplier_names})
+    return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices, 'supplier_names': supplier_names})
+
+
+def update_supplier_prefix(request):
+    supplier_obj = Supplier.objects.get(request.POST.get('supplier_id')).supplier_prefix = request.POST.get('supplier_prefix')
+    supplier_obj.save()
+    return JsonResponse({'success': True})
 
 
 def invoices_diadoc(request):
@@ -672,6 +723,88 @@ def invoices_diadoc(request):
     page = Paginator(diadocinvoices, 1000).page(request.GET.get("page", 1))
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
 
+
+@csrf_exempt
+def invoices_diadoc_v2(request):
+    start_time = time.time()
+    diadocinvoices = DiadocInvoice.objects.filter(store_id=request.session['store_id']).order_by("-issue_date")
+    dreamkas_invoices = Invoice.objects.all()
+    dreamkas_dict = {}
+    for dreamkas_invoice in dreamkas_invoices:
+        key = (dreamkas_invoice.number, dreamkas_invoice.issue_date, dreamkas_invoice.supplier)
+        if key not in dreamkas_dict:
+            dreamkas_dict[key] = []
+        dreamkas_dict[key].append(dreamkas_invoice)
+    # Initialize the list for matching invoices
+    matching_invoices = []
+
+    # Iterate through diadoc invoices and check if there are corresponding dreamkas invoices
+    for diadoc_invoice in diadocinvoices:
+        key = (diadoc_invoice.number, diadoc_invoice.issue_date, diadoc_invoice.kontragent)
+        if key in dreamkas_dict:
+            matching_invoices.extend(dreamkas_dict[key])
+    print('6:', time.time() - start_time)
+    page = Paginator(diadocinvoices, 1000).page(request.GET.get("page", 1))
+    print('7:', time.time() - start_time)
+    return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
+
+
+@csrf_exempt
+def diadoc_presets(request):
+    if request.method == 'GET':
+        diadoc_preset = DiadocPreset.objects.first()
+        if diadoc_preset is None:
+            create_diadoc_preset(request)
+        diadoc_presets = DiadocPreset.objects.all()
+        suppliers = Supplier.objects.all().order_by('supplier_name__name')
+        stores = Store.objects.all()
+        return render(request, 'mainapp/pages/diadoc_presets.html',
+                      {'diadoc_preset': diadoc_preset,
+                       'diadoc_presets': diadoc_presets,
+                       'suppliers': suppliers,
+                       'stores': stores})
+    if request.method == 'POST':
+        diadoc_preset = DiadocPreset.objects.filter(id=request.POST.get("preset_id")).first()
+        diadoc_presets = DiadocPreset.objects.all()
+        suppliers = Supplier.objects.all().order_by('supplier_name__name')
+        stores = Store.objects.all()
+        diadoc_preset_contents = render_to_string('mainapp/parts/diadoc_preset_display.html', {'diadoc_preset': diadoc_preset,
+                                                                                               'diadoc_presets': diadoc_presets, 'suppliers': suppliers, 'stores': stores})
+        return JsonResponse({'diadoc_preset_contents': diadoc_preset_contents}, safe=False)
+
+
+@csrf_exempt
+def create_diadoc_preset(request):
+    if request.method == 'POST':
+        diadoc_preset = DiadocPreset.objects.create(preset_name='Новый шаблон')
+        diadoc_presets = DiadocPreset.objects.all()
+        suppliers = Supplier.objects.all()
+        diadoc_preset_contents = render_to_string('mainapp/parts/diadoc_preset_display.html', {'diadoc_preset': diadoc_preset,
+                                                                                               'diadoc_presets': diadoc_presets, 'suppliers': suppliers})
+        return JsonResponse({'diadoc_preset_contents': diadoc_preset_contents}, safe=False)
+
+
+@csrf_exempt
+def update_diadoc_preset(request):
+    diadoc_preset = DiadocPreset.objects.get(id=request.POST.get('preset_id'))
+    what_to_change_to = request.POST.get('what_change_to')
+    if what_to_change_to == '':
+        what_to_change_to = None
+    if request.POST.get('obj_to_change') != 'store_destination_fk':
+        setattr(diadoc_preset, request.POST.get('obj_to_change'), what_to_change_to)
+    if request.POST.get('obj_to_change') == 'supplier_fk_id':
+        diadoc_preset.supplier_inn = Supplier.objects.get(id=what_to_change_to).inn
+        diadoc_preset.supplier_prefix = Supplier.objects.get(id=what_to_change_to).supplier_prefix
+        diadoc_preset.supplier_name = Supplier.objects.get(id=what_to_change_to).supplier_name_set.first().name
+    if request.POST.get('obj_to_change') == 'store_destination_fk':
+        diadoc_preset.store_destination_fk = Store.objects.filter(store_id=what_to_change_to).first()
+        if diadoc_preset.store_destination_fk is None:
+            diadoc_preset.store_destination_fk = Store.objects.filter(id=what_to_change_to)
+    diadoc_preset.save()
+
+    return JsonResponse({'success': True})
+
+
 @csrf_exempt
 def show_duplicate_diadoc_invoices(request):
     diadoc_id_map = []
@@ -684,6 +817,8 @@ def show_duplicate_diadoc_invoices(request):
 
     print(diadoc_dupe_map)
     return redirect(reverse('invoices_diadoc'))
+
+
 @csrf_exempt
 def update_item_group(request):
     if request.method == 'POST':
@@ -697,10 +832,7 @@ def update_item_group(request):
 
 @csrf_exempt
 def update_diadoc_invoices(request):
-    print('remove these prints later. Debug stuff!')
-    print('1')
     if request.method == 'POST':
-        print('2')
         try:
             DiadocInvoice.update_diadoc_invoices()
             return JsonResponse({'success': True})
@@ -710,9 +842,21 @@ def update_diadoc_invoices(request):
 
 
 @csrf_exempt
-def gmail_messages(request):
-    gmail_messages = Gmail_Messages.objects.all().order_by("-message_date")
+def update_diadoc_invoices_v2(request):
+    if request.method == 'POST':
+        store_id = request.session['store_id']
+        diadoc_id = Store.objects.get(store_id=request.session['store_id']).diadoc_id
+        try:
+            diadoc_to_dreamkas.update_diadoc_invoices_v2(diadoc_id, store_id)
+            return JsonResponse({'success': True})
+        except Exception as Ex:
+            print(Ex)
+            return JsonResponse({'success': False})
 
+
+@csrf_exempt
+def gmail_messages(request):
+    gmail_messages = Gmail_Messages.objects.all().filter(message_store_id=request.session['store_id']).order_by("-message_date")
     return render(request, 'mainapp/pages/gmail_messages.html', {'gmail_messages': gmail_messages})
 
 
@@ -751,8 +895,137 @@ def merge_inventory_check_items(request, inventory_check_id):
 @csrf_exempt
 def update_gmail_messages(request):
     if request.method == 'POST':
-        Gmail_Messages.update_gmail_messages()
+        client_secret_json = Store.objects.filter(store_id=request.session['store_id']).first().gmail_client_secret
+        mainapp.gmail_invoices.update_gmail_messages(client_secret_json)
     return redirect(reverse('gmail_messages'))
+
+
+class PresetGmailForm(forms.ModelForm):
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.helper = FormHelper(self)
+    #     self.helper.include_media = False
+    #     self.helper.form_method = 'post'
+    document_date_between_second = forms.CharField()
+
+    class Meta:
+        model = PresetGmail
+        fields = "__all__"
+
+
+@csrf_exempt
+def create_gmail_preset(request):
+    if request.method == 'GET':
+        gmail_preset = PresetGmail.objects.create(preset_name='Новый шаблон')
+        gmail_presets = PresetGmail.objects.all()
+        return render(request, 'mainapp/pages/gmail_presets.html',
+                      {'gmail_preset': gmail_preset,
+                       'gmail_presets': gmail_presets})
+    if request.method == 'POST':
+        gmail_preset = PresetGmail.objects.create(preset_name='Новый шаблон')
+        gmail_presets = PresetGmail.objects.all()
+        suppliers = Supplier.objects.all().order_by('supplier_name__name')
+        gmail_preset_contents = render_to_string('mainapp/parts/gmail_preset_display.html', {'gmail_preset': gmail_preset,
+                                                                                             'gmail_presets': gmail_presets, 'suppliers': suppliers})
+        return JsonResponse({'gmail_preset_contents': gmail_preset_contents}, safe=False)
+
+
+@csrf_exempt
+def update_gmail_preset(request):
+    gmail_preset = PresetGmail.objects.get(id=request.POST.get('preset_id'))
+    what_to_change_to = request.POST.get('what_change_to')
+    if what_to_change_to == '':
+        what_to_change_to = None
+    setattr(gmail_preset, request.POST.get('obj_to_change'), what_to_change_to)
+    if request.POST.get('obj_to_change') == 'supplier_fk_id':
+        gmail_preset.supplier_inn = Supplier.objects.get(id=what_to_change_to).inn
+        gmail_preset.supplier_prefix = Supplier.objects.get(id=what_to_change_to).supplier_prefix
+        gmail_preset.supplier_name = Supplier.objects.get(id=what_to_change_to).supplier_name_set.first().name
+    gmail_preset.save()
+    return JsonResponse({'success': True})
+
+
+@csrf_exempt
+def gmail_presets(request):
+    if request.method == 'GET':
+        gmail_preset = PresetGmail.objects.first()
+        gmail_presets = PresetGmail.objects.all()
+        suppliers = Supplier.objects.all().order_by('supplier_name__name')
+        stores = Store.objects.all()
+        return render(request, 'mainapp/pages/gmail_presets.html',
+                      {'gmail_preset': gmail_preset,
+                       'gmail_presets': gmail_presets, 'suppliers': suppliers, 'stores': stores})
+    if request.method == 'POST':
+        gmail_preset = PresetGmail.objects.filter(id=request.POST.get("preset_id")).first()
+        gmail_presets = PresetGmail.objects.all()
+        suppliers = Supplier.objects.all().order_by('supplier_name__name')
+        stores = Store.objects.all()
+        gmail_preset_contents = render_to_string('mainapp/parts/gmail_preset_display.html', {'gmail_preset': gmail_preset,
+                                                                                             'gmail_presets': gmail_presets, 'suppliers': suppliers, 'stores': stores})
+        return JsonResponse({'gmail_preset_contents': gmail_preset_contents}, safe=False)
+
+
+@csrf_exempt
+def update_store(request):
+    store = Store.objects.get(id=request.POST.get('store_id'))
+    what_to_change_to = request.POST.get('what_change_to')
+    if what_to_change_to == '':
+        what_to_change_to = None
+    setattr(store, request.POST.get('obj_to_change'), what_to_change_to)
+    store.save()
+    return JsonResponse({'success': True})
+
+
+@csrf_exempt
+def stores(request):
+    if request.method == 'GET':
+        store = Store.objects.first()
+        stores = Store.objects.all()
+        return render(request, 'mainapp/pages/stores.html',
+                      {'store': store,
+                       'stores': stores})
+    if request.method == 'POST':
+        store = Store.objects.filter(id=request.POST.get("store_id")).first()
+        stores = Store.objects.all()
+        store_contents = render_to_string('mainapp/parts/store_display.html', {'store': store,
+                                                                               'stores': stores})
+        return JsonResponse({'store_contents': store_contents}, safe=False)
+    # if request.method == 'GET':
+    #     gmail_preset = PresetGmail.objects.first()
+    #     gmail_presets = PresetGmail.objects.all()
+    #
+    #     preset_gmail_form = PresetGmailForm(instance=gmail_preset)
+    #
+    #     gmail_preset_next = PresetGmail.objects.filter(id__gt=gmail_preset.id).first()
+    #     gmail_preset_prev = PresetGmail.objects.filter(id__lt=gmail_preset.id).first()
+    #     return render(request,'mainapp/pages/gmail_presets.html',{"preset_gmail_form": preset_gmail_form, 'gmail_preset': gmail_preset, 'gmail_preset_next':gmail_preset_next, 'gmail_preset_prev':gmail_preset_prev, 'gmail_presets' : gmail_presets})
+    # if request.method == 'POST':
+    #
+    #     gmail_preset = PresetGmail.objects.get(id=request.POST.get("preset_id"))
+    #     preset_gmail_form = PresetGmailForm(request.POST, instance=gmail_preset)
+    #     if preset_gmail_form.is_valid():
+    #         preset_gmail_form.save()
+    #
+    #     gmail_presets = PresetGmail.objects.all()
+    #     gmail_preset_next = PresetGmail.objects.filter(id__gt=gmail_preset.id).first()
+    #     gmail_preset_prev = PresetGmail.objects.filter(id__lt=gmail_preset.id).first()
+    #     return render(request,'mainapp/pages/gmail_presets.html',{'gmail_preset': gmail_preset, 'gmail_preset_next':gmail_preset_next, 'gmail_preset_prev':gmail_preset_prev, 'gmail_presets' : gmail_presets})
+
+@csrf_exempt
+def create_documents_from_gmail_message_v2(request):
+    if request.method == 'POST':
+        message_id = request.POST.get("gmail_message_id")
+        query_params = {
+            "id": request.POST.get("gmail_message_id")
+        }
+        store_id = request.session['store_id']
+        msg_sender = get_document_and_attachments_from_gmail(message_id, store_id)
+        for attachment in os.listdir("media/gmail_invoices"):
+            gmail_to_dreamkas.create_document_from_excel(attachment,msg_sender)
+        for attachment in os.listdir("media/gmail_invoices"):
+            os.remove("media/gmail_invoices/" + attachment)
+        return JsonResponse({'success':True})
+
 
 
 @csrf_exempt
@@ -794,7 +1067,9 @@ def create_documents_from_gmail_message(request):
                         "Документ Создан Автоматически. Источник - Почта",
                         document["partnerid"],
                         str(document["document_number"]),
-                        positions=document["resulting_goods_list"])
+                        positions=document["resulting_goods_list"],
+                        target_store_id=document['target_store_id'],
+                    )
                     webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id'])
                     supplier, supplier_create = Supplier.objects.update_or_create(name=result['sourceLegalEntity']['name'], defaults={})
                     Invoice.objects.update_or_create(id_dreem=result['id'], defaults={
@@ -839,16 +1114,19 @@ def show_excel_document(request):
     if request.method == "POST":
         if request.FILES:
             result = request.FILES['file']
-            pandas_document = pandas.read_excel(result, keep_default_na=False, header=None).transpose()
-            return JsonResponse({"document_html": pandas_document.to_html()}, safe=False)
+            file_name = default_storage.save(result.name, result)
+            file_path = default_storage.path(file_name)
+            wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
+            pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
+            return JsonResponse({"document_html": pandas_document.to_json(orient='index')}, safe=False)
     # document = document.to_html()
-    return render(request, 'mainapp/pages/supplier_ruleset_editor.html')
+    return render(request, 'mainapp/parts/show_document.html')
 
 
 @csrf_exempt
 def create_document_from_diadoc(request):
     if request.method == 'POST':
-        file_name = f'media/diadoc_files/{request.POST.get("diadoc_id")}.xml'
+        file_name = f'media/diadoc_files/{request.POST.get("filename")}.xml'
         DIADOC_API.download(url=request.POST.get("link_document_attachment"), file_name=file_name)
         # with open(file_name,"r") as f:
         f = open(file_name, "r")
@@ -900,6 +1178,14 @@ def create_document_from_diadoc(request):
         return redirect(reverse('invoices_diadoc'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
         # else:
         #    return JsonResponse({"status": True if result else False}, safe=True)
+
+
+@csrf_exempt
+def create_document_from_diadoc_v2(request):
+    if request.method == 'POST':
+        diadoc_document_id = request.POST.get("diadoc_document_id")
+        diadoc_user_id = Store.objects.get(store_id=request.session['store_id']).diadoc_id
+        create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id)
 
 
 def test_union(request):

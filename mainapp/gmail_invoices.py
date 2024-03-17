@@ -9,6 +9,7 @@ from barcodenumber import check_code
 from simplegmail.query import construct_query
 
 from dremkas.settings import DREAM_KAS_API
+from mainapp.models import PresetGmail, Store, Gmail_Messages
 
 nds = ["0%", "10%", "20%", "30%", "Без НДС"]
 amount_type = ["шт", "шт.", "штук", "упак.", "упак", "кг", "гр", "г"]
@@ -28,8 +29,8 @@ def open_document_as_data_dict(document_path):
     return pandas_document
 
 
-def get_gmail_messages(days=14):
-    gmail = simplegmail.Gmail()
+def get_gmail_messages(client_secret_json, days=14):
+    gmail = simplegmail.Gmail(client_secret_file=client_secret_json)
     query_params = {
         "newer_than": (days, "day")
     }
@@ -37,6 +38,62 @@ def get_gmail_messages(days=14):
     return result
 
     # Create_dreamkas_document_from_excel
+
+
+def update_gmail_messages(client_secret_json):
+    if not client_secret_json:
+        print('error, client secret == none')
+    companies_list = []
+    for preset in PresetGmail.objects.all():
+        if preset.supplier_mail:
+            companies_list.append(preset)
+
+    messages = get_gmail_messages(client_secret_json)
+    for message in messages:
+        message_id = message.headers.get('Message-Id') or message.headers.get('Message-ID')
+        if message_id:
+            message_id = message_id.replace('<', '').replace('>', '')
+        else:
+            return "Error, can't get message_id"
+        message_sender = message.sender.replace('<','').replace('>', '')
+        valid_presets = get_prerequisites_for_a_message(message)
+        message_date = message.date
+        message_store = Store.objects.get(gmail_client_secret=client_secret_json).store_id
+        message_name = message.subject
+        if valid_presets.__len__() == 0:
+            Gmail_Messages.objects.update_or_create(
+                message_id=message_id,
+                message_date_str=message_date,
+                message_sender_display='Необработанное сообщение',
+                message_store_id=message_store,
+                message_sender=message_sender,
+                message_name=message_name)
+        else:
+            Gmail_Messages.objects.update_or_create(
+                message_id=message_id,
+                message_date=datetime.datetime.strptime(message_date, valid_presets[0].supplier_time_format),
+                message_sender_display=valid_presets[0].supplier_fk.supplier_name_set.first().name,
+                message_store_id=message_store,
+                message_sender=message_sender,
+                message_name=message_name
+            )
+
+
+def get_prerequisites_for_a_message(message):
+    message_sender = message.sender.replace('<','').replace('>', '')
+    valid_presets = PresetGmail.objects.filter(supplier_mail=message_sender)
+    valid_preset_list = []
+    for preset in valid_presets:
+        attributes = ['supplier_inn', 'document_store_destination', 'supplier_fk', 'product_name_col', 'product_sum_col','product_amount_col']
+        exit_outer_loop = False
+        for attr in attributes:
+            if getattr(preset, attr) is None:
+                exit_outer_loop = True
+                break
+        if exit_outer_loop:
+            continue
+        valid_preset_list.append(preset)
+    return valid_preset_list
 
 
 def replace_month_to_number(input):
@@ -60,7 +117,7 @@ def replace_month_to_number(input):
 def create_document_from_excel(document_path):
     document_date = None
     try:
-        pandas_document = pandas.read_excel(document_path, keep_default_na=False,header=None).transpose()
+        pandas_document = pandas.read_excel(document_path, keep_default_na=False, header=None).transpose()
     except Exception as Ex:
         print(Ex)
         print("Failed to open" + r"media/gmail_suppliers/")
@@ -80,7 +137,7 @@ def create_document_from_excel(document_path):
 
                 try:
                     if company["document_non_regular_number"] == True:
-                        document_number=eval(company["document_non_regular_number_instructions"])
+                        document_number = eval(company["document_non_regular_number_instructions"])
                     else:
                         document_number = pandas_document.iloc[company["document_number_row"], company["document_number_col"]]
                 except Exception as ex:
@@ -181,8 +238,13 @@ def create_document_from_excel(document_path):
                     print("0 goods error")
                     continue
                 for good in goods_list:
-                    resulting_good = DREAM_KAS_API.search_goods_gmail(prefix=company["company_prefix"], product_name=good["product_name"], product_code=good["product_code"],
-                                                                      product_amount=good["product_amount"], product_sum=good["product_sum"], priority=product_code_priority)
+                    resulting_good = DREAM_KAS_API.search_goods_gmail(
+                        prefix=company["company_prefix"],
+                        product_name=good["product_name"],
+                        product_code=good["product_code"],
+                        product_amount=good["product_amount"],
+                        product_sum=good["product_sum"],
+                        priority=product_code_priority)
                     resulting_goods_list.append(resulting_good)
                     print(resulting_good)
                 print(resulting_goods_list)

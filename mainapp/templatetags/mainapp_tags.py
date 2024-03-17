@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _, get_language
 import json
 
 from dremkas.settings import MEDIA_ROOT
-from mainapp.models import Device, Store
+from mainapp.models import Device, Store, Supplier
 
 register = template.Library()
 
@@ -115,6 +115,12 @@ def get_price_for_device(prices,store):
     device_ids = Device.objects.filter(store_id=store.store_id).values_list('device_id',flat=True)
     price_obj = prices.filter(device_id__in=device_ids).first()
     return price_obj.value/100 if price_obj else None
+@register.filter
+def get_first_name_for_supplier(supplier_id):
+    supplier = Supplier.objects.filter(id=supplier_id).first()
+    if supplier is None:
+        supplier = Supplier.objects.filter(inn=supplier_id).first()
+    return supplier.supplier_name_set.first().name if supplier.supplier_name_set.first() else supplier.inn
 
 
 @register.simple_tag

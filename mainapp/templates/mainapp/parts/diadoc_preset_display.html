@@ -1,0 +1,80 @@
+{% load mainapp_tags %}
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Название шаблона:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_preset_name" style="width: 100%" id="preset_name" data-preset_id="{{ diadoc_preset.id }}"
+               value="{% if diadoc_preset.preset_name %}{{ diadoc_preset.preset_name }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Поставщик:
+    </div>
+    <div style="flex-basis: 200px">
+        <select data-preset_id="{{ diadoc_preset.id }}" name="select" id="supplier_fk_id" class="form-control selectpiker js_supplier" style="width:100%">
+            <option {% if diadoc_preset.supplier_fk_id == None %} selected="selected" {% endif %} value=None>None</option>
+            {% for supplier in suppliers %}
+                <option {% if supplier.id == diadoc_preset.supplier_fk_id %} selected="selected" {% endif %} value={{ supplier.id }}>{{ supplier.id|get_first_name_for_supplier }}</option>
+            {% endfor %}
+
+        </select>
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        ИНН поставщика:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_inn" style="width: 100%" id="supplier_inn" data-preset_id="{{ diadoc_preset.id }}"
+               value="{% if diadoc_preset.supplier_inn %}{{ diadoc_preset.supplier_inn }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Имя поставщика:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_name" style="width: 100%" id="supplier_name" data-preset_id="{{ diadoc_preset.id }}"
+               value="{% if diadoc_preset.supplier_name %}{{ diadoc_preset.supplier_name }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Префикс поставщика:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_prefix" style="width: 100%" id="supplier_prefix" data-preset_id="{{ diadoc_preset.id }}"
+               value="{% if diadoc_preset.supplier_prefix %}{{ diadoc_preset.supplier_prefix }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Информация получателя:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_store_destination_information" style="width: 100%" id="store_destination_information" data-preset_id="{{ diadoc_preset.id }}"
+               value="{% if diadoc_preset.store_destination_information %}{{ diadoc_preset.store_destination_information }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Получатель:
+    </div>
+    <div style="flex-basis: 200px">
+        <select data-preset_id="{{ diadoc_preset.id }}" name="select" id="store_destination_fk" class="form-control selectpiker js_store_destination_fk" style="width:100%">
+            <option {% if diadoc_preset.store_destination_fk == None %} selected="selected" {% endif %} value=None>None</option>
+            {% for store in stores %}
+                <option {% if store.store_id == diadoc_preset.store_destination_fk.store_id %} selected="selected" {% endif %} value={{ store.store_id }}>{{ store.store_name}}</option>
+            {% endfor %}
+
+        </select>
+    </div>
+</div>

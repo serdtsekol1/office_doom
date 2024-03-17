@@ -1,0 +1,83 @@
+{% block body %}
+    <div class="container">
+        <form action="{% url "show_excel_document" %}" method="post" id="form_show_excel_document" enctype="multipart/form-data">
+            <div class="form-group">
+                <input class="form-control" id="document_file" type="file">
+            </div>
+            <div class="form-group">
+            </div>
+            <button class="btn btn-primary" id="load_file">OK</button>
+            <input id="document-column" class="document-selector">
+            <input id="document-row" class="document-selector">
+
+        </form>
+        <div id="document_html">
+
+        </div>
+    </div>
+    <script>
+        let document_json = {}
+        $("#load_file").on('click', (e) => {
+            e.preventDefault()
+            let formData = new FormData();
+            formData.append('file', $('#document_file')[0].files[0], 'file');
+            $.ajax({
+                type: "POST",
+                url: '/show_excel_document/',
+                data: formData,
+                processData: false,  // add this line
+                contentType: false,  // and this line
+                success: function (data) {
+                    {#$('#document_html').html(JSON.stringify());#}
+                    document_json = JSON.parse(data.document_html);
+                    createTableFromJson(document_json, `0:0`);
+                }
+            })
+        })
+        $('.document-selector').on('change', (e) => {
+            createTableFromJson(document_json, `${document.getElementById('document-column').value}:${document.getElementById('document-row').value}`);
+        })
+
+        function createTableFromJson(json, highlightCell) {
+            let table = document.querySelector('table');
+            if (table) {
+                table.remove();
+            }
+            table = document.createElement('table');
+            const [highlightRow, highlightCol] = highlightCell.split(':').map(Number);
+            const cellStyle = `border: 1px solid purple; background: grey; min-width: 50px; height: 50px; width: 50px; padding: 10px; overflow: hidden;`;
+
+            // Create the header row for column numbers
+            const headerRow = document.createElement('tr');
+            for (let i = -1; i <= Object.keys(json[0]).length; i++) {
+                const th = document.createElement('th');
+                th.textContent = i === -1 ? '' : i; // Leave the top-left cell empty
+                headerRow.appendChild(th);
+            }
+            table.appendChild(headerRow);
+
+            Object.entries(json).forEach(([rowKey, row], rowIndex) => {
+                const tr = document.createElement('tr');
+
+                // Add the row number at the beginning of the row
+                const rowNumberCell = document.createElement('td');
+                rowNumberCell.textContent = rowIndex;
+                tr.appendChild(rowNumberCell);
+                Object.entries(row).forEach(([colKey, cell], colIndex) => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    td.style.cssText = cellStyle;
+                    if (rowIndex === highlightRow && colIndex === highlightCol) {
+                        td.style.background = '#00b900';
+                    }
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+            document.querySelector('#document_html').appendChild(table);
+        }
+
+
+    </script>
+
+{% endblock %}
