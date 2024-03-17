@@ -62,6 +62,7 @@ def update_gmail_messages(client_secret_json):
         message_name = message.subject
         print(valid_presets)
         if valid_presets.__len__() == 0:
+            print('len = 0')
             Gmail_Messages.objects.update_or_create(
                 message_id=message_id,
                 message_date_str=message_date,
@@ -70,6 +71,7 @@ def update_gmail_messages(client_secret_json):
                 message_sender=message_sender,
                 message_name=message_name)
         else:
+            print('len != 0')
             Gmail_Messages.objects.update_or_create(
                 message_id=message_id,
                 message_date=datetime.datetime.strptime(message_date, valid_presets[0].supplier_time_format),
