@@ -83,6 +83,7 @@ urlpatterns = [
     path('update_gmail_preset/', update_gmail_preset, name="update_gmail_preset"),
     path('gmail_all_messages/', get_all_gmail_messages, name="gmail_all_messages"),
     path('update_gmail_invoices/', update_gmail_messages, name="update_gmail_messages"),
+    path('delete_gmail_invoices/', delete_gmail_messages, name="delete_gmail_messages"),
     path('create_documents_from_gmail_message/', create_documents_from_gmail_message, name="create_documents_from_gmail_message"),
     path('create_documents_from_gmail_message_v2/', create_documents_from_gmail_message_v2, name="create_documents_from_gmail_message_v2"),
     path('show_excel_document/', show_excel_document, name="show_excel_document"),

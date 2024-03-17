@@ -896,7 +896,11 @@ def merge_inventory_check_items(request, inventory_check_id):
         responce = DREAM_KAS_API.merge_inventory_check_items(inventory_check_id)
         return render(request, 'mainapp/pages/inventory_checks.html', {'inventory_checks': inventory_checks})
 
-
+@csrf_exempt
+def delete_gmail_messages(request):
+    for msg in Gmail_Messages.objects.all():
+        msg.delete()
+    return JsonResponse({'success':True})
 @csrf_exempt
 def update_gmail_messages(request):
     if request.method == 'POST':
