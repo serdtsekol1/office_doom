@@ -60,6 +60,7 @@ def update_gmail_messages(client_secret_json):
         message_date = message.date
         message_store = Store.objects.get(gmail_client_secret=client_secret_json).store_id
         message_name = message.subject
+        print(valid_presets)
         if valid_presets.__len__() == 0:
             Gmail_Messages.objects.update_or_create(
                 message_id=message_id,
@@ -81,6 +82,7 @@ def update_gmail_messages(client_secret_json):
 
 def get_prerequisites_for_a_message(message):
     message_sender = message.sender.replace('<','').replace('>', '')
+    print('msg sender' , message_sender)
     valid_presets = PresetGmail.objects.filter(supplier_mail=message_sender)
     valid_preset_list = []
     for preset in valid_presets:
