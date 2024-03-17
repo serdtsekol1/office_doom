@@ -6,7 +6,7 @@ from mainapp.views import get_index_page, test, invoices, manual_invoice, good_g
     update_one_product, create_or_change_printer_code_for_product, change_printer_file_location, delete_all_suppliers, update_all_suppliers, set_store_id, update_stores_and_devices, \
     find_invoice_duplicates, delete_broken_suppliers, show_duplicate_diadoc_invoices, create_or_change_short_name_for_product, gmail_presets, update_gmail_preset, create_gmail_preset, stores, \
     update_store, update_diadoc_invoices_v2, invoices_diadoc_v2, diadoc_presets, create_diadoc_preset, update_diadoc_preset, create_document_from_diadoc_v2, create_documents_from_gmail_message_v2, \
-    delete_all_stores
+    delete_all_stores, delete_gmail_messages
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -83,6 +83,7 @@ urlpatterns = [
     path('update_gmail_preset/', update_gmail_preset, name="update_gmail_preset"),
     path('gmail_all_messages/', get_all_gmail_messages, name="gmail_all_messages"),
     path('update_gmail_invoices/', update_gmail_messages, name="update_gmail_messages"),
+    path('delete_gmail_invoices/', delete_gmail_messages, name="delete_gmail_messages"),
     path('create_documents_from_gmail_message/', create_documents_from_gmail_message, name="create_documents_from_gmail_message"),
     path('create_documents_from_gmail_message_v2/', create_documents_from_gmail_message_v2, name="create_documents_from_gmail_message_v2"),
     path('show_excel_document/', show_excel_document, name="show_excel_document"),
