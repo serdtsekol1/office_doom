@@ -16,10 +16,11 @@
                 <div style="font-size: 18px;" class="text-dark col-12">
                     Префикс для продуктов:
                 </div>
-                <div class="col-1">
-                    <input class="w-100" name="supplier_prefix" id="supplier_prefix" data-id="{{ supplier.id }}" type="text" value="{{ supplier.supplier_prefix }}">
-                </div>
 
+
+            </div>
+            <div class="col-1">
+                <input class="w-100 supplier_prefix" name="supplier_prefix" id="supplier_prefix" data-id="{{ supplier.id }}" type="text" value="{{ supplier.supplier_prefix }}">
             </div>
             </a>
         </div>
@@ -81,6 +82,13 @@
                     console.log(data)
                 }
             });
+        })
+        $('.supplier_prefix').on('keyup', (e) => {
+            $.ajax({
+                type: "POST",
+                url: '/update_supplier_prefix/',
+                data :{'supplier_prefix' : e.currentTarget.value, 'supplier_id': e.currentTarget.dataset.id}
+             })
         })
         $(".Paymentlimit input").on('keyup', (e) => {
 

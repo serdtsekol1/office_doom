@@ -6,7 +6,7 @@ from mainapp.views import get_index_page, test, invoices, manual_invoice, good_g
     update_one_product, create_or_change_printer_code_for_product, change_printer_file_location, delete_all_suppliers, update_all_suppliers, set_store_id, update_stores_and_devices, \
     find_invoice_duplicates, delete_broken_suppliers, show_duplicate_diadoc_invoices, create_or_change_short_name_for_product, gmail_presets, update_gmail_preset, create_gmail_preset, stores, \
     update_store, update_diadoc_invoices_v2, invoices_diadoc_v2, diadoc_presets, create_diadoc_preset, update_diadoc_preset, create_document_from_diadoc_v2, create_documents_from_gmail_message_v2, \
-    delete_all_stores, delete_gmail_messages
+    delete_all_stores, delete_gmail_messages, update_supplier_prefix
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -49,6 +49,7 @@ urlpatterns = [
     path('test_union/', test_union, name="test_union"),
     # DREAMKAS SUPPLIER
     path('suppliers/', dreamkas_suppliers, name="dreamkas_suppliers"),
+    path('update_supplier_prefix/', update_supplier_prefix, name="update_supplier_prefix"),
     path('dreamkas_supplier/<str:supplier_data>', dreamkas_supplier, name="dreamkas_supplier"),
     path('supplier_paymenttime_update/', supplier_paymenttime_update, name="supplier_paymenttime_update"),
     path('delete_all_suppliers/', delete_all_suppliers, name="delete_all_suppliers"),

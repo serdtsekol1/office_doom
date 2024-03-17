@@ -710,9 +710,10 @@ def dreamkas_supplier(request, supplier_data):
     dreamkas_invoices = Invoice.objects.filter(hide=False).order_by("-issue_date")
     return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices, 'supplier_names': supplier_names})
 
-
+@csrf_exempt
 def update_supplier_prefix(request):
-    supplier_obj = Supplier.objects.get(request.POST.get('supplier_id')).supplier_prefix = request.POST.get('supplier_prefix')
+    supplier_obj = Supplier.objects.get(id=request.POST.get('supplier_id'))
+    supplier_obj.supplier_prefix = request.POST.get('supplier_prefix')
     supplier_obj.save()
     return JsonResponse({'success': True})
 
