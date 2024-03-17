@@ -198,6 +198,11 @@ class Preset(View):
 
 ### Store / Device Related ###
 @csrf_exempt
+def delete_all_stores(request):
+    for store in Store.objects.all():
+        store.delete()
+    return JsonResponse({'success':True})
+@csrf_exempt
 def set_store_id(request):
     request.session['store_id'] = request.POST.get('store_id')
     return redirect("/")
