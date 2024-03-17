@@ -1,0 +1,40 @@
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        ID Магазина:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_store_id" style="width: 100%" id="store_id" data-store_id="{{ store.id }}"
+               value="{% if store.store_id %}{{ store.store_id }}{% endif %}"
+               placeholder="" readonly>
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Название Магазина:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_store_name" style="width: 100%" id="store_name" data-store_id="{{ store.id }}"
+               value="{% if store.store_name %}{{ store.store_name }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        ID Диадока:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_diadoc_id" style="width: 100%" id="diadoc_id" data-store_id="{{ store.id }}"
+               value="{% if store.diadoc_id %}{{ store.diadoc_id }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Файл для gmail:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_gmail_client_secret" style="width: 100%" id="gmail_client_secret" data-store_id="{{ store.id }}"
+               value="{% if store.gmail_client_secret %}{{ store.gmail_client_secret }}{% endif %}"
+               placeholder="">
+    </div>
+</div>

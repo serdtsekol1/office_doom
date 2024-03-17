@@ -1,5 +1,7 @@
 import os
 import json
+
+import barcodenumber
 import pandas as pd
 import xlrd
 import xmltodict
@@ -79,3 +81,11 @@ def open_file_type(file_path, header=None, skiprows=None):
         df = xls.parse(xls.sheet_names[0], header=header, skiprows=skiprows)
         return df.to_dict('index')
     return None
+
+def check_EAN13_EAN8(input):
+    try:
+        if barcodenumber.check_code('ean13', str(input)) or barcodenumber.check_code('ean8', str(input)):
+            return True
+    except Exception as e:
+        return False
+    return False

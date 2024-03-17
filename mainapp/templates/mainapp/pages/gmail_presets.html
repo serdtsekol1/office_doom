@@ -1,0 +1,72 @@
+{% extends "wrapper.html" %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_filters %}
+{% load mainapp_tags %}
+{% block body %}
+    <div class="d-flex">
+        <div style="flex-basis: 12%">
+            <select name="select" id="select" class="form-control selectpiker select_preset" style="width:100%">
+                {% for preset in gmail_presets %}
+                    <option {% if preset.id == gmail_preset.id %} selected="selected" {% endif %} value={{ preset.id }}>{{ preset.preset_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="flex-basis: 12%">
+            <button type="submit" class="btn btn-success create_new_preset">Новый шаблон</button>
+        </div>
+    </div>
+    <div class="d-flex">
+        <div id="gmail_preset_contents" style="flex-basis: 550px">
+            {% include 'mainapp/parts/gmail_preset_display.html' %}
+        </div>
+        <div>
+            {% include 'mainapp/parts/show_document.html' %}
+        </div>
+    </div>
+    <script>
+        $(".create_new_preset").on('click', (e) => {
+            $.ajax({
+                type: "POST",
+                url: '/create_gmail_preset/',
+                success: function (data) {
+                    $('#gmail_preset_contents').html(data.gmail_preset_contents);
+                }
+            })
+        })
+        $(".select_preset").on('change', (e) => {
+            let preset_id = $(e.currentTarget).find("option:selected").val()
+            $.ajax({
+                type: "POST",
+                url: '/gmail_presets/',
+                data: {'preset_id': preset_id},
+                success: function (data) {
+                    $('#gmail_preset_contents').html(data.gmail_preset_contents);
+                }
+            });
+        })
+        document.addEventListener('input', (e) => {
+            const target = e.target;
+            if (target.classList && Array.from(target.classList).some((className) => className.startsWith('js_'))) {
+                const presetId = target.dataset.preset_id; // Access the data attribute
+                const obj_to_change = target.id;
+                const what_change_to = target.value;
+
+
+                // Perform your AJAX request here
+                $.ajax({
+                    type: "POST",
+                    url: '/update_gmail_preset/',
+                    data: {'preset_id': presetId, 'obj_to_change': obj_to_change, 'what_change_to': what_change_to},
+                    success: function (data) {
+
+                    },
+                    error: function (error) {
+
+                    }
+                })
+            }
+        });
+
+
+    </script>
+{% endblock %}

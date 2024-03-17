@@ -52,7 +52,10 @@ def create_or_change_short_name_for_product(id_out,name):
     product_internal = Product.objects.filter(id_out=id_out).first()
     if product_internal is None:
         return False
-    product_internal.short_name = name
+    if name == '':
+        product_internal.short_name = None
+    else:
+        product_internal.short_name = name
     product_internal.save()
     return True
 def create_or_change_massak_codes_for_product(id_out,code):

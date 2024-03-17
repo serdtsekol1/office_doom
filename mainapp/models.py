@@ -12,10 +12,15 @@ from django.utils import timezone
 from datetime import timedelta, date
 
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, current_store_id
-from mainapp.gmail_invoices import get_gmail_messages
+# from mainapp.gmail_invoices import get_gmail_messages
+
+
 class Store(models.Model):
-    store_name = models.CharField('store_name', blank=True, null=True, max_length=255,default=None)
+    store_name = models.CharField('store_name', blank=True, null=True, max_length=255, default=None)
     store_id = models.IntegerField('store_id', blank=True, null=True)
+    diadoc_id = models.TextField('diadoc_id', blank=True, null=True, default=None)
+    gmail_client_secret = models.CharField('gmail_client_secret', blank=True, null=True, max_length=255, default=None)
+
     @property
     def store_devices(self):
         devices = Device.objects.filter(store_id=current_store_id)
@@ -23,6 +28,7 @@ class Store(models.Model):
         for device in devices:
             store_devices.append(device.device_id)
         return store_devices
+
     @staticmethod
     def update_stores_and_devices():
         for store in DREAM_KAS_API.get_stores():
@@ -30,9 +36,11 @@ class Store(models.Model):
         for device in DREAM_KAS_API.get_devices():
             Device.objects.update_or_create(device_id=device['id'], store_id=device['groupId'])
 
+
 class Device(models.Model):
     device_id = models.IntegerField('device_id')
     store_id = models.IntegerField('owner_store_id')
+
 
 class Product(models.Model):
     id_out = models.CharField('id_out', max_length=255, blank=True, default=None, null=True)
@@ -51,11 +59,13 @@ class Product(models.Model):
     group_id = models.CharField('Group_ID', max_length=255, default=None, null=True, blank=True)
     updatedAt = models.CharField('date_of_last_update', max_length=255, default=None, null=True, blank=True)
     short_name = models.TextField('short_name', blank=True, default=None, null=True)
+
     @property
     def price_for_shop(self):
         current_shop = os.environ.get('CURRENT_SHOP')
         shop = json.loads(os.environ.get('SHOP_IDS'))[int(current_shop) - 1]
         return self.prices_set.filter(device_id__in=shop).first()
+
     # alias_codes = models.ManyToManyField(Alias_codes)
 
     ## to find object with ['BARCODE'] : Product.objects.filter(barcodes__0__in=['1231231231231'])
@@ -194,11 +204,10 @@ class Barcodes(models.Model):
     product_fk = models.ForeignKey(Product, max_length=255, blank=True, default=None, null=True, on_delete=models.CASCADE)
     barcode = models.CharField('Barcode, EAN13/8, alias_codes', max_length=255, blank=True, default=None, null=True)
     multiplier = models.IntegerField('multiplier', blank=True, default=1, null=True)
-    #Если товар приходит в накладной как 1, но его на деле, к примеру, 5 шт., или 50 кг - ставиться цифра мультипликатора.
-    #В результате должно быть следующее:
-    #ЕСЛИ штрих код находиться в нашей базе то кол-во = кол-во * мультикликатор. Прим.
-    #Пришло Сахар. 3 шт. В Каждом "Сахар" товаре - 50 кг. Мультипликатор - 50. Пришло в итоге - 150 шт.
-
+    # Если товар приходит в накладной как 1, но его на деле, к примеру, 5 шт., или 50 кг - ставиться цифра мультипликатора.
+    # В результате должно быть следующее:
+    # ЕСЛИ штрих код находиться в нашей базе то кол-во = кол-во * мультикликатор. Прим.
+    # Пришло Сахар. 3 шт. В Каждом "Сахар" товаре - 50 кг. Мультипликатор - 50. Пришло в итоге - 150 шт.
 
     # To add an object:
     # product_obj = Product object that I need to add barcode to
@@ -206,10 +215,13 @@ class Barcodes(models.Model):
     # To find an object by barcode
     # Product.objects.filter(barcodes__barcode=1231231231234)
 
+
 class Prices_shop(models.Model):
     product_fk = models.ForeignKey(Product, max_length=255, blank=True, default=None, null=True, on_delete=models.CASCADE)
     shop_id = models.CharField('shop_id', max_length=255, blank=True, default=None, null=True)
     value = models.IntegerField('price', null=True, blank=True, default=None)
+
+
 class Prices(models.Model):
     product_fk = models.ForeignKey(Product, max_length=255, blank=True, default=None, null=True, on_delete=models.CASCADE)
     device_id = models.CharField('device_id', max_length=255, blank=True, default=None, null=True)
@@ -224,12 +236,20 @@ class Supplier(models.Model):
     comment = models.CharField('comment', max_length=2555, blank=True, default=None, null=True)
     invoices_non_program = models.CharField('invoices_non_program', max_length=5000, blank=True, default='', null=True)
     invoice_program = models.CharField('invoices_program', max_length=5000, blank=True, default='', null=True)
+    supplier_prefix = models.CharField('comment', max_length=255, blank=True, default=None, null=True)
+
+
+
 class Supplier_name(models.Model):
-    name = models.CharField('name',blank=True,default=None,null=True,max_length=255)
-    supplier_fk = models.ForeignKey(Supplier,on_delete=models.CASCADE)
+    name = models.CharField('name', blank=True, default=None, null=True, max_length=255)
+    supplier_fk = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    priority = models.BooleanField('if this name should be used as first', blank=True, default=False, null=True)
+
+
+
 class Supplier_id_dreamkas(models.Model):
-    dreamkas_id = models.BigIntegerField('id',blank=True,default=None,null=True)
-    supplier_fk = models.ForeignKey(Supplier,on_delete=models.CASCADE)
+    dreamkas_id = models.BigIntegerField('id', blank=True, default=None, null=True)
+    supplier_fk = models.ForeignKey(Supplier, on_delete=models.CASCADE)
 
 
 class Position(models.Model):
@@ -265,10 +285,8 @@ class Invoice(models.Model):
     created_via_program = models.BooleanField('Created via program?', null=True, blank=True, default=False)
     previous_snapshot = models.TextField('Snapshot', null=True, blank=True, default=None)
     positions = models.ManyToManyField(Position)
-    #store_id = models.IntegerField('receiver_id', null=True,blank=True,default=None)
-    store = models.ForeignKey(Store , on_delete=models.CASCADE, null=True)
-
-
+    # store_id = models.IntegerField('receiver_id', null=True,blank=True,default=None)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, null=True)
 
     # linked_documents = models.ManyToManyField("self", blank=True)
 
@@ -382,6 +400,7 @@ class Invoice(models.Model):
         #     print(Ex)
         #     print("ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR")
         #     return -505
+
     @staticmethod
     def find_latest_iteration(list_of_dicts):
         linked_documents = []
@@ -391,6 +410,7 @@ class Invoice(models.Model):
                 if dict_doc_2['origin'] == dict_doc['id']:
                     linked_documents.append(dict_doc_2)
             dict_doc.update({'linked_documents': linked_documents})
+
     @staticmethod
     def find_difference__in_positions_between_documents(inv_obj_1, inv_obj_2):
         inv_obj_1_positions = None
@@ -412,7 +432,7 @@ class Invoice(models.Model):
         # product 1, x 25 for 50
         # product 2, x 5 for 50
         # product 2, x 100 for 5
-        #return
+        # return
         # product 1, x 125 for 50
         # product 2, x 5 for 50
         # msg (Product 1 prices mismatch!! 25 for 50 and 100 for 5!!, investigate!!)
@@ -420,7 +440,7 @@ class Invoice(models.Model):
         # product 1, x 25 for 50
         # product 2, x 5 for 50
         # product 2, x 100 for 50
-        #return
+        # return
         # product 1, x 125 for 50
         # product 2, x 5 for 50
         inv_obj_positions = None
@@ -443,10 +463,11 @@ class Invoice(models.Model):
                                 pos_2['costWithTax'] = pos['costWithTax']
                         if mode == 1:
                             if pos_2['costWithTax'] != pos['costWithTax']:
-                                pos_2['costWithTax'] = str((float(pos_2['amount'])*float(pos_2['costWithTax'])+float(pos['amount'])*float(pos['costWithTax']))/(float(pos['amount'])+float(pos['amount'])))
+                                pos_2['costWithTax'] = str(
+                                    (float(pos_2['amount']) * float(pos_2['costWithTax']) + float(pos['amount']) * float(pos['costWithTax'])) / (float(pos['amount']) + float(pos['amount'])))
                                 ## Calculate average price of 2 goods, depending from their amount
         return result_positions
-        #for pos in inv_obj_positions:
+        # for pos in inv_obj_positions:
         #    if pos not in result_positions:
 
     def map_document(invoice, document):
@@ -454,7 +475,7 @@ class Invoice(models.Model):
         list_of_linked_corrections_to_process = []
         if document['children'].__len__() > 0:
             for linked_document in document['children']:
-                if linked_document['type'] !='INCOME_INVOICE_CORRECTION':
+                if linked_document['type'] != 'INCOME_INVOICE_CORRECTION':
                     continue
                 list_of_linked_corrections_to_process.append({'id': linked_document['id']})
         if list_of_linked_corrections_to_process.__len__() > 0:
@@ -476,8 +497,6 @@ class Invoice(models.Model):
                     list_of_linked_corrections_to_process.append({'id': linked_document_http['id']})
 
         return list_of_linked_corrections
-
-
 
         # if document['children'].__len__() > 1:
         #     for linked_document in document['children']:
@@ -505,6 +524,7 @@ class Invoice(models.Model):
         #                     list_of_linked_corrections.append(({'origin': linked_document_http['parentId'], 'id': linked_document_http['id'], 'positions': linked_document_http['positions']}))
         #                     list_of_linked_corrections_to_process.append({'origin': linked_document_http['parentId'], 'id': linked_document_http['id']})
         # return list_of_linked_corrections
+
     @staticmethod
     def update_invoices():
 
@@ -519,7 +539,7 @@ class Invoice(models.Model):
             try:
                 document_source = document['sourceName']
             except:
-                print('Cannot find sourcename of document' , document)
+                print('Cannot find sourcename of document', document)
                 continue
             if document_source != None:
                 print(document['sourceName'])
@@ -609,7 +629,6 @@ class Invoice(models.Model):
             # if list_of_linked_corrections.__len__() != 0:
             #     print('a')
 
-
         if document['children'].__len__() > 1:
             for linked_document in document['children']:
                 linked_document_http = DREAM_KAS_API.get_document(linked_document['id'])
@@ -693,6 +712,50 @@ class LinkedDocuments(models.Model):
     document_status = models.BooleanField('Document_status', null=True, blank=True, default=False)
 
 
+class PresetGmail(models.Model):
+    preset_name = models.TextField('preset_name', blank=True, default=None, null=True)
+    supplier_fk = models.ForeignKey(Supplier, on_delete=models.DO_NOTHING, blank=True, default=None,null=True)
+    supplier_mail = models.TextField('supplier_mail', blank=True, default=None, null=True)
+    supplier_inn = models.BigIntegerField('supplier_inn', blank=True, default=None, null=True)
+    supplier_name = models.TextField('supplier_name', blank=True, default=None, null=True)
+    supplier_prefix = models.TextField('supplier_prefix', blank=True, default=None, null=True)
+    supplier_time_format = models.TextField('supplier_time_format', blank=True, default=None, null=True)
+    # Coordinates of stuff here
+    # Date
+    document_date_col = models.IntegerField('document_date_col', blank=True, default=None, null=True)
+    document_date_row = models.IntegerField('document_date_row', blank=True, default=None, null=True)
+    document_date_format = models.TextField('document_date_format', blank=True, default=None, null=True)
+    document_non_regular_date = models.BooleanField('document_non_regular_date', blank=True, default=False, null=True)
+    document_date_between_first = models.TextField('document_date_between_first', blank=True, default=False, null=True)
+    document_date_between_second = models.TextField('document_date_between_second', blank=True, default=False, null=True)
+    # Number
+    document_number_col = models.IntegerField('document_number_col', blank=True, default=None, null=True)
+    document_number_row = models.IntegerField('document_number_row', blank=True, default=None, null=True)
+    document_non_regular_number = models.BooleanField('document_non_regular_number', blank=True, default=False, null=True)
+    document_number_between_first = models.TextField('document_number_between_first', blank=True, default=False, null=True)
+    document_number_between_second = models.TextField('document_number_between_second', blank=True, default=False, null=True)
+    # Check for valid document
+    supplier_unique_information = models.TextField('supplier_unique_information', blank=True, default=None, null=True)
+    supplier_unique_information_col = models.IntegerField('supplier_unique_information_col', blank=True, default=None, null=True)
+    supplier_unique_information_row = models.IntegerField('supplier_unique_infromation_row', blank=True, default=None, null=True)
+    # Products
+    product_start_row = models.IntegerField('product_start_row', blank=True, default=None, null=True)
+    product_name_col = models.IntegerField('product_name_row', blank=True, default=None, null=True)
+    product_code_col = models.IntegerField('product_code_row', blank=True, default=None, null=True)
+    product_amount_col = models.IntegerField('product_amount_row', blank=True, default=None, null=True)
+    product_amount_type_col = models.IntegerField('product_amount_type_row', blank=True, default=None, null=True)
+    product_nds_col = models.IntegerField('product_nds_rwo', blank=True, default=None, null=True)
+    product_sum_col = models.IntegerField('product_sum_row', blank=True, default=None, null=True)
+    product_priority = models.IntegerField('product_priority',blank=True,default=None,null=True)
+    # 0 - Code
+    # 1 - Name, slugified.
+    # Destination store
+    document_store_destination = models.IntegerField('product_store_id', blank=True, default=None, null=True)
+    document_store_information = models.TextField('product_store_information', blank=True, default=None, null=True)
+    document_store_information_row = models.IntegerField('product_store_information_row', blank=True, default=None, null=True)
+    document_store_information_col = models.IntegerField('product_store_information_col', blank=True, default=None, null=True)
+
+
 class DailyInvoiceReport(models.Model):
     date = models.DateField('Date Of Report', blank=True, default=None, null=True)
     invoice_list = models.ManyToManyField(Invoice)
@@ -745,6 +808,7 @@ class DiadocInvoice(models.Model):
     invoice_status = models.CharField('Статус', max_length=255, blank=True, default=None, null=True)
     downloadlink = models.CharField('Статус', max_length=1000, blank=True, default=None, null=True)
     invoices = models.ManyToManyField(Invoice)
+    store_id = models.CharField('store_id', max_length=255, blank=True, default=None, null=True)
 
     @staticmethod
     def update_diadoc_invoices():
@@ -766,6 +830,16 @@ class DiadocInvoice(models.Model):
             print(diadoc_invoice.issue_date)
 
         return
+
+
+class DiadocPreset(models.Model):
+    preset_name = models.CharField('preset_name', max_length=255, blank=True, default=None, null=True)
+    supplier_fk = models.ForeignKey(Supplier, on_delete=models.DO_NOTHING, blank=True, default=None, null=True)
+    supplier_name = models.TextField('supplier_name', blank=True, default=None, null=True)
+    supplier_inn = models.BigIntegerField('group_id', blank=True, default=None, null=True)
+    supplier_prefix = models.TextField('supplier_prefix', blank=True, default=None, null=True)
+    store_destination_fk = models.ForeignKey(Store, on_delete=models.DO_NOTHING, blank=True, default=None, null=True)
+    store_destination_information = models.CharField('supplier_name', max_length=2555, blank=True, default=None, null=True)
 
 
 class GoodGroups(models.Model):
@@ -790,93 +864,95 @@ class Gmail_Messages(models.Model):
     message_sender = models.CharField("Отправитель", max_length=255, blank=True, default=None, null=True)
     message_sender_display = models.CharField('Отправитель , но для отображения', max_length=255, blank=True, default=None, null=True)
     message_date = models.DateField('Дата', blank=True, default=None, null=True)
+    message_date_str = models.CharField("Дата, в случаях если нету шаблона", max_length=255, blank=True, default=None, null=True)
     message_id = models.CharField("message id", max_length=255, blank=True, default=None, null=True)
     message_name = models.CharField("Название сообщения", max_length=255, blank=True, default=None, null=True)
+    message_store_id = models.CharField('store_id', max_length=255, blank=True, default=None, null=True)
     invoices = models.ManyToManyField(Invoice)
     attachments = models.ManyToManyField(GmailMessageAttachment)
 
-    @staticmethod
-    def update_gmail_messages():
-        companies_list = []
-        for file in os.listdir("media/gmail_suppliers"):
-            try:
-                company = json.loads(open(r"media/gmail_suppliers/" + file).read())
-                companies_list.append([company["company_mail"], company["company_time_format"]])
-            except:
-                print(r"media/gmail_suppliers/" + file)
-                print("error opening file as json")
-                pass
-
-        messages = get_gmail_messages()
-        for message in messages:
-            message_id = None
-            message_date = None
-            message_subject = None
-            message_sender = None
-
-            if message.sender[message.sender.find("<"):].replace("<", "").replace(">", "") != "no-reply@accounts.google.com":
-                try:
-                    message_id = message.headers["Message-Id"].replace("<", "").replace(">", "")
-                except:
-                    pass
-                try:
-                    message_id = message.headers["Message-ID"].replace("<", "").replace(">", "")
-                except:
-                    pass
-                if message_id == None:
-                    print("sender:" + message.sender[message.sender.find("<"):].replace("<", "").replace(">", ""))
-                    print("name:" + message.subject)
-                    print("Error. Couldn't find message_id")
-                    continue
-                try:
-                    for ruleset in companies_list:
-                        if message.sender[message.sender.find("<"):].replace("<", "").replace(">", "") == ruleset[0]:
-                            message_date = datetime.datetime.strptime(message.date, ruleset[1])
-                            message_sender = message.sender[message.sender.find("<"):].replace("<", "").replace(">", "")
-                        if message.sender == ruleset[0]:
-                            message_date = datetime.datetime.strptime(message.date, ruleset[1])
-                            message_sender = message.sender
-                except:
-                    message_sender = message.sender
-                    pass
-                if message_date == None:
-                    print("sender:", message_sender)
-                    print("name:" + message.subject)
-                    print("Не найдена дата либо ошибка даты или ее формата либо данный отправитель не числится в списке отправителей")
-                    continue
-                attachments_gmail = [f.filename for f in message.attachments]
-                gmail_message = Gmail_Messages.objects.filter(
-                    message_sender=message_sender,
-                    message_date=message_date.date(),
-                    message_name=message.subject,
-                    attachments__name__in=attachments_gmail
-                ).distinct().first()
-
-                if gmail_message:
-                    gmail_message.message_sender = message_sender
-                    gmail_message.message_date = message_date
-                    gmail_message.message_name = message.subject
-                    gmail_message.save()
-                else:
-                    gmail_message = Gmail_Messages(
-                        message_id=message_id,
-                        message_sender=message_sender,
-                        message_date=message_date,
-                        message_name=message.subject
-                    )
-                    gmail_message.save()
-
-                gmail_message_attachments = []
-                for attachment in message.attachments:
-                    gmail_message_attachment, gmail_message_attachment_bool = GmailMessageAttachment.objects.update_or_create(name=attachment.filename)
-                    gmail_message_attachments.append(gmail_message_attachment)
-                gmail_message.attachments.set(gmail_message_attachments)
-                # gmail_message, gmail_message_bool = Gmail_Messages.objects.update_or_create(message_id=message_id, defaults={
-                #     'message_sender': message.sender[message.sender.find("<"):].replace("<", "").replace(">", ""),
-                #     'message_date': message_date,
-                #     'message_name': message.subject,
-                # })
-                # gmail_message.gmailmessageattachment_set.update_or_create(
-                #     name=message.attachments,
-                # )
-        return
+    # @staticmethod
+    # def update_gmail_messages(client_secret_json):
+    #     companies_list = []
+    #     for file in os.listdir("media/gmail_suppliers"):
+    #         try:
+    #             company = json.loads(open(r"media/gmail_suppliers/" + file).read())
+    #             companies_list.append([company["company_mail"], company["company_time_format"]])
+    #         except:
+    #             print(r"media/gmail_suppliers/" + file)
+    #             print("error opening file as json")
+    #             pass
+    #
+    #     messages = get_gmail_messages(client_secret_json)
+    #     for message in messages:
+    #         message_id = None
+    #         message_date = None
+    #         message_subject = None
+    #         message_sender = None
+    #
+    #         if message.sender[message.sender.find("<"):].replace("<", "").replace(">", "") != "no-reply@accounts.google.com":
+    #             try:
+    #                 message_id = message.headers["Message-Id"].replace("<", "").replace(">", "")
+    #             except:
+    #                 pass
+    #             try:
+    #                 message_id = message.headers["Message-ID"].replace("<", "").replace(">", "")
+    #             except:
+    #                 pass
+    #             if message_id == None:
+    #                 print("sender:" + message.sender[message.sender.find("<"):].replace("<", "").replace(">", ""))
+    #                 print("name:" + message.subject)
+    #                 print("Error. Couldn't find message_id")
+    #                 continue
+    #             try:
+    #                 for ruleset in companies_list:
+    #                     if message.sender[message.sender.find("<"):].replace("<", "").replace(">", "") == ruleset[0]:
+    #                         message_date = datetime.datetime.strptime(message.date, ruleset[1])
+    #                         message_sender = message.sender[message.sender.find("<"):].replace("<", "").replace(">", "")
+    #                     if message.sender == ruleset[0]:
+    #                         message_date = datetime.datetime.strptime(message.date, ruleset[1])
+    #                         message_sender = message.sender
+    #             except:
+    #                 message_sender = message.sender
+    #                 pass
+    #             if message_date == None:
+    #                 print("sender:", message_sender)
+    #                 print("name:" + message.subject)
+    #                 print("Не найдена дата либо ошибка даты или ее формата либо данный отправитель не числится в списке отправителей")
+    #                 continue
+    #             attachments_gmail = [f.filename for f in message.attachments]
+    #             gmail_message = Gmail_Messages.objects.filter(
+    #                 message_sender=message_sender,
+    #                 message_date=message_date.date(),
+    #                 message_name=message.subject,
+    #                 attachments__name__in=attachments_gmail
+    #             ).distinct().first()
+    #
+    #             if gmail_message:
+    #                 gmail_message.message_sender = message_sender
+    #                 gmail_message.message_date = message_date
+    #                 gmail_message.message_name = message.subject
+    #                 gmail_message.save()
+    #             else:
+    #                 gmail_message = Gmail_Messages(
+    #                     message_id=message_id,
+    #                     message_sender=message_sender,
+    #                     message_date=message_date,
+    #                     message_name=message.subject
+    #                 )
+    #                 gmail_message.save()
+    #
+    #             gmail_message_attachments = []
+    #             for attachment in message.attachments:
+    #                 gmail_message_attachment, gmail_message_attachment_bool = GmailMessageAttachment.objects.update_or_create(name=attachment.filename)
+    #                 gmail_message_attachments.append(gmail_message_attachment)
+    #             gmail_message.attachments.set(gmail_message_attachments)
+    #             # gmail_message, gmail_message_bool = Gmail_Messages.objects.update_or_create(message_id=message_id, defaults={
+    #             #     'message_sender': message.sender[message.sender.find("<"):].replace("<", "").replace(">", ""),
+    #             #     'message_date': message_date,
+    #             #     'message_name': message.subject,
+    #             # })
+    #             # gmail_message.gmailmessageattachment_set.update_or_create(
+    #             #     name=message.attachments,
+    #             # )
+    #     return

@@ -3,12 +3,10 @@
     {{ Status }}
     {% if status == "Error" %}
     {% endif %}
-    <form action="{% url "invoices_diadoc_update" %}" method="post">
-        <button type="submit" class="btn btn-success refresh-diadoc-invoices">
-            <span style = "display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
-            <span role="status">Обновить Накладные в Диадок</span>
-        </button>
-    </form>
+    <button type="submit" class="btn btn-success refresh-diadoc-invoices">
+        <span style="display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
+        <span role="status">Обновить Накладные в Диадок</span>
+    </button>
     <ol class="list-group list-group-numbered">
         {% for invoice in invoices %}
 
@@ -35,11 +33,11 @@
 
                 </div>
                 <div class="">
-                    <form action="{% url "create_document_from_diadoc" %}" method="post">
-                        <input hidden type="text" name="link_document_attachment" id="link_document_attachment" value="{{ invoice.downloadlink }}">
-                        <input hidden type="text" name="diadoc_id" id="diadoc_id" value="{{ invoice.diadoc_id }}">
-                        <button type="submit" class="btn btn-primary">Принять Накладную</button>
-                    </form>
+{#                    <form action="{% url "create_document_from_diadoc" %}" method="post">#}
+{#                        <input hidden type="text" name="link_document_attachment" id="link_document_attachment" value="{{ invoice.downloadlink }}">#}
+{#                        <input hidden type="text" name="filename" id="filename" value="{{ invoice.diadoc_id }}">#}
+                        <button type="submit" class="btn btn-primary create-dreamkas-invoice-from-diadoc-invoice" data-diadoc_document_id="{{ invoice.diadoc_id }}">Принять Накладную</button>
+{#                    </form>#}
                 </div>
                 <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
                     <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
@@ -48,6 +46,14 @@
         {% endfor %}
     </ol>
     <script>
+        $('.create-dreamkas-invoice-from-diadoc-invoice').on('click',(e) => {
+            $.ajax({
+                type:'POST',
+                url:'/create_document_from_diadoc_v2/',
+                data:{'diadoc_document_id': e.currentTarget.dataset.diadoc_document_id}
+             })
+
+        })
         $(".refresh-diadoc-invoices").on('click', (e) => {
                 e.preventDefault()
                 let spinner = $(".refresh-diadoc-invoices span.loading-spinner-stuff");
@@ -55,7 +61,7 @@
                 {#element.getElementById('update-diadoc-invoices').setAttribute(class, "btn btn-success refresh-diadoc-invoices spinner-border spinner-border-sm")#}
                 $.ajax({
                     type: "POST",
-                    url: '/invoices_diadoc_update/',
+                    url: '/invoices_diadoc_update_v2/',
                     {#contentType: false,#}
                     {#processData: false,#}
                     {#async: false,#}

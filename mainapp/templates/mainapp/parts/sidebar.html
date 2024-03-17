@@ -1,19 +1,14 @@
 <nav id="sidebar">
     <div class="sidebar-header">
         <h3>Внешняя оболочка Дримкас</h3>
-        {{ CURRENT_STORE.store_name }}
-        <form method="POST" action="{% url "set_store_id" %}">
-            <select name="store_id" id="store_id">
-                {% for store in STORES %}
-                    <option {% if store.store_id == CURRENT_STORE.store_id %} selected {% endif %} value="{{ store.store_id }}">
+        {#        {{ CURRENT_STORE.store_name }}#}
+        <select class="select_store_id" name="store_id" id="store_id">
+            {% for store in STORES %}
+                <option {% if store.store_id == CURRENT_STORE.store_id %} selected {% endif %} value="{{ store.store_id }}">
                     {{ store.store_name }}
-                    </option>
-                {% endfor %}
-            </select>
-            <button>
-                Сменить магазин
-            </button>
-        </form>
+                </option>
+            {% endfor %}
+        </select>
     </div>
 
     <ul class="list-unstyled components">
@@ -54,13 +49,10 @@
         {#            </ul>#}
         {#        </li>#}
         <li>
-            <a href="/test_union">Накладные по поставщикам</a>
-        </li>
-        <li>
             <a href="/invoices">Накладные</a>
         </li>
         <li>
-            <a href="/invoices_diadoc">Накладные Диадок</a>
+            <a href="/invoices_diadoc_v2">Накладные Диадок</a>
         </li>
         <li>
             <a href="/gmail_messages">Накладные По почте</a>
@@ -76,6 +68,23 @@
         </li>
         <li>
             <a href="/inventory_checks">Инвентаризации</a>
+        </li>
+        <li class="active">
+            <a href="#options" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Настройка</a>
+            <ul class="collapse list-unstyled" id="options">
+                <li>
+                    <a href="/stores">Магазины</a>
+                </li>
+                <li>
+                    <a href="/diadoc_presets">Шаблоны Диадок</a>
+                </li>
+                <li>
+                    <a href="/gmail_presets">Шаблоны Почта</a>
+                </li>
+                <li>
+                    <a href="/debug">Дебаг</a>
+                </li>
+            </ul>
         </li>
         <li class="active">
             <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Отчеты</a>
@@ -100,3 +109,19 @@
         </li>
     </ul>
 </nav>
+<script>
+    $(".select_store_id").on('change', (e) => {
+        console.log('a')
+        $.ajax({
+            type: "POST",
+            url: '/set_store_id/',
+            data: {'store_id': e.currentTarget.value},
+            success:
+                () => {
+                    window.location.reload();
+                }
+        })
+    })
+
+
+</script>

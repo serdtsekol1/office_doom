@@ -6,10 +6,20 @@
             <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.supplier_name_set.first.name }}</div>
             <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
             <div class="Paymentlimit row">
-                <div style="font-size: 18px;" class="text-dark col-12">Срок оплаты:
+                <div style="font-size: 18px;" class="text-dark col-12">
+                    Срок оплаты:
                 </div>
-                <div class="col-1"><input class="w-100" name="paymenttime" id="paymenttime" data-id="{{ supplier.id }}" type="text" value="{{ supplier.paymenttime }}"></div>
+                <div class="col-1">
+                    <input class="w-100" name="paymenttime" id="paymenttime" data-id="{{ supplier.id }}" type="text" value="{{ supplier.paymenttime }}">
+                </div>
                 <div class="col" id="Error_1"></div>
+                <div style="font-size: 18px;" class="text-dark col-12">
+                    Префикс для продуктов:
+                </div>
+                <div class="col-1">
+                    <input class="w-100" name="supplier_prefix" id="supplier_prefix" data-id="{{ supplier.id }}" type="text" value="{{ supplier.supplier_prefix }}">
+                </div>
+
             </div>
             </a>
         </div>
@@ -31,7 +41,7 @@
 
                     </div>
                     {% if invoice.overdue and not invoice.paid %}
-                       {#ПРОСРОЧЕНА ОПЛАТА  #} {# СНЯТЬ КОММЕНТАРИЙ КОГДА ПОФИКСИТСЯ! #}
+                        {#ПРОСРОЧЕНА ОПЛАТА  #} {# СНЯТЬ КОММЕНТАРИЙ КОГДА ПОФИКСИТСЯ! #}
                     {% endif %}
                     <div style="flex-basis: 100px; display:flex">
                     </div>

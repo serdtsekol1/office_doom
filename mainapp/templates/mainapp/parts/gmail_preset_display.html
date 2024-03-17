@@ -1,0 +1,329 @@
+{% load mainapp_tags %}
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Название шаблона:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_preset_name" style="width: 100%" id="preset_name" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.preset_name %}{{ gmail_preset.preset_name }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Почта поставщика:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_mail" style="width: 100%" id="supplier_mail" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.supplier_mail %}{{ gmail_preset.supplier_mail }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Поставщик:
+    </div>
+    <div style="flex-basis: 200px">
+        <select data-preset_id="{{ gmail_preset.id }}" name="select" id="supplier_fk_id" class="form-control selectpiker js_supplier" style="width:100%">
+            <option {% if gmail_preset.supplier_fk_id == None %} selected="selected" {% endif %} value=None>None</option>
+            {% for supplier in suppliers %}
+                <option {% if supplier.id == gmail_preset.supplier_fk_id %} selected="selected" {% endif %} value={{ supplier.id }}>{{ supplier.id|get_first_name_for_supplier }}</option>
+            {% endfor %}
+
+        </select>
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        ИНН поставщика:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_inn" style="width: 100%" id="supplier_inn" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.supplier_inn %}{{ gmail_preset.supplier_inn }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Имя поставщика:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_name" style="width: 100%" id="supplier_name" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.supplier_name %}{{ gmail_preset.supplier_name }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Префикс поставщика:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_prefix" style="width: 100%" id="supplier_prefix" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.supplier_prefix %}{{ gmail_preset.supplier_prefix }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Формат даты сообщения:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_time_format" style="width: 100%" id="supplier_time_format" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.supplier_time_format %}{{ gmail_preset.supplier_time_format }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Дата документа строка:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_date_row" style="width: 100%" id="document_date_row" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_date_row %}{{ gmail_preset.document_date_row }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Дата документа столбец:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_date_col" style="width: 100%" id="document_date_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_date_col %}{{ gmail_preset.document_date_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Формат даты:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_date_format" style="width: 100%" id="document_date_format" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_date_format %}{{ gmail_preset.document_date_format }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Дата - нерегулярная:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_non_regular_date" style="width: 100%" id="document_non_regular_date" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_non_regular_date %}{{ gmail_preset.document_non_regular_date }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Дата документа - после:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_date_between_first" style="width: 100%" id="document_date_between_first" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_date_between_first %}{{ gmail_preset.document_date_between_first }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Дата документа - перед:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_date_between_second" style="width: 100%" id="document_date_between_second" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_date_between_second %}{{ gmail_preset.document_date_between_second }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Номер документа строка:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_number_row" style="width: 100%" id="document_number_row" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_number_row %}{{ gmail_preset.document_number_row }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Номер документа столбец:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_number_col" style="width: 100%" id="document_number_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_number_col %}{{ gmail_preset.document_number_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Не регулярный номер:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_non_regular_number" style="width: 100%" id="document_non_regular_number" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_non_regular_number %}{{ gmail_preset.document_non_regular_number }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Номер документа - перед:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_number_between_first" style="width: 100%" id="document_number_between_first" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_number_between_first %}{{ gmail_preset.document_number_between_first }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Номер документа - после:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_number_between_second" style="width: 100%" id="document_number_between_second" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_number_between_second %}{{ gmail_preset.document_number_between_second }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Уникальная информация документа:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_unique_information" style="width: 100%" id="supplier_unique_information" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.supplier_unique_information %}{{ gmail_preset.supplier_unique_information }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Уникальная информация строка:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_unique_information_row" style="width: 100%" id="supplier_unique_information_row" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.supplier_unique_information_row %}{{ gmail_preset.supplier_unique_information_row }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Уникальная информация столбец:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_unique_information_col" style="width: 100%" id="supplier_unique_information_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.supplier_unique_information_col %}{{ gmail_preset.supplier_unique_information_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Начальная строка товаров:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_product_start_row" style="width: 100%" id="product_start_row" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.product_start_row %}{{ gmail_preset.product_start_row }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Столбец с названием товара:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_supplier_product_name_col" style="width: 100%" id="product_name_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.product_name_col %}{{ gmail_preset.product_name_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Столбец с кодом товара:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_product_code_col" style="width: 100%" id="product_code_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.product_code_col %}{{ gmail_preset.product_code_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Столбец с кол-вом товара:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_product_amount_col" style="width: 100%" id="product_amount_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.product_amount_col %}{{ gmail_preset.product_amount_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Столбец с типом товара:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_product_amount_type_col" style="width: 100%" id="product_amount_type_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.product_amount_type_col %}{{ gmail_preset.product_amount_type_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Столбец с ндс товара:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_product_nds_col" style="width: 100%" id="product_nds_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.product_nds_col %}{{ gmail_preset.product_nds_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Столбец с суммой товара:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_product_sum_col" style="width: 100%" id="product_sum_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.product_sum_col %}{{ gmail_preset.product_sum_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Адрес доставки:
+    </div>
+    <div style="flex-basis: 200px">
+        <select data-preset_id="{{ gmail_preset.id }}" name="select" id="document_store_destination" class="form-control selectpiker js_document_store_destination" style="width:100%">
+            <option {% if store.store_id == None %} selected="selected" {% endif %} value=None>None</option>
+            {% for store in stores %}
+                <option {% if store.store_id == gmail_preset.document_store_destination %} selected="selected" {% endif %} value={{ store.store_id }}>{{ store.store_name }}</option>
+            {% endfor %}
+
+        </select>
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Адрес доставки информация:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_store_information" style="width: 100%" id="document_store_information" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_store_information %}{{ gmail_preset.document_store_information }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Адрес доставки строка:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_store_information_row" style="width: 100%" id="document_store_information_row" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_store_information_row %}{{ gmail_preset.document_store_information_row }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Адрес доставки столбец:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_document_store_information_col" style="width: 100%" id="document_store_information_col" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.document_store_information_col %}{{ gmail_preset.document_store_information_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
