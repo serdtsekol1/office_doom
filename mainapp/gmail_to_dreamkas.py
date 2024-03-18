@@ -291,6 +291,7 @@ def create_document_from_excel(excel_attachment,msg_sender):
                 positions=resulting_goods_list,
                 target_store_id=document_info['store_destination'],
             )
+            return 'https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']
         #### this except is for lulz!
         except:
             pass

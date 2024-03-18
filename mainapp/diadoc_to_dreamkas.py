@@ -38,6 +38,7 @@ def get_diadoc_presets_for_file(file):
     except:
         pass
     if inn is None:
+        print('Нету шаблона с подходящим ИНН')
         return False
     valid_presets_inn = DiadocPreset.objects.filter(supplier_inn=inn)
     valid_presets_store_destination = []
@@ -87,7 +88,7 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
 
     partnerid = DREAM_KAS_API.search_partner_id_by_inn(data["inn"])
     result = DREAM_KAS_API.createdocument(data["date"], "Документ Создан Автоматически. Источник - Диадок", partnerid, str(data["doc_id"]), positions=data["positions"],target_store_id=preset.store_destination_fk.store_id)
-
+    return 'https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']
 def check_code(input):
         try:
             if barcodenumber.check_code('ean13', str(input)) or barcodenumber.check_code('ean8', str(input)):
