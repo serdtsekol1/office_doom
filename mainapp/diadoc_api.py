@@ -182,7 +182,7 @@ class DiadocApi():
                         'letterid': element_with_document_attach.attrs.get("letterid"),
                         'ft-name': element_with_document_attach.attrs.get("ft-name"),
                         'link_document': list(element_with_document_attach.absolute_links)[0],
-                        'link_document_attachment': f'https://diadoc.kontur.ru/{self.USER_BOX_ID}/Download/Attachment?letterId={element_with_document_attach.attrs.get("letterid")}&attachmentId={element_with_document_attach.attrs.get("documentid")}',
+                        'link_document_attachment': f'https://diadoc.kontur.ru/{diadoc_id}/Download/Attachment?letterId={element_with_document_attach.attrs.get("letterid")}&attachmentId={element_with_document_attach.attrs.get("documentid")}',
                         'status': status,
                     })
                 except Exception as e:
