@@ -728,12 +728,16 @@ def invoices_diadoc(request):
                 matching_invoices.append(dreamkas_invoice)
     page = Paginator(diadocinvoices, 1000).page(request.GET.get("page", 1))
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
-
+@csrf_exempt
+def delete_diadoc_invoices(request):
+    for diadoc_invoice_obj in DiadocInvoice.objects.all():
+        diadoc_invoice_obj.delete()
+    return JsonResponse({'success' : True})
 
 @csrf_exempt
 def invoices_diadoc_v2(request):
     start_time = time.time()
-    diadocinvoices = DiadocInvoice.objects.filter(store_id=request.session['store_id']).order_by("-issue_date")
+    diadocinvoices = DiadocInvoice.objects.filter(store_id=request.session['store_id']).order_by("-issue_date")[:request.GET.get("page", 1)*1000]
     dreamkas_invoices = Invoice.objects.all()
     dreamkas_dict = {}
     for dreamkas_invoice in dreamkas_invoices:
