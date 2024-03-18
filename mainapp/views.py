@@ -1030,11 +1030,15 @@ def create_documents_from_gmail_message_v2(request):
         }
         store_id = request.session['store_id']
         msg_sender = get_document_and_attachments_from_gmail(message_id, store_id)
+        links = []
         for attachment in os.listdir("media/gmail_invoices"):
-            gmail_to_dreamkas.create_document_from_excel(attachment,msg_sender)
+            try:
+                links.append(gmail_to_dreamkas.create_document_from_excel(attachment,msg_sender))
+            except:
+                continue
         for attachment in os.listdir("media/gmail_invoices"):
             os.remove("media/gmail_invoices/" + attachment)
-        return JsonResponse({'success':True})
+        return JsonResponse({'success':True, 'links':links})
 
 
 
@@ -1195,7 +1199,11 @@ def create_document_from_diadoc_v2(request):
     if request.method == 'POST':
         diadoc_document_id = request.POST.get("diadoc_document_id")
         diadoc_user_id = Store.objects.get(store_id=request.session['store_id']).diadoc_id
-        create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id)
+        links = []
+        try:
+            links.append(create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id))
+        except:
+            return JsonResponse({'success':False})
 
 
 def test_union(request):
