@@ -1042,7 +1042,7 @@ def create_documents_from_gmail_message_v2(request):
                 continue
         for attachment in os.listdir("media/gmail_invoices"):
             os.remove("media/gmail_invoices/" + attachment)
-        return JsonResponse({'success':True, 'links':links})
+        return JsonResponse({'success': True, 'links':links})
 
 
 
@@ -1208,6 +1208,7 @@ def create_document_from_diadoc_v2(request):
             links.append(create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id))
         except:
             return JsonResponse({'success':False})
+        return JsonResponse({'success':True, 'links': links})
 
 
 def test_union(request):

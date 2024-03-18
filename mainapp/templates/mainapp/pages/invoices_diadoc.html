@@ -20,11 +20,13 @@
 
                 </div>
                 <div style="margin-right: 70px">
-                    {% for diadoc_invoce in matching_invoices %}
-                        {% if diadoc_invoce.number == invoice.number %}
-                            {% if diadoc_invoce.supplier == invoice.kontragent %}
-                                {% if diadoc_invoce.issue_date == invoice.issue_date %}
-                                    <button type="submit" class="btn btn-primary">Просмотреть накладную</button>
+                    {% for dreamkas_invoice in matching_invoices %}
+                        {% if dreamkas_invoice.number == invoice.number %}
+                            {% if dreamkas_invoice.supplier == invoice.kontragent %}
+                                {% if dreamkas_invoice.issue_date == invoice.issue_date %}
+                                    <a href="https://kabinet.dreamkas.ru/app/#!/documents/card~2F{{ dreamkas_invoice.id_dreem }}">
+                                        <button type="submit" class="btn btn-primary">Просмотреть накладную</button>
+                                    </a>
                                 {% endif %}
                             {% endif %}
                         {% endif %}
@@ -33,11 +35,11 @@
 
                 </div>
                 <div class="">
-{#                    <form action="{% url "create_document_from_diadoc" %}" method="post">#}
-{#                        <input hidden type="text" name="link_document_attachment" id="link_document_attachment" value="{{ invoice.downloadlink }}">#}
-{#                        <input hidden type="text" name="filename" id="filename" value="{{ invoice.diadoc_id }}">#}
-                        <button type="submit" class="btn btn-primary create-dreamkas-invoice-from-diadoc-invoice" data-diadoc_document_id="{{ invoice.diadoc_id }}">Принять Накладную</button>
-{#                    </form>#}
+                    {#                    <form action="{% url "create_document_from_diadoc" %}" method="post">#}
+                    {#                        <input hidden type="text" name="link_document_attachment" id="link_document_attachment" value="{{ invoice.downloadlink }}">#}
+                    {#                        <input hidden type="text" name="filename" id="filename" value="{{ invoice.diadoc_id }}">#}
+                    <button type="submit" class="btn btn-primary create-dreamkas-invoice-from-diadoc-invoice" data-diadoc_document_id="{{ invoice.diadoc_id }}">Принять Накладную</button>
+                    {#                    </form>#}
                 </div>
                 <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
                     <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
@@ -46,12 +48,18 @@
         {% endfor %}
     </ol>
     <script>
-        $('.create-dreamkas-invoice-from-diadoc-invoice').on('click',(e) => {
+        $('.create-dreamkas-invoice-from-diadoc-invoice').on('click', (e) => {
             $.ajax({
-                type:'POST',
-                url:'/create_document_from_diadoc_v2/',
-                data:{'diadoc_document_id': e.currentTarget.dataset.diadoc_document_id}
-             })
+                type: 'POST',
+                url: '/create_document_from_diadoc_v2/',
+                data: {'diadoc_document_id': e.currentTarget.dataset.diadoc_document_id},
+
+                success: function (data) {
+                    for (var i = 0; i < data.links.length; i++) {
+                        window.open(data.links[i], '_blank');
+                    }
+                }
+            })
 
         })
         $(".refresh-diadoc-invoices").on('click', (e) => {
