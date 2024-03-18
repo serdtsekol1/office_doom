@@ -38,7 +38,7 @@ def get_diadoc_presets_for_file(file):
     except:
         pass
     if inn is None:
-        print('Нету шаблона с подходящим ИНН')
+        print('Невозможно найти ИНН')
         return False
     valid_presets_inn = DiadocPreset.objects.filter(supplier_inn=inn)
     valid_presets_store_destination = []
@@ -46,8 +46,16 @@ def get_diadoc_presets_for_file(file):
         try:
             if str(xmltodict.parse(preset.store_destination_information)) == str(file['Файл']['Документ']['СвСчФакт']['ГрузПолуч']['Адрес']):
                 valid_presets_store_destination.append(preset)
+                continue
         except:
-            pass
+            continue
+        try:
+            if str(xmltodict.parse(preset.store_destination_information)) == str(file['Файл']['Документ']['СвСчФакт']['ГрузПолуч']['Адрес']).replace('  ',' '):
+                valid_presets_store_destination.append(preset)
+                continue
+        except:
+            continue
+
     return valid_presets_store_destination
 
 
