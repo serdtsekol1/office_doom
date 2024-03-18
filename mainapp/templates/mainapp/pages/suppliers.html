@@ -4,7 +4,7 @@
 
     {% for supplier in suppliers %}
 
-        <div class="search_field" data-search_data_field="{{ supplier.name }} {{ supplier.inn }}">
+        <div class="search_field" data-search_data_field="{{ supplier.supplier_name_set.first.name }} {{ supplier.inn }}">
             <li class="list-group-item d-flex justify-content-end align-items-center">
                 <div style="flex-basis: 50%; flex-grow: 1">
                     {% if supplier.inn != None %}
