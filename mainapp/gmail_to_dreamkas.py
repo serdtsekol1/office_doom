@@ -193,7 +193,6 @@ def search_product_thorough(prefix, product_name, product_code, product_amount, 
             found_product = DREAM_KAS_API.search_goods(prefix + str(product_code))
             if productcode is None:
                 productcode = prefix + str(product_code)
-                print()
         except:
             pass
     if found_product is None:

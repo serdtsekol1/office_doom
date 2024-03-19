@@ -1037,12 +1037,16 @@ def create_documents_from_gmail_message_v2(request):
         links = []
         for attachment in os.listdir("media/gmail_invoices"):
             try:
-                links.append(gmail_to_dreamkas.create_document_from_excel(attachment,msg_sender))
+                link = gmail_to_dreamkas.create_document_from_excel(attachment,msg_sender)
+                if link is not None or link is not False:
+                    links.append(link)
             except:
                 continue
         for attachment in os.listdir("media/gmail_invoices"):
             os.remove("media/gmail_invoices/" + attachment)
-        return JsonResponse({'success': True, 'links':links})
+        if links.__len__() == 0:
+            return JsonResponse({'success':False,'errormsg':'Не найден подходящий шаблон для данной накладной.'})
+        return JsonResponse({'success':True, 'links': links})
 
 
 
@@ -1205,9 +1209,13 @@ def create_document_from_diadoc_v2(request):
         diadoc_user_id = Store.objects.get(store_id=request.session['store_id']).diadoc_id
         links = []
         try:
-            links.append(create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id))
+            link = create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id)
+            if link is not None:
+                links.append(link)
         except:
-            return JsonResponse({'success':False})
+            return JsonResponse({'success':False,'errormsg':'Произошла ошибка при попытке создать накладную. Обратитесь к администратору.'})
+        if links.__len__() == 0:
+            return JsonResponse({'success':False,'errormsg':'Не найден подходящий шаблон для данной накладной.'})
         return JsonResponse({'success':True, 'links': links})
 
 

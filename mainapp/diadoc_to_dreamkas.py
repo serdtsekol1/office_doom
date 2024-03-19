@@ -72,10 +72,10 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
     valid_presets = get_diadoc_presets_for_file(data_dict)
     if valid_presets.__len__() == 0:
         print('Количество подходящих шаблонов - 0. Настройте шаблоны')
-        return 100
+        return
     if valid_presets.__len__() > 1:
         print('КОличество подходящик шаблонов - более одного. Настройте шаблоны.')
-        return 101
+        return
 
     data = {}
     preset = valid_presets[0]
