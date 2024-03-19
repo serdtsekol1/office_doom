@@ -37,7 +37,10 @@
                     {% if message.message_sender_display != 'Необработанное сообщение' %}
                         <form action="{% url "create_documents_from_gmail_message_v2" %}" method="post">
                             <input hidden type="text" name="gmail_message_id" id="gmail_message_id" value="{{ message.message_id }}">
-                            <button type="submit" class="btn btn-primary">Принять Накладную</button>
+                            <button type="submit" class="btn btn-primary">
+                                <span style="display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                <span role="status">Принять накладную</span>
+                            </button>
                         </form>
                     {% endif %}
                 </div>
@@ -52,25 +55,6 @@
             $('ModalToShow').modal("show");
         }
 
-        $(".checked_paid").on('change', (e) => {
 
-            let id = e.currentTarget.id;
-            let paid = 0;
-            if (e.currentTarget.checked) {
-                paid = 1
-            }
-
-            $.ajax({
-                type: "POST",
-                url: '/paid_update/',
-                data: {'id': id, 'paid': paid},
-                {#contentType: false,#}
-                {#processData: false,#}
-                {#async: false,#}
-                success: function (data) {
-                    console.log(data)
-                }
-            });
-        })
     </script>
 {% endblock %}
