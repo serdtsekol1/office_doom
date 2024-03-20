@@ -69,14 +69,14 @@ def get_prerequisites_for_a_document(pandas_document, preset):
         if preset.supplier_unique_information.replace('  ',' ') not in pandas_document.iloc[
             preset.supplier_unique_information_row,
             preset.supplier_unique_information_col
-        ].replace('  ',' ') :
+        ].replace('  ',' '):
             return False
         # +         Get Store Destination
         if preset.document_store_information is not None:
-            if preset.document_store_information.replace('  ',' ') not in pandas_document.iloc[
+            if preset.document_store_information.replace('  ',' ').strip() not in pandas_document.iloc[
                 preset.document_store_information_row,
                 preset.document_store_information_col
-            ].replace('  ',' ') :
+            ].replace('  ',' ').strip():
                 return False
         else:
             print('document_store_information is None')
@@ -110,7 +110,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
         document_supplier = DREAM_KAS_API.search_partner_id_by_inn(preset.supplier_inn)
         store_destination = None
         if preset.document_store_information_row is not None and preset.document_store_information_col is not None:
-            if preset.document_store_information.replace('  ',' ') in pandas_document.iloc[preset.document_store_information_row, preset.document_store_information_col].replace('  ',' ') :
+            if preset.document_store_information.replace('  ',' ').strip() in pandas_document.iloc[preset.document_store_information_row, preset.document_store_information_col].replace('  ',' ').strip():
                 store_destination = preset.document_store_destination
             else:
                 return False
