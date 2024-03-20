@@ -53,7 +53,7 @@ def get_document_and_attachments_from_gmail(message_id, store_id):
                         os.remove('media/gmail_invoices/' + attachment.filename)
                     except:
                         pass
-    return message.sender.replace('<', '').replace('>', '')
+    return message.sender.split('<')[1].replace('>', '')
 
 
 def get_supplier_data_for_preset(supplier):
@@ -66,17 +66,20 @@ def get_supplier_data_for_preset(supplier):
 
 def get_prerequisites_for_a_document(pandas_document, preset):
     try:
-        if preset.supplier_unique_information not in pandas_document.iloc[
+        if preset.supplier_unique_information.replace('  ',' ') not in pandas_document.iloc[
             preset.supplier_unique_information_row,
             preset.supplier_unique_information_col
-        ]:
+        ].replace('  ',' ') :
             return False
         # +         Get Store Destination
-        if preset.document_store_information is not None and preset.document_store_information not in pandas_document.iloc[
-            preset.document_store_information_row,
-            preset.document_store_information_col
-        ]:
-            return False
+        if preset.document_store_information is not None:
+            if preset.document_store_information.replace('  ',' ') not in pandas_document.iloc[
+                preset.document_store_information_row,
+                preset.document_store_information_col
+            ].replace('  ',' ') :
+                return False
+        else:
+            print('document_store_information is None')
         # Get Date
         if preset.document_date_col is not None and preset.document_number_row is not None:
             document_date = pandas_document.iloc[
@@ -107,7 +110,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
         document_supplier = DREAM_KAS_API.search_partner_id_by_inn(preset.supplier_inn)
         store_destination = None
         if preset.document_store_information_row is not None and preset.document_store_information_col is not None:
-            if preset.document_store_information in pandas_document.iloc[preset.document_store_information_row, preset.document_store_information_col]:
+            if preset.document_store_information.replace('  ',' ') in pandas_document.iloc[preset.document_store_information_row, preset.document_store_information_col].replace('  ',' ') :
                 store_destination = preset.document_store_destination
             else:
                 return False
@@ -244,7 +247,6 @@ def create_document_from_excel(excel_attachment, msg_sender):
     # mode:
     # 0 - by code, if availible
     # 1 - by name.
-
     try:
         file_path = 'media/gmail_invoices/' + excel_attachment
         try:
