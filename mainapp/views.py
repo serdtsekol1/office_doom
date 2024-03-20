@@ -1138,8 +1138,12 @@ def show_excel_document(request):
             result = request.FILES['file']
             file_name = default_storage.save(result.name, result)
             file_path = default_storage.path(file_name)
-            wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
-            pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
+            try:
+                wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
+                pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
+            except:
+                pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
+
             return JsonResponse({"document_html": pandas_document.to_json(orient='index')}, safe=False)
     # document = document.to_html()
     return render(request, 'mainapp/parts/show_document.html')

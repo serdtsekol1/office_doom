@@ -53,7 +53,8 @@ def get_document_and_attachments_from_gmail(message_id, store_id):
                         os.remove('media/gmail_invoices/' + attachment.filename)
                     except:
                         pass
-    return message.sender.replace('<','').replace('>', '')
+    return message.sender.replace('<', '').replace('>', '')
+
 
 def get_supplier_data_for_preset(supplier):
     supplier_data = {}
@@ -235,7 +236,7 @@ def search_product_thorough(prefix, product_name, product_code, product_amount, 
     return new_position
 
 
-def create_document_from_excel(excel_attachment,msg_sender):
+def create_document_from_excel(excel_attachment, msg_sender):
     if excel_attachment.endswith('.pdf'):
         return False
     nds = ["0%", "10%", "20%", "30%", "Без НДС"]
@@ -246,8 +247,11 @@ def create_document_from_excel(excel_attachment,msg_sender):
 
     try:
         file_path = 'media/gmail_invoices/' + excel_attachment
-        wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
-        pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
+        try:
+            wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
+            pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
+        except:
+            pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
     except Exception as Ex:
         print(Ex)
         return False
