@@ -280,6 +280,7 @@ class DreamKasApi:
     def createdocument(self, dataofdocument, comment, partner_id, doc_id, target_store_id=185449, positions=None):
         if not positions:
             positions = []
+        print('trying to get data')
         data = {
                 "num": doc_id,
                 "type": "INCOME_INVOICE",
@@ -290,6 +291,7 @@ class DreamKasApi:
                 "positions": positions,
                 "status": "DRAFT"
                 }
+        print('data got')
         response = self.session.post(self.URL_DOCUMENTS_v1_API, json=data)
         return response.json()
 

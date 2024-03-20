@@ -92,9 +92,11 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
         new_position = search_goods_xml_diadoc(preset.supplier_prefix, item)
         print(new_position)
         goods.append(new_position)
+    print('test')
     data.update({"positions": goods})
 
     partnerid = DREAM_KAS_API.search_partner_id_by_inn(data["inn"])
+    print('creating_document')
     result = DREAM_KAS_API.createdocument(data["date"], "Документ Создан Автоматически. Источник - Диадок", partnerid, str(data["doc_id"]), positions=data["positions"],target_store_id=preset.store_destination_fk.store_id)
     return 'https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']
 def check_code(input):
