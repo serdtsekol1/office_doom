@@ -55,7 +55,7 @@ def update_gmail_messages(client_secret_json):
             message_id = message_id.replace('<', '').replace('>', '')
         else:
             return "Error, can't get message_id"
-        message_sender = message.sender.replace('<','').replace('>', '')
+        message_sender = message.sender.split('<')[1].replace('>','')
         valid_presets = get_prerequisites_for_a_message(message)
         message_date = message.date
         message_store = Store.objects.get(gmail_client_secret=client_secret_json).store_id
@@ -83,7 +83,7 @@ def update_gmail_messages(client_secret_json):
 
 
 def get_prerequisites_for_a_message(message):
-    message_sender = message.sender.replace('<','').replace('>', '')
+    message_sender = message.sender.split('<')[1].replace('>','')
     print('msg sender' , message_sender)
     valid_presets = PresetGmail.objects.filter(supplier_mail=message_sender)
     valid_preset_list = []

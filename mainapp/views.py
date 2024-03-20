@@ -1038,7 +1038,7 @@ def create_documents_from_gmail_message_v2(request):
         for attachment in os.listdir("media/gmail_invoices"):
             try:
                 link = gmail_to_dreamkas.create_document_from_excel(attachment,msg_sender)
-                if link is not None or link is not False:
+                if link is not None and link is not False:
                     links.append(link)
             except:
                 continue

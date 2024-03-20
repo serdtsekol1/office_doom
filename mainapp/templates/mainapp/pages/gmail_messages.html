@@ -35,13 +35,11 @@
                 {#                </div>#}
                 <div class="">
                     {% if message.message_sender_display != 'Необработанное сообщение' %}
-                        <form action="{% url "create_documents_from_gmail_message_v2" %}" method="post">
-                            <input hidden type="text" name="gmail_message_id" id="gmail_message_id" value="{{ message.message_id }}">
-                            <button type="submit" class="btn btn-primary">
-                                <span style="display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
-                                <span role="status">Принять накладную</span>
-                            </button>
-                        </form>
+                        <input hidden type="text" name="gmail_message_id" id="gmail_message_id" value="{{ message.message_id }}">
+                        <button type="submit" class="btn btn-primary create-dreamkas-invoice-from-gmail-message" data-gmail_message_id="{{ message.message_id }}">
+                            <span style="display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
+                            <span role="status">Принять накладную</span>
+                        </button>
                     {% endif %}
                 </div>
                 <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
@@ -51,10 +49,34 @@
         {% endfor %}
     </ol>
     <script>
-        if (Status == "Error") {
-            $('ModalToShow').modal("show");
-        }
+        $('.create-dreamkas-invoice-from-gmail-message').on('click', (e) => {
+            e.currentTarget.querySelector('.loading-spinner-stuff').style.display = "inherit";
+            $.ajax({
+                type: 'POST',
+                url: '/create_documents_from_gmail_message_v2/',
+                data: {'gmail_message_id': e.currentTarget.dataset.gmail_message_id},
 
+                success: function (data) {
+                    if (data.success) {
+                        for (var i = 0; i < data.links.length; i++) {
+                            window.open(data.links[i], '_blank');
+
+                        }
+                        e.currentTarget.querySelector('.loading-spinner-stuff').style.display = "none";
+                    } else {
+                        e.currentTarget.querySelector('.loading-spinner-stuff').style.display = "none";
+                        Swal.fire({
+                            position: 'top-end',
+                            title: data.errormsg,
+                            showConfirmButton: false,
+                            timer: 10000,
+                            backdrop: false
+                        })
+                    }
+                }
+            })
+
+        })
 
     </script>
 {% endblock %}
