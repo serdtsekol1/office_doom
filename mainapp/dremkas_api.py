@@ -278,6 +278,8 @@ class DreamKasApi:
 
 
     def createdocument(self, dataofdocument, comment, partner_id, doc_id, target_store_id=185449, positions=None):
+        print('trying to get data')
+        print(positions)
         if not positions:
             positions = []
         print('trying to get data')
