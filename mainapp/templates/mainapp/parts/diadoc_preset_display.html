@@ -55,6 +55,16 @@
 </div>
 <div class="d-flex justify-content-start align-items-center">
     <div style="flex-basis: 300px">
+        Режим информации получателя:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_store_destination_information_mode" style="width: 100%" id="store_destination_information_mode" data-preset_id="{{ diadoc_preset.id }}"
+               value="{% if diadoc_preset.store_destination_information_mode %}{{ diadoc_preset.store_destination_information_mode }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
         Информация получателя:
     </div>
     <div style="flex-basis: 200px">

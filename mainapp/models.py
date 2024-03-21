@@ -839,7 +839,10 @@ class DiadocPreset(models.Model):
     supplier_inn = models.BigIntegerField('group_id', blank=True, default=None, null=True)
     supplier_prefix = models.TextField('supplier_prefix', blank=True, default=None, null=True)
     store_destination_fk = models.ForeignKey(Store, on_delete=models.DO_NOTHING, blank=True, default=None, null=True)
-    store_destination_information = models.CharField('supplier_name', max_length=2555, blank=True, default=None, null=True)
+    store_destination_information = models.CharField('store_destination', max_length=2555, blank=True, default=None, null=True)
+    store_destination_mode = models.IntegerField('store_destination_mode', blank=True, default=0, null=True)
+    #0- as usual, ==
+    #1 - if text is in, separated by ||.
 
 
 class GoodGroups(models.Model):

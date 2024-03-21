@@ -48,13 +48,26 @@ def get_diadoc_presets_for_file(file):
                 valid_presets_store_destination.append(preset)
                 continue
         except:
-            continue
+            pass
         try:
             if str(xmltodict.parse(preset.store_destination_information)) == str(file['Файл']['Документ']['СвСчФакт']['ГрузПолуч']['Адрес']).replace('  ',' '):
                 valid_presets_store_destination.append(preset)
                 continue
         except:
-            continue
+            pass
+        try:
+            if ('||') in preset.store_destination_information:
+                num = preset.store_destination_information.split('||').__len__()
+                num_met = 0
+                for str_val in preset.store_destination_information.split('||'):
+                    if str_val in str(file['Файл']['Документ']['СвСчФакт']['ГрузПолуч']['Адрес']):
+                        num_met = num_met + 1
+                if num_met == num:
+                    valid_presets_store_destination.append(preset)
+                    continue
+        except:
+            pass
+
 
     return valid_presets_store_destination
 
@@ -97,6 +110,9 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
 
     partnerid = DREAM_KAS_API.search_partner_id_by_inn(data["inn"])
     print('creating_document')
+    print(data["date"])
+    print(partnerid)
+    print(str(data["doc_id"]))
     result = DREAM_KAS_API.createdocument(data["date"], "Документ Создан Автоматически. Источник - Диадок", partnerid, str(data["doc_id"]), positions=data["positions"],target_store_id=preset.store_destination_fk.store_id)
     return 'https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']
 def check_code(input):
