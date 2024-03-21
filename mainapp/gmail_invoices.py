@@ -113,9 +113,40 @@ def replace_month_to_number(input):
               ("октябрь", "10"), ("октября", "10"),
               ("ноябрь", "11"), ("ноября", "11"),
               ("декабрь", "12"), ("декабря", "12")]
-    for item in MONTHS:
-        if input == item[0]:
-            return item[1]
+    splitters = ['/', '.', '-', ' ', ]
+    words = []
+    words.append(input.lower())
+    n = 0
+    for splitter in splitters:
+        words_new = []
+        for word in input.lower().split(splitter):
+            words_new.append(word)
+        if words_new != words:
+            words = words_new
+            n = n + 1
+            correct_splitter = splitter
+    if n > 1 or n == 0:
+        print('Невозможно разобрать дату.')
+        return None
+    for i in range(len(words)):
+        for item in MONTHS:
+            if words[i] == item[0]:
+                words[i] = item[1]
+    output = ''
+    for i, word in enumerate(words):
+        if i == len(words) - 1:
+            output = output + word
+        else:
+            output = output + word + correct_splitter
+    return output.strip()
+
+
+
+
+
+    # for item in MONTHS:
+    #     if input == item[0]:
+    #         return item[1]
 
 
 def create_document_from_excel(document_path):

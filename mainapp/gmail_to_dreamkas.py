@@ -10,7 +10,7 @@ from simplegmail.query import construct_query
 from slugify import slugify
 
 from dremkas.settings import DREAM_KAS_API
-from mainapp.gmail_invoices import get_gmail_messages
+from mainapp.gmail_invoices import get_gmail_messages, replace_month_to_number
 from mainapp.helper import check_EAN13_EAN8
 from mainapp.models import PresetGmail, Store
 
@@ -91,6 +91,9 @@ def get_prerequisites_for_a_document(pandas_document, preset):
                     document_date = document_date.split(preset.document_date_between_first)[1]
                 if preset.document_date_between_second is not None:
                     document_date = document_date.split(preset.document_date_between_second)[0]
+                document_date_new = replace_month_to_number(document_date)
+                if document_date_new != document_date:
+                    document_date = document_date_new
             document_date = datetime.datetime.strptime(document_date, preset.document_date_format).strftime("%Y-%m-%d")
         else:
             document_date = datetime.date.today().strftime("%Y-%m-%d")
@@ -105,6 +108,8 @@ def get_prerequisites_for_a_document(pandas_document, preset):
                     document_number = document_number.split(preset.document_date_between_first)[1]
                 if preset.document_number_between_second is not None:
                     document_number = document_number.split(preset.document_date_between_second)[0]
+
+
         else:
             document_number = '000-000'
         document_supplier = DREAM_KAS_API.search_partner_id_by_inn(preset.supplier_inn)
