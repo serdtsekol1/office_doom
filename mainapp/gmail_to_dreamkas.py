@@ -1,6 +1,6 @@
 import datetime
 import os
-
+import patoolib
 import pandas
 import py7zr
 import simplegmail
@@ -42,11 +42,11 @@ def get_document_and_attachments_from_gmail(message_id, store_id):
     if message.attachments:
         for attachment in message.attachments:
             attachment.save("media/gmail_invoices/" + attachment.filename, overwrite=True)
-            if attachment.filename.endswith(".rar") or attachment.filename.endswith(".zip"):
+            if attachment.filename.endswith(".rar") or attachment.filename.endswith(".zip") or attachment.filename.endswith('.7z') or attachment.filename.endswith('.rar'):
                 try:
-                    with py7zr.SevenZipFile('media/gmail_invoices/' + attachment.filename, mode='r') as z:
-                        z.extractall('media/gmail_invoices/')
-                        os.remove('media/gmail_invoices/' + attachment.filename)
+                    from pyunpack import Archive
+                    Archive('media/gmail_invoices/' + attachment.filename).extractall('media/gmail_invoices/')
+                    os.remove('media/gmail_invoices/' + attachment.filename)
                 except Exception as ex:
                     print(ex)
                     try:
@@ -66,17 +66,17 @@ def get_supplier_data_for_preset(supplier):
 
 def get_prerequisites_for_a_document(pandas_document, preset):
     try:
-        if preset.supplier_unique_information.replace('  ',' ') not in pandas_document.iloc[
+        if preset.supplier_unique_information.replace('  ', ' ') not in pandas_document.iloc[
             preset.supplier_unique_information_row,
             preset.supplier_unique_information_col
-        ].replace('  ',' '):
+        ].replace('  ', ' '):
             return False
         # +         Get Store Destination
         if preset.document_store_information is not None:
-            if preset.document_store_information.replace('  ',' ').strip() not in pandas_document.iloc[
+            if preset.document_store_information.replace('  ', ' ').strip() not in pandas_document.iloc[
                 preset.document_store_information_row,
                 preset.document_store_information_col
-            ].replace('  ',' ').strip():
+            ].replace('  ', ' ').strip():
                 return False
         else:
             print('document_store_information is None')
@@ -92,9 +92,9 @@ def get_prerequisites_for_a_document(pandas_document, preset):
                 if preset.document_date_between_second is not None:
                     document_date = document_date.split(preset.document_date_between_second)[0]
                 document_date_new = replace_month_to_number(document_date)
-                if document_date_new != document_date:
+                if document_date_new != document_date and document_date_new is not None:
                     document_date = document_date_new
-            document_date = datetime.datetime.strptime(document_date, preset.document_date_format).strftime("%Y-%m-%d")
+            document_date = datetime.datetime.strptime(document_date.strip(), preset.document_date_format).strftime("%Y-%m-%d")
         else:
             document_date = datetime.date.today().strftime("%Y-%m-%d")
         # Get Number
@@ -115,7 +115,8 @@ def get_prerequisites_for_a_document(pandas_document, preset):
         document_supplier = DREAM_KAS_API.search_partner_id_by_inn(preset.supplier_inn)
         store_destination = None
         if preset.document_store_information_row is not None and preset.document_store_information_col is not None:
-            if preset.document_store_information.replace('  ',' ').strip() in pandas_document.iloc[preset.document_store_information_row, preset.document_store_information_col].replace('  ',' ').strip():
+            if preset.document_store_information.replace('  ', ' ').strip() in pandas_document.iloc[preset.document_store_information_row, preset.document_store_information_col].replace('  ',
+                                                                                                                                                                                          ' ').strip():
                 store_destination = preset.document_store_destination
             else:
                 return False

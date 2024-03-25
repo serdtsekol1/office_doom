@@ -908,6 +908,7 @@ def delete_gmail_messages(request):
     return JsonResponse({'success':True})
 @csrf_exempt
 def update_gmail_messages(request):
+    print('asd')
     if request.method == 'POST':
         client_secret_json = Store.objects.filter(store_id=request.session['store_id']).first().gmail_client_secret
         mainapp.gmail_invoices.update_gmail_messages(client_secret_json)
