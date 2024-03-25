@@ -1044,7 +1044,10 @@ def create_documents_from_gmail_message_v2(request):
             except:
                 continue
         for attachment in os.listdir("media/gmail_invoices"):
-            os.remove("media/gmail_invoices/" + attachment)
+            try:
+                os.remove("media/gmail_invoices/" + attachment)
+            except:
+                pass
         print(links)
         if links.__len__() == 0:
             return JsonResponse({'success':False,'errormsg':'Не найден подходящий шаблон для данной накладной.'})

@@ -285,6 +285,16 @@
 </div>
 <div class="d-flex justify-content-start align-items-center">
     <div style="flex-basis: 300px">
+        Приоритет формирования кода:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_product_priority" style="width: 100%" id="product_priority" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.product_priority %}{{ gmail_preset.product_priority }}{% endif %}"
+               placeholder="0 - код. 1 - имя">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
         Адрес доставки:
     </div>
     <div style="flex-basis: 200px">
