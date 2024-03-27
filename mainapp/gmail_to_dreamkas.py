@@ -156,6 +156,7 @@ def get_products_from_a_document(pandas_document, preset):
     goods_list = []
     for i in range(start_row, pandas_document.shape[0]):
         try:
+            product_code = None
             met_conditions = 0
             if preset.product_name_col is not None:
                 product_name = str(pandas_document.iloc[i, preset.product_name_col])
