@@ -450,7 +450,7 @@ class DreamKasApi:
 
     def get_suppliers(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/v1/edx/paper/contacts").json()
-    def get_documents(self, limit=100, document_type="5,13"):
+    def get_documents(self,offset, limit=100, document_type="5,13", ):
         # 0: {label: "Перемещение", value: 2}
         # 1: {label: "Оприходование", value: 3}
         # 2: {label: "Списание", value: 4}
@@ -463,7 +463,11 @@ class DreamKasApi:
         # https://kabinet.dreamkas.ru/api/v1/documents?limit=1000&filter[type]=5&filter[source]=PAPER,KABINET
         # Request URL: https://kabinet.dreamkas.ru/api/v1/documents?limit=30&offset=0&filter[type]=5,13&filter[preset]=DOCUMENTS
         print("Послан запрос на получение документов.")
-        response = self.session.get(f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS")
+        if offset == 0:
+            link = f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS"
+        else:
+            link = f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&offset={offset}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS"
+        response = self.session.get(link)
         if response.status_code == 200:
             print("Документы получены")
             return response.json()
