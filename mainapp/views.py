@@ -201,7 +201,9 @@ class Preset(View):
 def delete_all_stores(request):
     for store in Store.objects.all():
         store.delete()
-    return JsonResponse({'success':True})
+    return JsonResponse({'success': True})
+
+
 @csrf_exempt
 def set_store_id(request):
     request.session['store_id'] = request.POST.get('store_id')
@@ -321,6 +323,22 @@ def generate_xlsx_file_for_printer(request):
 def update_stores_and_devices(request):
     print('test')
     Store.update_stores_and_devices()
+    return redirect(reverse('invoices'))
+
+
+# Debug
+@csrf_exempt
+def debug(request):
+    return render(request, "mainapp/pages/debug.html")
+
+
+@csrf_exempt
+def debug_update_all_invoices(request):
+    offset = 0
+    status = dreamkas_documents.update_invoices(offset=offset)
+    while status == True:
+        offset = offset + 1000
+        status = dreamkas_documents.update_invoices(offset=offset)
     return redirect(reverse('invoices'))
 
 
@@ -518,6 +536,13 @@ def invoices_update(request):
         return redirect(reverse('invoices'))
 
 
+@csrf_exempt
+def invoices_update_full(request):
+    if request.method == 'POST':
+        dreamkas_documents.update_invoices()
+        return redirect(reverse('invoices'))
+
+
 def problematic_invoices():
     dublicate_invoices = Invoice.objects.filter(hide=False).order_by("-issue_date").values("number", "sum", "issue_date", "supplier").annotate(
         number_c=Concat("number"),
@@ -710,6 +735,7 @@ def dreamkas_supplier(request, supplier_data):
     dreamkas_invoices = Invoice.objects.filter(hide=False).order_by("-issue_date")
     return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices, 'supplier_names': supplier_names})
 
+
 @csrf_exempt
 def update_supplier_prefix(request):
     supplier_obj = Supplier.objects.get(id=request.POST.get('supplier_id'))
@@ -728,16 +754,19 @@ def invoices_diadoc(request):
                 matching_invoices.append(dreamkas_invoice)
     page = Paginator(diadocinvoices, 1000).page(request.GET.get("page", 1))
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
+
+
 @csrf_exempt
 def delete_diadoc_invoices(request):
     for diadoc_invoice_obj in DiadocInvoice.objects.all():
         diadoc_invoice_obj.delete()
-    return JsonResponse({'success' : True})
+    return JsonResponse({'success': True})
+
 
 @csrf_exempt
 def invoices_diadoc_v2(request):
     start_time = time.time()
-    diadocinvoices = DiadocInvoice.objects.filter(store_id=request.session['store_id']).order_by("-issue_date")[:request.GET.get("page", 1)*1000]
+    diadocinvoices = DiadocInvoice.objects.filter(store_id=request.session['store_id']).order_by("-issue_date")[:request.GET.get("page", 1) * 1000]
     dreamkas_invoices = Invoice.objects.all()
     dreamkas_dict = {}
     for dreamkas_invoice in dreamkas_invoices:
@@ -901,11 +930,14 @@ def merge_inventory_check_items(request, inventory_check_id):
         responce = DREAM_KAS_API.merge_inventory_check_items(inventory_check_id)
         return render(request, 'mainapp/pages/inventory_checks.html', {'inventory_checks': inventory_checks})
 
+
 @csrf_exempt
 def delete_gmail_messages(request):
     for msg in Gmail_Messages.objects.all():
         msg.delete()
-    return JsonResponse({'success':True})
+    return JsonResponse({'success': True})
+
+
 @csrf_exempt
 def update_gmail_messages(request):
     print('asd')
@@ -1026,6 +1058,7 @@ def stores(request):
     #     gmail_preset_prev = PresetGmail.objects.filter(id__lt=gmail_preset.id).first()
     #     return render(request,'mainapp/pages/gmail_presets.html',{'gmail_preset': gmail_preset, 'gmail_preset_next':gmail_preset_next, 'gmail_preset_prev':gmail_preset_prev, 'gmail_presets' : gmail_presets})
 
+
 @csrf_exempt
 def create_documents_from_gmail_message_v2(request):
     if request.method == 'POST':
@@ -1038,7 +1071,7 @@ def create_documents_from_gmail_message_v2(request):
         links = []
         for attachment in os.listdir("media/gmail_invoices"):
             try:
-                link = gmail_to_dreamkas.create_document_from_excel(attachment,msg_sender)
+                link = gmail_to_dreamkas.create_document_from_excel(attachment, msg_sender)
                 if link is not None and link is not False:
                     links.append(link)
             except:
@@ -1050,9 +1083,8 @@ def create_documents_from_gmail_message_v2(request):
                 pass
         print(links)
         if links.__len__() == 0:
-            return JsonResponse({'success':False,'errormsg':'Не найден подходящий шаблон для данной накладной.'})
-        return JsonResponse({'success':True, 'links': links})
-
+            return JsonResponse({'success': False, 'errormsg': 'Не найден подходящий шаблон для данной накладной.'})
+        return JsonResponse({'success': True, 'links': links})
 
 
 @csrf_exempt
@@ -1222,10 +1254,10 @@ def create_document_from_diadoc_v2(request):
             if link is not None:
                 links.append(link)
         except:
-            return JsonResponse({'success':False,'errormsg':'Произошла ошибка при попытке создать накладную. Обратитесь к администратору.'})
+            return JsonResponse({'success': False, 'errormsg': 'Произошла ошибка при попытке создать накладную. Обратитесь к администратору.'})
         if links.__len__() == 0:
-            return JsonResponse({'success':False,'errormsg':'Не найден подходящий шаблон для данной накладной.'})
-        return JsonResponse({'success':True, 'links': links})
+            return JsonResponse({'success': False, 'errormsg': 'Не найден подходящий шаблон для данной накладной.'})
+        return JsonResponse({'success': True, 'links': links})
 
 
 def test_union(request):

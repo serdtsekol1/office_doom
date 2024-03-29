@@ -74,8 +74,10 @@ def dreamkas_update_suppliers():
 
 
     return
-def update_invoices():
-    documents = DREAM_KAS_API.get_documents(limit=1000)
+def update_invoices(offset=None):
+    documents = DREAM_KAS_API.get_documents(limit=1000, offset=offset)
+    if documents.__len__() == 0:
+        return False
     source_map_external = []
     external_dreamkas_documents_map = []
     internal_dreamkas_documents_map = []
@@ -100,34 +102,45 @@ def update_invoices():
                 django_date = timezone.make_aware(datetime2.strptime(document['issueDate'], '%Y-%m-%d')).date()
                 if date.today() > django_date + timedelta(days=supplier.paymenttime):
                     overdue = True
-        if int(document['id']) not in internal_dreamkas_documents_map:
-            invoice_new = Invoice(
-                id_dreem=document['id'],
-                supplier=document['sourceName'] if 'sourceName' in document else None,
-                supplier_fk=supplier if supplier else None,
-                number=document['num'],
-                issue_date=document['issueDate'],
-                store=Store.objects.get(store_id=document['targetStoreId']),
-                sum=Decimal(int(document['totalSum']) / 100),
-                invoice_status= True if "ACCEPTED" in document["status"] else False,
-                overdue=overdue,
-                invoicetype= True if "[НАЛ]" in document['num'] else False,
-                paid=False,
-            )
-            invoices_to_create.append(invoice_new)
-            continue
-        else:
-            invoice_internal = Invoice.objects.filter(id_dreem=document['id']).first()
-            invoice_internal.supplier = document['sourceName'] if 'sourceName' in document else None
-            invoice_internal.supplier_fk = supplier if supplier else None
-            invoice_internal.number = document['num']
-            invoice_internal.issue_date = document['issueDate']
-            invoice_internal.store = Store.objects.get(store_id=document['targetStoreId'])
-            invoice_internal.sum = Decimal(int(document['totalSum']) / 100)
-            invoice_internal.invoice_status = True if "ACCEPTED" in document["status"] else False
-            invoice_internal.overdue = overdue
-            invoice_internal.invoicetype = True if "[НАЛ]" in document['num'] else False
-            invoices_to_update.append(invoice_internal)
+
+
+
+        try:
+            if int(document['id']) not in internal_dreamkas_documents_map:
+                invoice_new = Invoice(
+                    id_dreem=document['id'],
+                    supplier=document['sourceName'] if 'sourceName' in document else None,
+                    supplier_fk=supplier if supplier else None,
+                    number=document['num'],
+                    issue_date=document['issueDate'],
+                    store=Store.objects.get(store_id=document['targetStoreId']),
+                    sum=Decimal(int(document['totalSum']) / 100),
+                    invoice_status= True if "ACCEPTED" in document["status"] else False,
+                    overdue=overdue,
+                    invoicetype= True if "[НАЛ]" in document['num'] else False,
+                    paid=False,
+                )
+                invoices_to_create.append(invoice_new)
+                continue
+            else:
+                invoice_internal = Invoice.objects.filter(id_dreem=document['id']).first()
+                invoice_internal.supplier = document['sourceName'] if 'sourceName' in document else None
+                invoice_internal.supplier_fk = supplier if supplier else None
+                invoice_internal.number = document['num']
+                invoice_internal.issue_date = document['issueDate']
+                invoice_internal.store = Store.objects.filter(store_id=document['targetStoreId']).first()
+                if not invoice_internal.store:
+                    print('error store not found')
+                    print('id dreem' , document['id'])
+                    print('storeid' ,document['targetStoreId'])
+                invoice_internal.sum = Decimal(int(document['totalSum']) / 100)
+                invoice_internal.invoice_status = True if "ACCEPTED" in document["status"] else False
+                invoice_internal.overdue = overdue
+                invoice_internal.invoicetype = True if "[НАЛ]" in document['num'] else False
+                invoices_to_update.append(invoice_internal)
+        except:
+            print('Error creating or updating invoice')
+            print(document)
     print('Создаются накладные. Кол-во - ', invoices_to_create.__len__())
     print('Обновляются накладные. Кол-во - ', invoices_to_update.__len__())
     Invoice.objects.bulk_create(invoices_to_create)
@@ -135,7 +148,7 @@ def update_invoices():
     for invoice_internal in Invoice.objects.filter(invoice_status = False):
         if DREAM_KAS_API.get_document(invoice_internal.id_dreem)['status'] == 404:
             invoice_internal.delete()
-
+    return True
 
 
 
