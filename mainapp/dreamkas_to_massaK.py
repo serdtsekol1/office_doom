@@ -51,7 +51,7 @@ def create_excel_document_for_massaK(file_path):
             data_to_append[1] = str(printer_code)
             data_to_append[3] = '1'
             data_to_append[7] = '1' + data_to_append[7]
-        data.append((data_to_append))
+            data.append(data_to_append)
     df = pd.DataFrame(data)
     df.to_excel(file_path + 'Файл_для_принтера.xlsx', index=False, header=False)
 def create_or_change_short_name_for_product(id_out,name):
