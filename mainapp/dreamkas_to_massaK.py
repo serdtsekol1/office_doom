@@ -17,7 +17,10 @@ def create_excel_document_for_massaK(file_path):
         printer_code = barcode.barcode[9:12]
         data_to_append = []
         data_to_append.append(str(printer_code))
-        data_to_append.append('000000' + str(printer_code))
+        if int(barcode.product_fk.type) == 796:
+            data_to_append.append(str(printer_code))
+        if int(barcode.product_fk.type) == 166:
+            data_to_append.append('000000'+str(printer_code))
         if barcode.product_fk.short_name is not None:
             data_to_append.append(str(barcode.product_fk.short_name))
         else:
