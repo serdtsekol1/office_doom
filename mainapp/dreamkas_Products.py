@@ -317,7 +317,7 @@ def Products_update():
         for barcode_external in barcodes_external:
             barcode_internal = Barcodes.objects.filter(barcode=barcode_external)
             if barcode_internal.__len__() > 1: # More than obj with this barcode exist!
-                print(barcode_internal, 'Multiple queries with said barcode found. Check and fix external database.')
+                print(barcode_internal, barcode_internal.barcode, 'Multiple queries with said barcode found. Check and fix external database.')
                 continue
             if barcode_internal.__len__() == 0: # Barcode does not exist. Create it.
                 new_barcode = Barcodes(product_fk=product_internal, barcode=barcode_external, multiplier=1)
