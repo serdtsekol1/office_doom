@@ -339,9 +339,55 @@ def debug_update_all_invoices(request):
     while status == True:
         offset = offset + 1000
         status = dreamkas_documents.update_invoices(offset=offset)
-    return redirect(reverse('invoices'))
+    return redirect(reverse('debug'))
 
+@csrf_exempt
+def debug_concat_rests_2(request):
+    with open('Z:\\rests.txt', 'r') as file:
+        contents = file.read()
+        lines = contents.splitlines()
+        print(lines)
+    j = 0
+    new_list = []
+    for i in range(0, int(lines.__len__() / 2)):
+        found = False
+        for line in new_list:
+            if lines[j] == line[0]:
+                found = True
+                line[1] = line[1] + int(lines[j + 1])
+                break
+        if found == False:
+            new_list.append([lines[j], int(lines[j + 1])])
+        j = j + 2
+    new_list_2 = []
+    for line in new_list:
+        asd = DREAM_KAS_API.search_goods(line[0])
+        try:
+            new_list_2.append([asd['name'], line[1], asd['meta']['volume']/1000])
+        except:
+            new_list_2.append([asd['name'], line[1]])
+    document = pandas.DataFrame(new_list_2)
+    document = document.sort_values(by=[1], ascending=False)
+    document.to_excel('rests_jel.xlsx')
+    return redirect(reverse('debug'))
 
+@csrf_exempt
+def concat_list_of_rests(request):
+    pandas_document = pandas.read_excel('D:\\downloads\\rests-20240328_1332.xlsx', keep_default_na=False)
+    data = []
+    for i in range(0, pandas_document.shape[0]):
+        var = pandas_document.iloc[i]
+        found = False
+        for line in data:
+            if var[6] == line[0] and var[9] == line[1]:
+                found = True
+                line[2] = line[2] + var[3]
+        if found == False:
+            data.append([var[6], var[9], var[3]])
+    document = pandas.DataFrame(data)
+    document = document.sort_values(by=[2], ascending=False)
+    document.to_excel('test15.xlsx')
+    return
 @csrf_exempt
 def delete_all_suppliers(request):
     dreamkas_documents.delete_all_suppliers()
