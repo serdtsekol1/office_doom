@@ -46,7 +46,7 @@ def create_excel_document_for_massaK(file_path):
         data_to_append.append('')
         data_to_append.append(printer_code)
         data.append(data_to_append)
-        if data_to_append[3] == 0:
+        if data_to_append[3] == '0':
             data_to_append[0] = '1' + data_to_append[0]
             data_to_append[1] = str(printer_code)
             data_to_append[3] = '1'
