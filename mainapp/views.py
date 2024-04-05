@@ -7,6 +7,8 @@ import time
 import webbrowser
 from dataclasses import dataclass
 from decimal import Decimal
+
+import psutil
 import py7zr
 import pandas
 import requests
@@ -315,7 +317,13 @@ def generate_xlsx_file_for_printer(request):
             file_path = loaded_data['file_location']
         except:
             return JsonResponse({'success': False})
-        create_excel_document_for_massaK(file_path)
+        try:
+            create_excel_document_for_massaK(file_path)
+        except:
+            for proc in psutil.process_iter():
+                if "EXCEL" in proc.name():
+                    proc.kill()
+            create_excel_document_for_massaK(file_path)
         return JsonResponse({'success': True})
 
 
@@ -373,7 +381,7 @@ def debug_concat_rests_2(request):
 
 @csrf_exempt
 def concat_list_of_rests(request):
-    pandas_document = pandas.read_excel('D:\\downloads\\rests-20240328_1332.xlsx', keep_default_na=False)
+    pandas_document = pandas.read_excel('D:\\downloads\\rests-20240404_0328.xlsx', keep_default_na=False)
     data = []
     for i in range(0, pandas_document.shape[0]):
         var = pandas_document.iloc[i]
