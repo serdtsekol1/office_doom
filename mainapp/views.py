@@ -351,7 +351,7 @@ def debug_update_all_invoices(request):
 
 @csrf_exempt
 def debug_concat_rests_2(request):
-    with open('Z:\\rests.txt', 'r') as file:
+    with open('Z:\\suv.txt', 'r') as file:
         contents = file.read()
         lines = contents.splitlines()
         print(lines)
@@ -376,12 +376,12 @@ def debug_concat_rests_2(request):
             new_list_2.append([asd['name'], line[1]])
     document = pandas.DataFrame(new_list_2)
     document = document.sort_values(by=[1], ascending=False)
-    document.to_excel('rests_jel.xlsx')
+    document.to_excel('rests_suv.xlsx')
     return redirect(reverse('debug'))
 
 @csrf_exempt
 def concat_list_of_rests(request):
-    pandas_document = pandas.read_excel('D:\\downloads\\rests-20240404_0328.xlsx', keep_default_na=False)
+    pandas_document = pandas.read_excel('D:\\downloads\\rests-20240408_0251.xlsx', keep_default_na=False)
     data = []
     for i in range(0, pandas_document.shape[0]):
         var = pandas_document.iloc[i]

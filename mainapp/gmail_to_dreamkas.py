@@ -105,9 +105,9 @@ def get_prerequisites_for_a_document(pandas_document, preset):
             ]
             if preset.document_non_regular_number is True:
                 if preset.document_number_between_first is not None:
-                    document_number = document_number.split(preset.document_date_between_first)[1]
+                    document_number = document_number.split(preset.document_number_between_first)[0]
                 if preset.document_number_between_second is not None:
-                    document_number = document_number.split(preset.document_date_between_second)[0]
+                    document_number = document_number.split(preset.document_number_between_second)[1]
 
 
         else:
