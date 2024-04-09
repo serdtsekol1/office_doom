@@ -35,7 +35,7 @@ from simplegmail.query import construct_query
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
 from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset
-from . import dreamkas_documents, dreamkas_to_massaK, diadoc_to_dreamkas, gmail_to_dreamkas
+from . import dreamkas_documents, dreamkas_to_massaK, diadoc_to_dreamkas, gmail_to_dreamkas, dreamkas_Products
 from .diadoc_to_dreamkas import create_invoice_from_diadoc_document_v2
 from .dreamkas_documents import dreamkas_update_suppliers
 from .dreamkas_Products import product_update, Find_and_delete_barcode, Create_barcode_for_product
@@ -407,6 +407,9 @@ def delete_broken_suppliers(request):
     dreamkas_documents.delete_broken_suppliers()
     return redirect(reverse('dreamkas_suppliers'))
 
+def delete_duplicate_barcode_objects(reqest):
+    dreamkas_Products.delete_duplicate_barcodes()
+    return redirect(reverse('debug'))
 
 @csrf_exempt
 def update_all_suppliers(request):
