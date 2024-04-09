@@ -1,5 +1,8 @@
+import csv
 import datetime
 import os
+import random
+
 import patoolib
 import pandas
 import py7zr
@@ -254,16 +257,28 @@ def create_document_from_excel(excel_attachment, msg_sender):
     # mode:
     # 0 - by code, if availible
     # 1 - by name.
-    try:
-        file_path = 'media/gmail_invoices/' + excel_attachment
+    if excel_attachment.endswith('.csv'):
         try:
-            wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
-            pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
+            with open('D:\\downloads\\ЕВПАТОРИЙСКИЙ ХЛЕБОКОМБИНАТ-ФИЛИАЛ АО КРЫМХЛЕБ_ЕА000134053.CSV', newline='') as csvfile:
+                spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
+                lines = []
+                for row in spamreader:
+                    lines.append(row)
+            df = pandas.DataFrame(lines)
+            xlsfile = ''.join(random.choice(chars) for _ in range(50)) + '.xlsx'
         except:
-            pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
-    except Exception as Ex:
-        print(Ex)
-        return False
+            return
+    else:
+        try:
+            file_path = 'media/gmail_invoices/' + excel_attachment
+            try:
+                wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
+                pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
+            except:
+                pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
+        except Exception as Ex:
+            print(Ex)
+            return False
 
     for preset in PresetGmail.objects.filter(supplier_mail=msg_sender):
         prerequisites = get_prerequisites_for_a_document(pandas_document, preset)

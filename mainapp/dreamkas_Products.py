@@ -236,6 +236,20 @@ def Find_and_delete_barcode(barcode):
     resp = DREAM_KAS_API.update_product(search_result['id'], search_result)
     product_update(search_result['id'])
 
+def delete_duplicate_barcode_objects():
+    from django.db.models import Count, Max
+    from django.db.models import F
+
+    # First, we group the objects by barcode and count the number of occurrences
+    barcodes_counts = Barcodes.objects.values('barcode').annotate(count=Count('barcode'))
+
+    # Next, we filter to get only the barcodes that have multiple occurrences
+    duplicate_barcodes = barcodes_counts.filter(count__gt=1)
+
+    # Now, for each duplicate barcode, we find the object with the biggest id and delete it
+    for barcode_count in duplicate_barcodes:
+        max_id = Barcodes.objects.filter(barcode=barcode_count['barcode']).aggregate(max_id=Max('id'))['max_id']
+        Barcodes.objects.filter(id=max_id).delete()
 
 
 def Products_update():
@@ -317,7 +331,7 @@ def Products_update():
         for barcode_external in barcodes_external:
             barcode_internal = Barcodes.objects.filter(barcode=barcode_external)
             if barcode_internal.__len__() > 1: # More than obj with this barcode exist!
-                print(barcode_internal, barcode_internal.barcode, 'Multiple queries with said barcode found. Check and fix external database.')
+                print(barcode_internal, barcode_internal.first().barcode, 'Multiple queries with said barcode found. Check and fix external database.')
                 continue
             if barcode_internal.__len__() == 0: # Barcode does not exist. Create it.
                 new_barcode = Barcodes(product_fk=product_internal, barcode=barcode_external, multiplier=1)
