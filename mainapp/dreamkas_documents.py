@@ -152,6 +152,7 @@ def update_invoices(offset=None):
 
 
 
+
         
 
         # invoice, invoice_create = Invoice.objects.update_or_create(id_dreem=document['id'], defaults={
@@ -209,3 +210,18 @@ def dreamkas_get_document():
 
 def dreamkas_get_children_of_document():
     return
+
+def delete_duplicate_invoice_objects():
+    from django.db.models import Count, Max
+    from django.db.models import F
+
+    # First, we group the objects by barcode and count the number of occurrences
+    invoice_counts = Invoice.objects.values('id_dreem').annotate(count=Count('id_dreem'))
+
+    # Next, we filter to get only the barcodes that have multiple occurrences
+    duplicate_invoices = invoice_counts.filter(count__gt=1)
+
+    # Now, for each duplicate barcode, we find the object with the biggest id and delete it
+    for invoice_count in duplicate_invoices:
+        max_id = Invoice.objects.filter(id_dreem=invoice_count['id_dreem']).aggregate(max_id=Max('id'))['max_id']
+        Invoice.objects.filter(id=max_id).delete()

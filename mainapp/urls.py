@@ -7,7 +7,7 @@ from mainapp.views import get_index_page, test, invoices, manual_invoice, good_g
     find_invoice_duplicates, delete_broken_suppliers, show_duplicate_diadoc_invoices, create_or_change_short_name_for_product, gmail_presets, update_gmail_preset, create_gmail_preset, stores, \
     update_store, update_diadoc_invoices_v2, invoices_diadoc_v2, diadoc_presets, create_diadoc_preset, update_diadoc_preset, create_document_from_diadoc_v2, create_documents_from_gmail_message_v2, \
     delete_all_stores, delete_gmail_messages, update_supplier_prefix, delete_diadoc_invoices, debug, debug_update_all_invoices, debug_concat_rests_2, concat_list_of_rests, \
-    delete_duplicate_barcode_objects
+    delete_duplicate_barcode_objects, delete_duplicate_invoice_objects
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -99,6 +99,7 @@ urlpatterns = [
     path('debug/', debug, name="debug"),
     path('debug_concat_rests_2/', debug_concat_rests_2, name="debug_concat_rests_2"),
     path('concat_list_of_rests/', concat_list_of_rests, name="concat_list_of_rests"),
-    path('delete_duplicate_barcode_objects/', delete_duplicate_barcode_objects, name='delete_duplicate_barcode_objects')
+    path('delete_duplicate_barcode_objects/', delete_duplicate_barcode_objects, name='delete_duplicate_barcode_objects'),
+    path('delete_duplicate_invoice_objects/', delete_duplicate_invoice_objects, name='delete_duplicate_invoice_objects'),
     # re_path(r'^sitemap1-(?P<section>.+).xml$', {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap')
 ]
