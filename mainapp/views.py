@@ -411,6 +411,10 @@ def delete_broken_suppliers(request):
 def delete_duplicate_barcode_objects(reqest):
     dreamkas_Products.delete_duplicate_barcode_objects()
     return redirect(reverse('debug'))
+@csrf_exempt
+def delete_duplicate_invoice_objects(reqest):
+    dreamkas_documents.delete_duplicate_invoice_objects()
+    return redirect(reverse('debug'))
 
 @csrf_exempt
 def update_all_suppliers(request):
