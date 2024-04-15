@@ -6,6 +6,8 @@ from requests_html import HTMLSession
 from dremkas.settings import DREAM_KAS_API, SHOP_AMOUNT
 from mainapp.models import Product, Prices, Barcodes, Prices_shop
 import time
+
+
 def turn_number_to_ean_13(code):
     if len(code) != 12:
         return False
@@ -21,8 +23,9 @@ def turn_number_to_ean_13(code):
         result = 10 - result % 10
     return code + str(result)
 
+
 def calculate_prices_per_shop_for_all_products():
-    #SHOP IDS begin with 1.
+    # SHOP IDS begin with 1.
     Shops = json.loads(os.environ.get('SHOP_IDS'))
     Product_objects = Product.objects.all()
     for product in Product_objects:
@@ -48,18 +51,7 @@ def calculate_prices_per_shop_for_all_products():
                 shop_id=i,
                 value=unique_prices_of_shop[0],
             )
-            print(price_shop.shop_id,'  ', price_shop.value)
-
-
-
-
-
-
-
-
-
-
-
+            print(price_shop.shop_id, '  ', price_shop.value)
 
 
 def product_update(id_out, debug=0):
@@ -68,14 +60,14 @@ def product_update(id_out, debug=0):
         print('404 error')
         print(id_out)
         print('404 error')
-        if debug==1:            print('Продукт с ид не найден');
+        if debug == 1:            print('Продукт с ид не найден');
         return 404
     product_internal = Product.objects.filter(id_out=id_out)
     if product_internal.__len__() > 1:
         print('Duplicate found')
         print(id_out)
         print('Duplicate found')
-        if debug==1:            print('2+ продукта с ид найдено в базе внутренней');
+        if debug == 1:            print('2+ продукта с ид найдено в базе внутренней');
         return 500
     elif product_internal.__len__() == 0:
         product_internal = Product.objects.create(
@@ -86,9 +78,9 @@ def product_update(id_out, debug=0):
             nds=product_external['tax'],
             group_id=product_external['departmentId'],
             updatedAt=product_external['updatedAt'],
-                               )
-        if debug==1:            print('Создан продукт');            print(product_internal, product_internal.id_out,product_internal.name);
-        #barcodes
+        )
+        if debug == 1:            print('Создан продукт');            print(product_internal, product_internal.id_out, product_internal.name);
+        # barcodes
         for barcode in product_external['barcodes']:
             barcode_obj = Barcodes.objects.filter(barcode=barcode)
             if barcode_obj.__len__() == 0:
@@ -113,7 +105,7 @@ def product_update(id_out, debug=0):
                                                       )
                 if debug == 1: print('Создан штрихкод', new_barcode.product_fk.id_out); print(new_barcode.barcode)
 
-        #prices
+        # prices
         prices_internal = Prices.objects.filter(product_fk=product_internal)
         for price_external in product_external['prices']:
             device_id = price_external['deviceId']
@@ -142,7 +134,7 @@ def product_update(id_out, debug=0):
         product_internal.group_id = product_external['departmentId']
         product_internal.updatedAt = product_external['updatedAt']
         product_internal.save()
-        #barcodes
+        # barcodes
         for barcode in product_external['barcodes']:
             barcode_obj = Barcodes.objects.filter(barcode=barcode)
             if barcode_obj.__len__() == 0:
@@ -166,7 +158,7 @@ def product_update(id_out, debug=0):
                                                       multiplier=1
                                                       )
                 if debug == 1: print('Создан штрихкод', new_barcode.product_fk.id_out); print(new_barcode.barcode)
-        #prices
+        # prices
         prices_internal = Prices.objects.filter(product_fk=product_internal)
         for price_external in product_external['prices']:
             device_id = price_external['deviceId']
@@ -191,14 +183,15 @@ def product_update(id_out, debug=0):
         if barcode_obj.barcode not in product_external['barcodes']:
             barcode_obj.delete()
 
+
 # def check_barcode_existance_in_dreamkas(barcode):
 #     search_result = DREAM_KAS_API.search_goods(barcode)
 #     if search_result is None:
 #         return search_result['name']
 #     return True
 def Create_barcode_for_product(id_out, barcode):
-    #True - OK
-    #Else - Not OK, name of product is returned.
+    # True - OK
+    # Else - Not OK, name of product is returned.
     search_result = DREAM_KAS_API.search_goods(barcode)
     if search_result is not None:
         print('Данный штрихкод или код уже существует и пренадлежит какому-то товару. Удалите данный штрихкод с другого товара!')
@@ -213,6 +206,8 @@ def Create_barcode_for_product(id_out, barcode):
     resp = DREAM_KAS_API.update_product(id_out, product_external)
     product_update(id_out)
     return True
+
+
 def Delete_barcode_for_product(id_out, barcode):
     search_result = DREAM_KAS_API.get_product_v2(id_out)
     if barcode in search_result['vendorCodes']:
@@ -223,6 +218,8 @@ def Delete_barcode_for_product(id_out, barcode):
     resp = DREAM_KAS_API.update_product(search_result['id'], search_result)
     product_update(search_result['id'])
     product_update(id_out)
+
+
 def Find_and_delete_barcode(barcode):
     search_result = DREAM_KAS_API.search_goods(barcode)
     if search_result == None:
@@ -235,6 +232,7 @@ def Find_and_delete_barcode(barcode):
             search_result['barcodes'].remove(barcode)
     resp = DREAM_KAS_API.update_product(search_result['id'], search_result)
     product_update(search_result['id'])
+
 
 def delete_duplicate_barcode_objects():
     from django.db.models import Count, Max
@@ -250,6 +248,27 @@ def delete_duplicate_barcode_objects():
     for barcode_count in duplicate_barcodes:
         max_id = Barcodes.objects.filter(barcode=barcode_count['barcode']).aggregate(max_id=Max('id'))['max_id']
         Barcodes.objects.filter(id=max_id).delete()
+
+
+def delete_duplicate_and_invalid_product_objects():
+    from django.db.models import Count, Max
+    from django.db.models import F
+
+    # First, we group the objects by barcode and count the number of occurrences
+    id_out_counts = Product.objects.values('id_out').annotate(count=Count('id_out'))
+
+    # Next, we filter to get only the barcodes that have multiple occurrences
+    duplicate_id_outs = id_out_counts.filter(count__gt=1)
+
+    # Now, for each duplicate barcode, we find the object with the biggest id and delete it
+    for id_out_count in duplicate_id_outs:
+        max_id = Product.objects.filter(id_out=id_out_count['id_out']).aggregate(max_id=Max('id'))['max_id']
+        print('Deleting product object')
+        print(Product.objects.filter(id=max_id).last().id_out)
+        print(Product.objects.filter(id=max_id).last().id)
+        print(Product.objects.filter(id=max_id).last().name)
+        Product.objects.filter(id=max_id).delete()
+    Products_update()
 
 
 def Products_update():
@@ -276,7 +295,7 @@ def Products_update():
                         break
             if price_difference:
                 product_internal.name = product_external['name']
-                product_internal.type = product_external['type'] # Type here because unit is loaded into type when doing lists of products
+                product_internal.type = product_external['type']  # Type here because unit is loaded into type when doing lists of products
                 product_internal.marked_good = product_external['marked_good']
                 product_internal.nds = product_external['nds']
                 product_internal.group_id = product_external['group_id'] if 'group_id' in product_external else None
@@ -286,17 +305,17 @@ def Products_update():
             product_data = Product(
                 id_out=product_external['id_out'],
                 name=product_external['name'],
-                type=product_external['type'], # Type here because unit is loaded into type when doing lists of products
+                type=product_external['type'],  # Type here because unit is loaded into type when doing lists of products
                 marked_good=product_external['marked_good'],
                 nds=product_external['nds'],
                 group_id=product_external['group_id'] if 'group_id' in product_external else None,
                 updatedAt=product_external['updatedAt'] if 'updatedAt' in product_external else None
             )
             products_to_create.append(product_data)
-    print('Создание новых товаров. Кол-во' ,products_to_create.__len__())
+    print('Создание новых товаров. Кол-во', products_to_create.__len__())
     Product.objects.bulk_create(products_to_create)
-    print('Обновление существующих товаров. Кол-во' ,products_to_update.__len__())
-    Product.objects.bulk_update(products_to_update, ['name', 'type', 'marked_good', 'nds', 'group_id','updatedAt'])
+    print('Обновление существующих товаров. Кол-во', products_to_update.__len__())
+    Product.objects.bulk_update(products_to_update, ['name', 'type', 'marked_good', 'nds', 'group_id', 'updatedAt'])
     id_out_set = set(product['id_out'] for product in products_list)
     products_to_delete = Product.objects.exclude(id_out__in=id_out_set)
     i = 0
@@ -320,7 +339,7 @@ def Products_update():
     prices_to_create = []
     prices_to_update = []
     del_counter = 0
-    #з кожним товаром шо поминявся\добавлений.
+    # з кожним товаром шо поминявся\добавлений.
     for id_out in all_ids:
         product_external = products_dict.get(id_out)
         product_internal = products_internal_dict.get(id_out)
@@ -330,10 +349,10 @@ def Products_update():
         prices_external = product_external['prices']
         for barcode_external in barcodes_external:
             barcode_internal = Barcodes.objects.filter(barcode=barcode_external)
-            if barcode_internal.__len__() > 1: # More than obj with this barcode exist!
+            if barcode_internal.__len__() > 1:  # More than obj with this barcode exist!
                 print(barcode_internal, barcode_internal.first().barcode, 'Multiple queries with said barcode found. Check and fix external database.')
                 continue
-            if barcode_internal.__len__() == 0: # Barcode does not exist. Create it.
+            if barcode_internal.__len__() == 0:  # Barcode does not exist. Create it.
                 new_barcode = Barcodes(product_fk=product_internal, barcode=barcode_external, multiplier=1)
                 barcodes_to_create.append(new_barcode)
                 continue
@@ -372,17 +391,3 @@ def Products_update():
     print("Удалено", del_counter, "Штрихкодов")
     print("Создание Штрихкодов. Кол-во - ", prices_to_update.__len__())
     Barcodes.objects.bulk_create(barcodes_to_create)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
