@@ -417,6 +417,10 @@ def delete_duplicate_invoice_objects(reqest):
     return redirect(reverse('debug'))
 
 @csrf_exempt
+def delete_duplicate_and_invalid_product_objects(reqest):
+    dreamkas_Products.delete_duplicate_and_invalid_product_objects()
+    return redirect(reverse('debug'))
+@csrf_exempt
 def update_all_suppliers(request):
     dreamkas_documents.dreamkas_update_suppliers()
     map = []
