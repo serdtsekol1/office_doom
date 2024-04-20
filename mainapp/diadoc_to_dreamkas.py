@@ -88,8 +88,12 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
         return
     if valid_presets.__len__() > 1:
         print('КОличество подходящик шаблонов - более одного. Настройте шаблоны.')
-        return
+        for valid_preset in valid_presets:
+            print(valid_preset.id)
+            print(valid_preset.preset_name)
+            print(valid_preset.supplier_fk)
 
+        return
     data = {}
     preset = valid_presets[0]
     data.update({"date": datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
@@ -105,7 +109,6 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
         new_position = search_goods_xml_diadoc(preset.supplier_prefix, item)
         print(new_position)
         goods.append(new_position)
-    print('test')
     data.update({"positions": goods})
 
     partnerid = DREAM_KAS_API.search_partner_id_by_inn(data["inn"])
