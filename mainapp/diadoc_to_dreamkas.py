@@ -248,47 +248,14 @@ def search_goods_xml_diadoc(prefix,item):
         "egaisIsPacked": None
     }
     return new_position
-    # for key, val in COMPANIES:
-         #result = send_document(company=key, file=file, DREAM_KAS_API=DREAM_KAS_API)
-    #     if not result:
-    #         continue
-    #     else:
-    #         # Invoice.objects.update_or_create(id_dreem=result['id'], defaults={
-    #         #     'number': result['num'],
-    #         #     'sum': Decimal(int(result['totalSum']) / 100),
-    #         #     'issue_date': result['issueDate']})
-    #         break
-    # for file_name in os.listdir('media/files'):
-    #     delete_file(f'media/files/{file_name}')
-    # import webbrowser
-    # # if result is None:
-    # #     return {"status": result}
-    # # if result["id"] is not None:
-    #
-    # # if result is not None:
-    # supplier, supplier_create = Supplier.objects.update_or_create(name=result['sourceLegalEntity']['name'], defaults={})
-    # Invoice.objects.update_or_create(id_dreem=result['id'], defaults={
-    #     'number': result['num'],
-    #     'supplier': result['sourceLegalEntity']['name'],
-    #     'supplier_fk': supplier,
-    #     'sum': Decimal(int(result['totalSum']) / 100),
-    #     'issue_date': result['issueDate'],
-    #     'invoicetype': True if "НАЛ" in result['num'] else False,
-    #     'overdue': False,
-    #     'invoice_status': False,
-    #     'printed': False,
-    #     'hide': False,
-    #     'created_via_program': True,
-    # })
-    # positions = []
-    # Invoice_obj = Invoice.objects.get(id_dreem=result['id'])
-    # for position in result['positions']:
-    #     position = Position.objects.create(
-    #         position_id=position['productId'],
-    #         position_amount=Decimal(Decimal(position['amount']) / 100),
-    #         position_sum=Decimal(int(result['totalSum']) / 100)
-    #     )
-    #     Invoice_obj.positions.add(position)
-    # # return (webbrowser.open_new_tab("mainapp/pages/dreamkas_invoice/" + str(result['id'])))
-    # # return redirect(reverse('dreamkas_invoice', args=[result['id']]))
-    # return redirect(reverse('invoices_diadoc'), webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']))
+def debug_remove_deuplicate_diadoc_invoice_objects():
+    from django.db.models import Count, Max
+    invoice_counts = DiadocInvoice.objects.values('diadoc_id').annotate(count=Count('diadoc_id'))
+
+    # Next, we filter to get only the barcodes that have multiple occurrences
+    duplicate_invoices = invoice_counts.filter(count__gt=1)
+
+    # Now, for each duplicate barcode, we find the object with the biggest id and delete it
+    for invoice_count in duplicate_invoices:
+        max_id = DiadocInvoice.objects.filter(id_dreem=invoice_count['diadoc_id']).aggregate(max_id=Max('id'))['max_id']
+        DiadocInvoice.objects.filter(id=max_id).delete()

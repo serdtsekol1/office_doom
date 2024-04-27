@@ -378,6 +378,9 @@ def debug_concat_rests_2(request):
     document = document.sort_values(by=[1], ascending=False)
     document.to_excel('rests_suv.xlsx')
     return redirect(reverse('debug'))
+def debug_remove_deuplicate_diadoc_invoice_objects(request):
+    diadoc_to_dreamkas.debug_remove_deuplicate_diadoc_invoice_objects()
+    return redirect(reverse('debug'))
 
 @csrf_exempt
 def concat_list_of_rests(request):
