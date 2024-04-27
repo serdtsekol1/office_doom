@@ -102,6 +102,6 @@ urlpatterns = [
     path('delete_duplicate_barcode_objects/', delete_duplicate_barcode_objects, name='delete_duplicate_barcode_objects'),
     path('delete_duplicate_invoice_objects/', delete_duplicate_invoice_objects, name='delete_duplicate_invoice_objects'),
     path('delete_duplicate_and_invalid_product_objects/', delete_duplicate_and_invalid_product_objects, name='delete_duplicate_and_invalid_product_objects'),
-    path('debug_remove_deuplicate_diadoc_invoice_objects/', debug_remove_deuplicate_diadoc_invoice_objects, name='delete_duplicate_and_invalid_product_objects'),
+    path('debug_remove_deuplicate_diadoc_invoice_objects/', debug_remove_deuplicate_diadoc_invoice_objects, name='debug_remove_deuplicate_diadoc_invoice_objects'),
     # re_path(r'^sitemap1-(?P<section>.+).xml$', {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap')
 ]
