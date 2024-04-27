@@ -265,7 +265,7 @@ def create_document_from_excel(excel_attachment, msg_sender):
                 for row in spamreader:
                     lines.append(row)
             df = pandas.DataFrame(lines)
-            xlsfile = ''.join(random.choice(chars) for _ in range(50)) + '.xlsx'
+            xlsfile = ''.join(random.choice("qwertyuiopasdfghjklzxcvbnmQWERTYUIIOPASDFGHJKLZXCVBNM0123456789") for _ in range(50)) + '.xlsx'
         except:
             return
     else:
