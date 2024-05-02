@@ -34,7 +34,10 @@ def get_gmail_messages(client_secret_json, days=14):
     query_params = {
         "newer_than": (days, "day")
     }
+    print('Настройка почты завершена, посылаем запрос.')
+
     result = gmail.get_messages(query=construct_query(query_params))
+    print('Запрос был послан. Результат - ', result)
     return result
 
     # Create_dreamkas_document_from_excel
@@ -44,11 +47,15 @@ def update_gmail_messages(client_secret_json):
     if not client_secret_json:
         print('error, client secret == none')
     companies_list = []
+    print('Получение всех шаблонов по почте')
     for preset in PresetGmail.objects.all():
         if preset.supplier_mail:
             companies_list.append(preset)
+    print('Получение сообщений по почте')
 
     messages = get_gmail_messages(client_secret_json)
+
+    print('Обработка сообщений')
     for message in messages:
         message_id = message.headers.get('Message-Id') or message.headers.get('Message-ID')
         if message_id:
