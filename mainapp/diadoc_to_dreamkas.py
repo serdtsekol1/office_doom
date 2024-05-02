@@ -257,5 +257,5 @@ def debug_remove_deuplicate_diadoc_invoice_objects():
 
     # Now, for each duplicate barcode, we find the object with the biggest id and delete it
     for invoice_count in duplicate_invoices:
-        max_id = DiadocInvoice.objects.filter(id_dreem=invoice_count['diadoc_id']).aggregate(max_id=Max('id'))['max_id']
+        max_id = DiadocInvoice.objects.filter(diadoc_id=invoice_count['diadoc_id']).aggregate(max_id=Max('id'))['max_id']
         DiadocInvoice.objects.filter(id=max_id).delete()
