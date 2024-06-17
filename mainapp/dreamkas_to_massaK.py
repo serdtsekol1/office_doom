@@ -4,12 +4,12 @@ import pandas as pd
 
 from dremkas.settings import DREAM_KAS_API, CURRENT_IDS
 from mainapp.dreamkas_Products import turn_number_to_ean_13, Create_barcode_for_product, Delete_barcode_for_product
-from mainapp.models import Barcodes, Product
+from mainapp.models import Barcodes, Product, Store
 
 
 #unit 796 - countable.
 #unit 166 - kg
-def create_excel_document_for_massaK(file_path):
+def create_excel_document_for_massaK(store_id):
     data = [['1','2','3','4','5','6','7','8']] # Needed for Massa K program could recognize the stuff.
     #Non logical shenenigans cause fuck it.
     barcodes = Barcodes.objects.filter(barcode__startswith='999999999').order_by('barcode')
@@ -36,7 +36,7 @@ def create_excel_document_for_massaK(file_path):
         if type_appended == 0:
             print('Unable to create product. No valid type!')
             continue
-        for device_id in CURRENT_IDS.split(','):
+        for device_id in Store.objects.get(store_id=store_id).store_devices:
             price = barcode.product_fk.prices_set.filter(device_id=device_id).first()
             if price is not None:
                 data_to_append.append(price.value/100)
@@ -57,7 +57,7 @@ def create_excel_document_for_massaK(file_path):
             new_data_to_append[7] = '1' + new_data_to_append[7]
             data.append(new_data_to_append)
     df = pd.DataFrame(data)
-    df.to_excel(file_path + 'Файл_для_принтера.xlsx', index=False, header=False)
+    df.to_excel('Файл_для_принтера.xlsx', index=False, header=False)
 def create_or_change_short_name_for_product(id_out,name):
     product_internal = Product.objects.filter(id_out=id_out).first()
     if product_internal is None:
@@ -140,4 +140,18 @@ def get_massak_code_from_code(code):
         return str(code)[9:12]
     if code.__len__() == 7:
         return str(code)[4:7]
+    return
+
+def get_all_products_with_old_code_for_massa_k():
+    barcodes = Barcodes.objects.filter(barcode__startswith='999999999').order_by('barcode')
+    data = []
+    for barcode in barcodes:
+        data_to_append = []
+        print(barcode)
+        data_to_append.append(barcode.product_fk.id_out)
+        data_to_append.append(barcode.product_fk.name)
+        data_to_append.append(barcode.barcode[9:12])
+        data.append(data_to_append)
+    df = pd.DataFrame(data)
+    df.to_excel("Z:\Файл_для_принтера.xlsx", index=False, header=False)
     return

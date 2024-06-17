@@ -1,0 +1,53 @@
+{% extends "wrapper.html" %}
+{% load mainapp_tags %}
+{% block body %}
+    <div class="d-flex">
+        <div style="flex-basis: 12%">
+            <select name="select" id="select" class="form-control selectpiker select_preset" style="width:100%">
+                {% for device in devices %}
+                    <option {% if device.device_id == devices.device_id %} selected="selected" {% endif %} value={{ device.device_id }}>{{ device.device_id }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="d-flex">
+        <div id="device_contents" style="flex-basis: 550px">
+            {% include 'mainapp/parts/device_display.html' %}
+        </div>
+    </div>
+    <script>
+        $(".select_preset").on('change', (e) => {
+            let store_id = $(e.currentTarget).find("option:selected").val()
+            $.ajax({
+                type: "POST",
+                url: '/devices/',
+                data: {'device_id': device_id},
+                success: function (data) {
+                    $('#store_contents').html(data.Device_contents);
+                }
+            });
+        })
+        document.addEventListener('input', (e) => {
+            const target = e.target;
+            if (target.classList && Array.from(target.classList).some((className) => className.startsWith('js_'))) {
+                const device_id = target.dataset.device_id; // Access the data attribute
+                const obj_to_change = target.id;
+                const what_change_to = target.value;
+
+
+                // Perform your AJAX request here
+                $.ajax({
+                    type: "POST",
+                    url: '/update_device/',
+                    data: {'device_id': device_id, 'obj_to_change': obj_to_change, 'what_change_to': what_change_to},
+                    success: function (data) {
+
+                    },
+                    error: function (error) {
+
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

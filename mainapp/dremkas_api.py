@@ -1937,3 +1937,9 @@ class DreamKasApi:
             goods.append(new_position)
         data.update({"positions": goods})
         return data
+
+    def change_product_v2(self, good_id, what_to_change, new_value):
+        response = self.session.get(f"https://kabinet.dreamkas.ru/api/v2/products/{good_id}/").json()
+        response[what_to_change] = str(new_value)
+        resp_patch = self.session.patch(f"https://kabinet.dreamkas.ru/api/v2/products/{good_id}/", json=response)
+        return(resp_patch)
