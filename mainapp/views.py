@@ -34,7 +34,8 @@ from simplegmail.query import construct_query
 
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
-from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset
+from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset, \
+    Device
 from . import dreamkas_documents, dreamkas_to_massaK, diadoc_to_dreamkas, gmail_to_dreamkas, dreamkas_Products
 from .diadoc_to_dreamkas import create_invoice_from_diadoc_document_v2
 from .dreamkas_documents import dreamkas_update_suppliers
@@ -43,7 +44,7 @@ from .dreamkas_to_massaK import create_or_change_massak_codes_for_product, creat
 from .gmail_invoices import create_document_from_excel, get_gmail_messages
 from .gmail_to_dreamkas import get_document_and_attachments_from_gmail, get_supplier_data_for_preset
 from .helper import send_document, delete_file, save_to_json
-
+from django.http import HttpResponse
 from django.core.validators import MinValueValidator, MaxValueValidator, EMPTY_VALUES
 from django.utils import timezone
 
@@ -270,13 +271,13 @@ def products(request):
             current_printer_file_location = loaded_data['file_location']
     except:
         current_printer_file_location = None
-    current_shop_ids = []
-    for shop_id in CURRENT_IDS.split(','):
-        current_shop_ids.append(shop_id)
+    current_store_ids = []
+    for store_device in Store.objects.get(store_id=185449).store_devices:
+        current_store_ids.append(request.session['store_id'])
     if request.method == 'GET':
         products = Product.objects.all().order_by('name')
         page = Paginator(products, 250).page(request.GET.get("page", 1))
-        return render(request, "mainapp/pages/display_products.html", {'list_of_goods': page, 'current_shop_ids': current_shop_ids, 'current_printer_file_location': current_printer_file_location})
+        return render(request, "mainapp/pages/display_products.html", {'list_of_goods': page, 'current_printer_file_location': current_printer_file_location})
     if request.method == 'POST':
         query = request.GET.get("query", None)
         if query:
@@ -288,12 +289,12 @@ def products(request):
         else:
             products = Product.objects.all().order_by('name')
         page = Paginator(products, 250).page(request.GET.get("page", 1))
-        products_list_contents = render_to_string('mainapp/parts/product_list_display.html', {'list_of_goods': page, 'current_shop_ids': current_shop_ids}, request)
+        products_list_contents = render_to_string('mainapp/parts/product_list_display.html', {'list_of_goods': page, 'current_store_ids': current_store_ids}, request)
         return JsonResponse({"products_list_contents": products_list_contents}, safe=False)
 
 
 @csrf_exempt
-def good_groups(request, keyword='inaaadex'):
+def good_groups(request):
     if request.method == 'POST':
         GoodGroups.update_good_groups()
         return redirect(request.path)
@@ -311,19 +312,20 @@ def update_all_goods(request):
 @csrf_exempt
 def generate_xlsx_file_for_printer(request):
     if request.method == 'POST' or request.method == 'GET':
-        with open('config.json', 'r') as f:
-            loaded_data = json.load(f)
         try:
-            file_path = loaded_data['file_location']
-        except:
-            return JsonResponse({'success': False})
-        try:
-            create_excel_document_for_massaK(file_path)
+            create_excel_document_for_massaK(request.session['store_id'])
         except:
             for proc in psutil.process_iter():
                 if "EXCEL" in proc.name():
                     proc.kill()
-            create_excel_document_for_massaK(file_path)
+            create_excel_document_for_massaK(request.session['store_id'])
+        if os.path.exists('Файл_для_принтера.xlsx'):
+            with open('Файл_для_принтера.xlsx', 'rb') as file:
+                response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = 'attachment; filename=File_for_printer.xlsx'
+                return response
+        else:
+            return HttpResponse("File not found", status=404)
         return JsonResponse({'success': True})
 
 
@@ -1107,6 +1109,22 @@ def stores(request):
         store_contents = render_to_string('mainapp/parts/store_display.html', {'store': store,
                                                                                'stores': stores})
         return JsonResponse({'store_contents': store_contents}, safe=False)
+
+@csrf_exempt
+def devices(request):
+    if request.method == 'GET':
+        device = Device.objects.first()
+        devices = Device.objects.all()
+        return render(request, 'mainapp/pages/devices.html',
+                      {'device': device,
+                       'devices': devices})
+    if request.method == 'POST':
+        device = Device.objects.filter(id=request.POST.get("device_id")).first()
+        devices = Device.objects.all()
+        device_contents = render_to_string('mainapp/parts/device_display.html', {'device': device,
+                                                                               'devices': devices})
+        return JsonResponse({'device_contents': device_contents}, safe=False)
+
     # if request.method == 'GET':
     #     gmail_preset = PresetGmail.objects.first()
     #     gmail_presets = PresetGmail.objects.all()

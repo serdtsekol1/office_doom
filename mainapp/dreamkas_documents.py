@@ -210,7 +210,9 @@ def dreamkas_get_document():
 
 def dreamkas_get_children_of_document():
     return
+def dreamkas_inventory_inventory_check_internal():
 
+    return
 def delete_duplicate_invoice_objects():
     from django.db.models import Count, Max
     from django.db.models import F

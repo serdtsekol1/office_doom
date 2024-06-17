@@ -20,10 +20,9 @@ class Store(models.Model):
     store_id = models.IntegerField('store_id', blank=True, null=True)
     diadoc_id = models.TextField('diadoc_id', blank=True, null=True, default=None)
     gmail_client_secret = models.CharField('gmail_client_secret', blank=True, null=True, max_length=255, default=None)
-
     @property
     def store_devices(self):
-        devices = Device.objects.filter(store_id=current_store_id)
+        devices = Device.objects.filter(store_id=self.store_id)
         store_devices = []
         for device in devices:
             store_devices.append(device.device_id)
@@ -32,9 +31,13 @@ class Store(models.Model):
     @staticmethod
     def update_stores_and_devices():
         for store in DREAM_KAS_API.get_stores():
-            Store.objects.update_or_create(store_id=store['id'], store_name=store['name'])
+            Store.objects.update_or_create(store_id=store['id'], defaults = {
+                'store_name': store['name'],
+            })
         for device in DREAM_KAS_API.get_devices():
-            Device.objects.update_or_create(device_id=device['id'], store_id=device['groupId'])
+            Device.objects.update_or_create(device_id=device['id'], defaults = {
+                'store_id' : device['groupId'],
+            })
 
 
 class Device(models.Model):
@@ -261,6 +264,10 @@ class Position(models.Model):
 class Document(models.Model):
     id_dreem = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     document_type = models.Choices
+
+class Document_internal(models.Model):
+    type = models.IntegerField('type',blank=True,null=True,max_length=255,default=None)
+    content = models.TextField('content',blank=True,null=True,default=None)
 
 
 class Invoice(models.Model):
@@ -857,7 +864,13 @@ class GoodGroups(models.Model):
         categories = DREAM_KAS_API.get_groups()['categories']
         for item in categories:
             GoodGroups.objects.update_or_create(group_id=item['id'], defaults={'name': item['name']})
-
+        valid_ids = {category['id'] for category in categories}
+        for group in GoodGroups.objects.all():
+            if group.group_id not in valid_ids:
+                print(group.group_id)
+                print(group.name)
+                print("Удалено так как группа более не существует в базе Дримкас.")
+                group.delete()
 
 class GmailMessageAttachment(models.Model):
     name = models.TextField("message id", blank=True, default=None, null=True)
