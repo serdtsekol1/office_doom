@@ -36,8 +36,6 @@ def create_excel_document_for_massaK(store_id):
         if type_appended == 0:
             print('Unable to create product. No valid type!')
             continue
-        data_to_append.append('')
-        data_to_append.append('')
         for device_id in Store.objects.get(store_id=store_id).store_devices:
             price = barcode.product_fk.prices_set.filter(device_id=device_id).first()
             if price is not None:
@@ -47,6 +45,8 @@ def create_excel_document_for_massaK(store_id):
         if price_appended == 0:
             print('Unable to create product. No valid price!')
             continue
+        data_to_append.append('')
+        data_to_append.append('')
         data_to_append.append(printer_code)
         data.append(data_to_append)
         if data_to_append[3] == '0':
