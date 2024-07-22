@@ -114,6 +114,45 @@
                 }
             });
         }, 500)
+
+        $("body").on('input', ".js_expiry_duration", (e) => {
+            create_or_change_expiry_duration(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
+        })
+        const create_or_change_expiry_duration = debounce((element, expiry_duration, id_out) => {
+            $.ajax({
+                type: "POST",
+                url: '{% url "create_or_change_expiry_duration_for_product" %}',
+                data: {'expiry_duration': expiry_duration, 'id_out': id_out},
+                success: function (data) {
+                    console.log(data)
+                    if (data.success) {
+
+                    } else {
+
+                    }
+                }
+            });
+        }, 500)
+        $("body").on('input', ".js_contents", (e) => {
+            create_or_change_contents(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
+        })
+        const create_or_change_contents = debounce((element, contents, id_out) => {
+            $.ajax({
+                type: "POST",
+                url: '{% url "create_or_change_contents_for_product" %}',
+                data: {'contents': contents, 'id_out': id_out},
+                success: function (data) {
+                    console.log(data)
+                    if (data.success) {
+
+                    } else {
+
+                    }
+                }
+            });
+        }, 500)
+
+
         {% comment %}        $("#search").on('input', (e) => {
                     console.log(e.currentTarget.value)
                     $.ajax({

@@ -36,6 +36,8 @@ def create_excel_document_for_massaK(store_id):
         if type_appended == 0:
             print('Unable to create product. No valid type!')
             continue
+        data_to_append.append('')
+        data_to_append.append('')
         for device_id in Store.objects.get(store_id=store_id).store_devices:
             price = barcode.product_fk.prices_set.filter(device_id=device_id).first()
             if price is not None:
@@ -45,15 +47,23 @@ def create_excel_document_for_massaK(store_id):
         if price_appended == 0:
             print('Unable to create product. No valid price!')
             continue
-        data_to_append.append('')
-        data_to_append.append('')
         data_to_append.append(printer_code)
         data.append(data_to_append)
         if data_to_append[3] == '0':
+            # new_data_to_append = data_to_append.copy()  # Make a copy of data_to_append
+            # new_data_to_append[0] = '1' + new_data_to_append[0]
+            # new_data_to_append[1] = str(printer_code)
+            # new_data_to_append[3] = '1'
+            # new_data_to_append[7] = '1' + new_data_to_append[7]
+            # data.append(new_data_to_append)
             new_data_to_append = data_to_append.copy()  # Make a copy of data_to_append
             new_data_to_append[0] = '1' + new_data_to_append[0]
             new_data_to_append[1] = str(printer_code)
             new_data_to_append[3] = '1'
+            if barcode.product_fk.contents is not None:
+                new_data_to_append[4] = barcode.product_fk.contents
+            if barcode.product_fk.expiry_duration is not None:
+                new_data_to_append[5] = barcode.product_fk.expiry_duration
             new_data_to_append[7] = '1' + new_data_to_append[7]
             data.append(new_data_to_append)
     df = pd.DataFrame(data)
@@ -66,6 +76,26 @@ def create_or_change_short_name_for_product(id_out,name):
         product_internal.short_name = None
     else:
         product_internal.short_name = name
+    product_internal.save()
+    return True
+def create_or_change_expiry_duration_for_product(id_out,duration):
+    product_internal = Product.objects.filter(id_out=id_out).first()
+    if product_internal is None:
+        return False
+    if duration == '':
+        product_internal.expiry_duration = None
+    else:
+        product_internal.expiry_duration = int(duration)
+    product_internal.save()
+    return True
+def create_or_change_contents_for_product(id_out,contents):
+    product_internal = Product.objects.filter(id_out=id_out).first()
+    if product_internal is None:
+        return False
+    if contents == '':
+        product_internal.contents = None
+    else:
+        product_internal.contents = contents
     product_internal.save()
     return True
 def create_or_change_massak_codes_for_product(id_out,code):

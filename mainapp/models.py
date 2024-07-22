@@ -62,7 +62,8 @@ class Product(models.Model):
     group_id = models.CharField('Group_ID', max_length=255, default=None, null=True, blank=True)
     updatedAt = models.CharField('date_of_last_update', max_length=255, default=None, null=True, blank=True)
     short_name = models.TextField('short_name', blank=True, default=None, null=True)
-
+    expiry_duration = models.IntegerField('expiry_duration', default=None, null=True, blank=True)
+    contents = models.TextField('contents', blank=True, default=None, null=True)
     @property
     def price_for_shop(self):
         current_shop = os.environ.get('CURRENT_SHOP')

@@ -249,6 +249,20 @@ def create_or_change_short_name_for_product(request):
         dreamkas_to_massaK.create_or_change_short_name_for_product(request.POST.get("id_out", None), request.POST.get("short_name", None))
         return JsonResponse({'success': True})
 
+@csrf_exempt
+def create_or_change_expiry_duration_for_product(request):
+    print('asd')
+    if request.method == 'POST':
+        dreamkas_to_massaK.create_or_change_expiry_duration_for_product(request.POST.get("id_out", None), request.POST.get("expiry_duration", None))
+        return JsonResponse({'success': True})
+
+@csrf_exempt
+def create_or_change_contents_for_product(request):
+    print('asd')
+    if request.method == 'POST':
+        dreamkas_to_massaK.create_or_change_contents_for_product(request.POST.get("id_out", None), request.POST.get("contents", None))
+        return JsonResponse({'success': True})
+
 
 @csrf_exempt
 def update_one_product(request, id_out):
@@ -302,7 +316,7 @@ def good_groups(request):
 
 
 @csrf_exempt
-def update_all_goods(request):
+def update_all_products(request):
     if request.method == 'POST' or request.method == 'GET':
         from mainapp.dreamkas_Products import Products_update
         Products_update()
@@ -341,7 +355,12 @@ def update_stores_and_devices(request):
 def debug(request):
     return render(request, "mainapp/pages/debug.html")
 
-
+@csrf_exempt
+def debug_force_update_all_products(request):
+    if request.method == 'POST' or request.method == 'GET':
+        from mainapp.dreamkas_Products import Products_update
+        Products_update(debug=1)
+        return redirect(reverse('products'))
 @csrf_exempt
 def debug_update_all_invoices(request):
     offset = 0
@@ -788,8 +807,13 @@ def dreamkas_invoice(request, invoiceid):
         position['position_position'] = i
         i = i + 1
     return render(request, 'mainapp/pages/dreamkas_invoice.html', {'invoice': invoice, 'good_groups': GoodGroups.objects.all(), 'priced': priced, 'total': total})
-
-
+@csrf_exempt
+def invoice_delete_position(request):
+    print('f')
+    print('f')
+    print('f')
+    print('f')
+    return JsonResponse({'success': True})
 @csrf_exempt
 def dreamkas_suppliers(request):
     suppliers = Supplier.objects.all()
@@ -1067,8 +1091,8 @@ def update_gmail_preset(request):
 @csrf_exempt
 def gmail_presets(request):
     if request.method == 'GET':
-        gmail_preset = PresetGmail.objects.first()
-        gmail_presets = PresetGmail.objects.all()
+        gmail_preset = PresetGmail.objects.order_by('preset_name').first()
+        gmail_presets = PresetGmail.objects.all().order_by('preset_name')
         suppliers = Supplier.objects.all().order_by('supplier_name__name')
         stores = Store.objects.all()
         return render(request, 'mainapp/pages/gmail_presets.html',
@@ -1076,7 +1100,7 @@ def gmail_presets(request):
                        'gmail_presets': gmail_presets, 'suppliers': suppliers, 'stores': stores})
     if request.method == 'POST':
         gmail_preset = PresetGmail.objects.filter(id=request.POST.get("preset_id")).first()
-        gmail_presets = PresetGmail.objects.all()
+        gmail_presets = PresetGmail.objects.all().order_by('preset_name')
         suppliers = Supplier.objects.all().order_by('supplier_name__name')
         stores = Store.objects.all()
         gmail_preset_contents = render_to_string('mainapp/parts/gmail_preset_display.html', {'gmail_preset': gmail_preset,
