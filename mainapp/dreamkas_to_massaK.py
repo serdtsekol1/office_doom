@@ -61,9 +61,9 @@ def create_excel_document_for_massaK(store_id):
             new_data_to_append[1] = str(printer_code)
             new_data_to_append[3] = '1'
             if barcode.product_fk.contents is not None:
-                new_data_to_append[4] = barcode.product_fk.contents
+                new_data_to_append[5] = barcode.product_fk.contents
             if barcode.product_fk.expiry_duration is not None:
-                new_data_to_append[5] = barcode.product_fk.expiry_duration
+                new_data_to_append[6] = barcode.product_fk.expiry_duration
             new_data_to_append[7] = '1' + new_data_to_append[7]
             data.append(new_data_to_append)
     df = pd.DataFrame(data)
