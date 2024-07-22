@@ -271,7 +271,7 @@ def delete_duplicate_and_invalid_product_objects():
     Products_update()
 
 
-def Products_update():
+def Products_update(debug=0):
     products_list = DREAM_KAS_API.get_products()
     existing_products_list = Product.objects.all()
     existing_products_map = {product.id_out: product for product in existing_products_list}
@@ -285,14 +285,17 @@ def Products_update():
         if product_external['id_out'] in existing_products_map:
             product_internal = existing_products_map[product_external['id_out']]
             price_difference = False
-            if product_internal.updatedAt != product_external['updatedAt']:
-                price_difference = True
+            if debug == 0:
+                if product_internal.updatedAt != product_external['updatedAt']:
+                    price_difference = True
+                else:
+                    for price in product_external['prices']:
+                        price_internal = product_internal.prices_set.filter(device_id=price['deviceId'])
+                        if not price_internal or price_internal[0].value != price['value']:
+                            price_difference = True
+                            break
             else:
-                for price in product_external['prices']:
-                    price_internal = product_internal.prices_set.filter(device_id=price['deviceId'])
-                    if not price_internal or price_internal[0].value != price['value']:
-                        price_difference = True
-                        break
+                price_difference = True
             if price_difference:
                 product_internal.name = product_external['name']
                 product_internal.type = product_external['type']  # Type here because unit is loaded into type when doing lists of products

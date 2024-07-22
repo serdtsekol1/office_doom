@@ -1,7 +1,6 @@
 {% extends 'wrapper.html' %}
 {% load mainapp_tags %}
 {% block body %}
-
     <ol class="list-group list-group-numbered">
         <div style="font-size: 32px">
             {% if invoice.status == "DRAFT" %}Черновик Документа{% endif %}
@@ -64,190 +63,55 @@
                 </div>
             {% endif %}
         </div>
-        <div class="row border bg-dark text-light">
-            <div style="flex:5px"></div>
-            <div style="flex:12px">№</div>
-            <div style="flex:1%"></div>
-            <div style="flex:40%">Товар</div>
-            <div style="flex:15%"><span class="ml-3">Категория</span></div>
-            <div style="flex:8%">Количество</div>
-            <div style="flex:8%">Цена</div>
-            <div style="flex:8%">Сумма</div>
-            <div style="flex:8%">
-                {% if invoice.status == "ACCEPTED" %}Цена продажи{% endif %}
-                {% if invoice.status == "DRAFT" %}{% endif %}
-            </div>
-            <div style="flex:8%">
-                {% if invoice.status == "ACCEPTED" %}Наценка{% endif %}
-                {% if invoice.status == "DRAFT" %}{% endif %}
-            </div>
-            <div style="flex:8%"></div>
-        </div>
-        {% for item in invoice.positions %}
-            <div class="row border bg-white align-items-center invoice-item">
-                <div style="flex:5px"></div>
-                <div style="flex:12px;" class="text-center">{{ item.position_position }}</div>
-                <div style="flex:1%"></div>
-                <div style="flex:40%" class="text-left">{{ item.name }}</div>
-                <div style="flex:15%" class="text-right">
-                    <select data-good_id="{{ item.productId }}" name="select" id="select" class="form-control selectpiker select_good_group" style="width:100%">
-                        {% for group in good_groups %}
-                            <option {% if group.group_id == item.product.categoryId %} selected="selected" {% endif %} value={{ group.group_id }}>{{ group.name }}</option>
-                        {% endfor %}
-                    </select></div>
-                <div style="flex:8%" class="text-right">
-                    {% if invoice.status == "ACCEPTED" %}{{ item.amount|divide:1000 }}{% endif %}
-                    {% if invoice.status == "DRAFT" %}
-                        <input class="item-amount" style="width : 100%" type="text" value="{{ item.amount|divide:1000 }}">
-                    {% endif %}
-                </div>
-                <div style="flex:8%" class="text-right">
-                    {% if invoice.status == "ACCEPTED" %}{{ item.costWithTax|divide:100 }}{% endif %}
-                    {% if invoice.status == "DRAFT" %}
-                        <input class="item-cost-with-tax" style="width : 100%" type="text" value="{{ item.costWithTax|divide:100 }}">
-                    {% endif %}
-                </div>
-                <div style="flex:8%" class="text-right">
-                    {% if invoice.status == "ACCEPTED" %}{{ item.sumCost|divide:100 }}{% endif %}
-                    {% if invoice.status == "DRAFT" %}
-                        <input class="item-sum" style="width : 100%" type="text" value="{{ item.sumCost|divide:100 }}">
-                    {% endif %}
-                </div>
-                <div style="flex:8%" class="text-right">
-                    {% if invoice.status == "ACCEPTED" %}{{ item.price|divide:100 }}{% endif %}
-                    {% if invoice.status == "DRAFT" %}
-                        {#                        <input class="item-selling-price" style="width : 100%" type="text" value="{{ item.price|divide:100 }}">#}
-                    {% endif %}
-                </div>
-
-                <div style="flex:8%" class="text-right">
-                    {% if invoice.status == "ACCEPTED" %}
-                        {{ item.price|divide:item.costWithTax|subtract:1|floatformat:4|multiply:100|floatformat:2 }}%
-                    {% endif %}
-                    {% if invoice.status == "DRAFT" %}
-                        {#                        <input class="item-selling-price" style="width : 100%" type="text" value="{{ item.price|divide:100 }}">#}
-                    {% endif %}
-                </div>
-                <div style="flex:8%"></div>
-            </div>
-        {% endfor %}
-        <div class="row border bg-dark text-light">
-            <div class="col-sm-4 col-lg-5"></div>
-            <div class="col-sm-2"><span class="ml-3"></span></div>
-            <div class="col-sm-1 text-right"></div>
-            <div class="col-sm-1 text-right"></div>
-            <div class="col-sm-2 col-lg-1 text-right">Приход</div>
-            <div class="col-sm-1 text-right"></div>
-            <div class="col-sm-1"></div>
-        </div>
-        <div class="row border bg-dark text-light">
-            <div class="col-sm-4 col-lg-5"></div>
-            <div class="col-sm-2"><span class="ml-3"></span></div>
-            <div class="col-sm-1 text-right"></div>
-            <div class="col-sm-1 text-right"></div>
-            <div class="col-sm-2 col-lg-1 text-right">{{ total|divide:100 }}</div>
-            <div class="col-sm-1 text-right"></div>
-            <div class="col-sm-1"></div>
-        </div>
     </ol>
+    <div id="products_list_contents">
+        {% include 'mainapp/parts/dreamkas_invoice_display.html' %}
+    </div>
     <script>
-        $(".delete_position").on('click', (e) => {
+        remembered_position_number = -1;
+        $(".delete_position").on('click', function (e) {
 
-            e.preventDefault()
-            let id_dreem = {{ invoice.id }};
-            let position_number =
-                $.ajax({
-                    type: "POST",
-                    url: '/delete_position_from_invoice//',
-                    data: {'id_dreem': id_dreem, 'position_number': comment},
-                    {#contentType: false,#}
-                    {#processData: false,#}
-                    {#async: false,#}
-                    success: function (data) {
-                        console.log(data)
-                        if (data.success === true) {
-                            const count_elements = $(e.currentTarget).parents('.duplicate-group').find('>li').length
-                            if (count_elements > 2) {
-                                $(e.currentTarget).parents('li').remove()
-                            } else {
-                                $(e.currentTarget).parents('.duplicate-group').remove()
-                            }
-                            Swal.fire({
-                                position: 'top-end',
-                                icon: 'success',
-                                title: `Накладная ${number} от ${supplier} за ${issue_date} отмечена как дубликат, и более не будет показываться`,
-                                showConfirmButton: false,
-                                timer: 2500,
-                                backdrop: false
-                            }).then(() => {
-                                document.location.reload()
+            e.preventDefault();
+
+            let self = $(this)
+            let position_number = self.closest(".invoice-item").data("position_number");
+            let invoice_id = $(this).data('invoice_id');
+            console.log("position_number");
+            console.log(self.closest(".invoice-item").data("position_number"));
+            console.log(invoice_id);
+            $.ajax({
+                type: "POST",
+                url: '/invoice_delete_position/',
+                data: {'id_dreem': invoice_id, 'position_number': position_number},
+                contentType: false,
+                processData: false,
+                async: false,
+                success: function (data) {
+                    console.log(data)
+                    if (data.success === true) {
+                        if (document.getElementsByClassName("position-number").length !== 1) {
+                            self.closest(".row.invoice-item").remove();
+                            $('.row.invoice-item .position-number').each((key, val) => {
+                                let current_position_number = parseInt($(val).html())
+                                console.log(key)
+                                if (current_position_number >= position_number) {
+                                    $(val).html(current_position_number - 1)
+                                    $(val).closest("[data-position_number]").get(0).setAttribute('data-position_number', (current_position_number - 1).toString())
+                                }
+                                if (document.getElementsByClassName("position-number").length === 1) {
+                                    $(val).closest("[data-position_number]").get(0).setAttribute('data-position_number', (1).toString())
+                                }
                             })
-
+                        } else {
+                            document.getElementsByClassName('position-number')[0].innerHTML = 1;
+                            document.getElementsByClassName('position-name')[0].innerText = '';
 
                         }
 
                     }
-                });
-
-        })
-
-        var typingTimer;                //timer identifier
-        var doneTypingInterval = 500;  //time in ms, 5 seconds for example
-        var $input = $('.item-amount');
-
-        //on keyup, start the countdown
-        $input.on('keyup', function () {
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(doneTyping, doneTypingInterval);
-        });
-
-        //on keydown, clear the countdown
-        $input.on('keydown', function () {
-            clearTimeout(typingTimer);
-        });
-
-        //user is "finished typing," do something
-        function doneTyping() {
-            console.log("asdasd")
-           all_elements = document.getElementsByClassName('invoice-item')
-        for (let i = 0; i < all_elements.length; i++) {
-            console.log(i)
-            let item_amount = document.getElementsByClassName('item-amount')[i].value;
-            let item_price = document.getElementsByClassName('item-cost-with-tax')[i].value;
-            let item_sum = document.getElementsByClassName('item-sum')[i].value;
-            console.log(item_amount);
-            console.log(item_price);
-            console.log(item_sum);
-        }
-            //do something
-        }
-
-        $(".select_good_group").on('change', (e) => {
-
-            let group_id = $(e.currentTarget).find("option:selected").val()
-            let good_id = e.currentTarget.dataset.good_id;
-            $.ajax({
-                type: "POST",
-                url: '/update_item_group/',
-                data: {'good_id': good_id, 'group_id': group_id},
-                {#contentType: false,#}
-                {#processData: false,#}
-                {#async: false,#}
-                success: function (data) {
-                    document.location.reload()
                 }
             });
-        })
-        document.addEventListener("keypress", function (event) {
-            if (event.keyCode == 13) {
-                alert('You just hit enter.');
-            } else if (event.keyCode == 65) {
-                alert('You just press A.');
-            } else if (event.keyCode == 97) {
-                alert('You just hit a.');
-            } else {
-                alert('You press something other than A, a and ENTER key');
-            }
+
         })
     </script>
 {% endblock %}

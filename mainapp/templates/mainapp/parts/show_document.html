@@ -20,7 +20,7 @@
         $("#load_file").on('click', (e) => {
             e.preventDefault()
             let formData = new FormData();
-            formData.append('file', $('#document_file')[0].files[0], 'file');
+            formData.append('file', $('#document_file')[0].files[0]);
             $.ajax({
                 type: "POST",
                 url: '/show_excel_document/',
@@ -28,7 +28,7 @@
                 processData: false,  // add this line
                 contentType: false,  // and this line
                 success: function (data) {
-                    {#$('#document_html').html(JSON.stringify());#}
+                    {#$('#document_html').html(JSON.stringify());#}select_good_group
                     document_json = JSON.parse(data.document_html);
                     createTableFromJson(document_json, `0:0`);
                 }

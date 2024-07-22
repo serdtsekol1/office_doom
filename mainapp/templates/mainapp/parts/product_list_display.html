@@ -1,10 +1,10 @@
 {% load mainapp_tags %}
 {% for product in list_of_goods %}
     <div class="list-group-item d-flex justify-content-start align-items-center">
-        <div class="text-break" style="flex-basis: 40%">
+        <div class="text-break" style="flex-basis: 30%">
             {{ product.name }}
         </div>
-        <div style="flex-basis: 20%">
+        <div style="flex-basis: 15%">
             {% for barcode in product.barcodes_set.all %}
                 <div class="text-break" style="padding: 3px;line-height: 1em">
                     {{ barcode.barcode }}
@@ -13,6 +13,16 @@
         </div>
         <div style="flex-basis: 20%">
             {{ product.prices_set.all|get_price_for_device:CURRENT_STORE }}
+        </div>
+        <div>
+            {% get_printer_code_from_barcode product.barcodes_set.all as printer_code %}
+            {% get_printer_code_from_barcode product.barcodes_set.all as printer_code %}
+            <div>Состав:<input class="js_contents" style="width: 100%" data-id_out="{{ product.id_out }}" id="product_contents"
+                               value="{% if product.contents %}{{ product.contents }}{% endif %}"
+                               placeholder=""></div>
+            <div>Срок Годности:<input class="js_expiry_duration" style="width: 100%" data-id_out="{{ product.id_out }}" id="product_expriry_duration"
+                                      value="{% if product.expiry_duration %}{{ product.expiry_duration }}{% endif %}"
+                                      placeholder=""></div>
         </div>
         <div style="flex-basis: 8%">
             <div>Код для весов:</div>
