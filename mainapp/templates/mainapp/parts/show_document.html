@@ -28,7 +28,7 @@
                 processData: false,  // add this line
                 contentType: false,  // and this line
                 success: function (data) {
-                    {#$('#document_html').html(JSON.stringify());#}select_good_group
+                    {#$('#document_html').html(JSON.stringify());select_good_group #}
                     document_json = JSON.parse(data.document_html);
                     createTableFromJson(document_json, `0:0`);
                 }
