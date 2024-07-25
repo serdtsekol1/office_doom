@@ -1039,7 +1039,10 @@ def update_gmail_messages(request):
     print('asd')
     if request.method == 'POST':
         client_secret_json = Store.objects.filter(store_id=request.session['store_id']).first().gmail_client_secret
-        mainapp.gmail_invoices.update_gmail_messages(client_secret_json)
+    result = mainapp.gmail_invoices.update_gmail_messages(client_secret_json)
+        ## todo
+        ## if 0 - call error
+        ## if 1 - ok, reload
     return redirect(reverse('gmail_messages'))
 
 

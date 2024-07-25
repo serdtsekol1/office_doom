@@ -14,7 +14,7 @@ from mainapp.models import PresetGmail, Store, Gmail_Messages
 nds = ["0%", "10%", "20%", "30%", "Без НДС"]
 amount_type = ["шт", "шт.", "штук", "упак.", "упак", "кг", "гр", "г"]
 
-
+being_updated = 0
 def check_gmail_invoice_original(filepath):
     try:
         file = pandas.read_excel(filepath)
@@ -42,10 +42,16 @@ def get_gmail_messages(client_secret_json, days=14):
 
     # Create_dreamkas_document_from_excel
 
-
+## 1 - OK
+## 0 - Error
 def update_gmail_messages(client_secret_json):
+    global being_updated
+    if being_updated == 1:
+        print('update already in progress, please wait')
     if not client_secret_json:
         print('error, client secret == none')
+        being_updated = 0
+        return 0
     companies_list = []
     print('Получение всех шаблонов по почте')
     for preset in PresetGmail.objects.all():
@@ -73,9 +79,7 @@ def update_gmail_messages(client_secret_json):
         message_date = message.date
         message_store = Store.objects.get(gmail_client_secret=client_secret_json).store_id
         message_name = message.subject
-        print(valid_presets)
         if valid_presets.__len__() == 0:
-            print('len = 0')
             Gmail_Messages.objects.update_or_create(
                 message_id=message_id,
                 message_date_str=message_date,
@@ -83,8 +87,8 @@ def update_gmail_messages(client_secret_json):
                 message_store_id=message_store,
                 message_sender=message_sender,
                 message_name=message_name)
+            print(message_id, '- OK')
         else:
-            print('len != 0')
             Gmail_Messages.objects.update_or_create(
                 message_id=message_id,
                 message_date=datetime.datetime.strptime(message_date, valid_presets[0].supplier_time_format),
@@ -93,6 +97,9 @@ def update_gmail_messages(client_secret_json):
                 message_sender=message_sender,
                 message_name=message_name
             )
+            print(message_id, '- No Valid Preset')
+    being_updated = 0
+    return 1
 
 
 def get_prerequisites_for_a_message(message):
