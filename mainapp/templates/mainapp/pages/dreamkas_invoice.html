@@ -69,6 +69,22 @@
     </div>
     <script>
         remembered_position_number = -1;
+        $(".select_good_group").on('change', (e) => {
+
+            let group_id = $(e.currentTarget).find("option:selected").val()
+            let good_id = e.currentTarget.dataset.good_id;
+            $.ajax({
+                type: "POST",
+                url: '/update_item_group/',
+                data: {'good_id': good_id, 'group_id': group_id},
+                {#contentType: false,#}
+                {#processData: false,#}
+                {#async: false,#}
+                success: function (data) {
+                    document.location.reload()
+                }
+            })
+        })
         $(".delete_position").on('click', function (e) {
 
             e.preventDefault();

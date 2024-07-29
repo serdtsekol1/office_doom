@@ -87,6 +87,33 @@
             return elements
         }
 
+        let timerRunning = false;
+        let buffer = '';
+        document.addEventListener("keypress", function (event) {
+            if (!isNaN(event.key) && !document.activeElement.classList.contains('amount')) {
+                if (timerRunning === false) {
+                    console.log('timre running = false')
+                    timerRunning = true;
+                    buffer = ''
+                    buffer += event.key;
+                    timer = setTimeout(function () {
+                        timerRunning = false;
+                        buffer = '';
+                    }, 50)
+
+                } else {
+                    clearTimeout(timer)
+                    buffer += event.key;
+                    timer = setTimeout(function () {
+                        console.log(buffer)
+                        timerRunning = false;
+                        alert('you entered' + buffer);
+                        buffer = '';
+                    }, 50);
+                }
+            }
+        });
+
 
         $("#send_elements").on('click', () => {
             $.ajax({
@@ -100,5 +127,6 @@
                 }
             });
         })
+
     </script>
 {% endblock %}

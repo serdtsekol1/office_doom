@@ -43,11 +43,11 @@
     <div style="flex:8%"></div>
 </div>
 {% for item in invoice.positions %}
-    <div class="row border bg-white align-items-center invoice-item"data-position_number="{{ item.position_position }}" data-good_id="{{ item.productId }}">
+    <div class="row border bg-white align-items-center invoice-item" data-position_number="{{ item.position_position }}" data-good_id="{{ item.productId }}">
 
         <div style="flex:8px" class="text-center">
             {% if invoice.status == "DRAFT" %}
-                <button class="btn btn-danger btn-sm delete_position"> X </button>
+                <button class="btn btn-danger btn-sm delete_position"> X</button>
             {% endif %}
         </div>
         <div style="flex:2px"></div>
@@ -61,6 +61,14 @@
                     <option {% if group.group_id == item.product.categoryId %} selected="selected" {% endif %} value={{ group.group_id }}>{{ group.name }}</option>
                 {% endfor %}
             </select></div>
+        <div style="flex:25px">
+            {% for barcode in item.product.barcodes %}
+                {% get_printer_code_from_barcode barcode as printer_code %}
+                {% if printer_code.printer_code is not None %}
+                    {{ printer_code.printer_code }}
+                {% endif %}
+            {% endfor %}
+        </div>
         <div style="flex:8%" class="text-right position-amount ">
             {% if invoice.status == "ACCEPTED" %}{{ item.amount|divide:1000 }}{% endif %}
             {% if invoice.status == "DRAFT" %}
