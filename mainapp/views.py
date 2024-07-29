@@ -35,7 +35,7 @@ from simplegmail.query import construct_query
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
 from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset, \
-    Device
+    Device, Document_internal
 from . import dreamkas_documents, dreamkas_to_massaK, diadoc_to_dreamkas, gmail_to_dreamkas, dreamkas_Products
 from .diadoc_to_dreamkas import create_invoice_from_diadoc_document_v2
 from .dreamkas_documents import dreamkas_update_suppliers
@@ -994,6 +994,17 @@ def gmail_messages(request):
     gmail_messages = Gmail_Messages.objects.all().filter(message_store_id=request.session['store_id']).order_by("-message_date")
     return render(request, 'mainapp/pages/gmail_messages.html', {'gmail_messages': gmail_messages})
 
+@csrf_exempt
+def create_internal_document(request):
+    #return 1 - OK
+    #return -1 - BAD
+    # document_internal = Document_internal.objects.create()
+    # try:
+    #     document_internal.type = request.POST.get('type')
+    # except:
+    #     return -1
+    # document_internal.date_of_creation = datetime.datetime.today()
+    return 1
 
 @csrf_exempt
 def update_inventory_check(request, inventory_check_id):  # document_id

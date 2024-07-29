@@ -29,8 +29,6 @@ def split(value, key):
         return value.split(key[0])[int(key[1])]
 
 
-
-
 @register.simple_tag
 def call_method(obj, method_name, **kwargs):
     """
@@ -110,11 +108,15 @@ def add_language_to_link(url, lng):
     url = url.split('/')
     url[2] = f"{url[2]}/{lng}"
     return '/'.join(url)
+
+
 @register.filter
-def get_price_for_device(prices,store):
-    device_ids = Device.objects.filter(store_id=store.store_id).values_list('device_id',flat=True)
+def get_price_for_device(prices, store):
+    device_ids = Device.objects.filter(store_id=store.store_id).values_list('device_id', flat=True)
     price_obj = prices.filter(device_id__in=device_ids).first()
-    return price_obj.value/100 if price_obj else None
+    return price_obj.value / 100 if price_obj else None
+
+
 @register.filter
 def get_first_name_for_supplier(supplier_id):
     supplier = Supplier.objects.filter(id=supplier_id).first()
@@ -125,7 +127,15 @@ def get_first_name_for_supplier(supplier_id):
 
 @register.simple_tag
 def get_printer_code_from_barcode(barcodes):
-    for barcode in barcodes:
-        if str(barcode.barcode).startswith('999999999'):
-            return {'barcode_id' : barcode.id,'printer_code': barcode.barcode[9:12]}
-    return {'barcode_id' : None, 'printer_code': None}
+    try:
+        for barcode in barcodes:
+            if str(barcode.barcode).startswith('999999999'):
+                return {'barcode_id': barcode.id, 'printer_code': barcode.barcode[9:12]}
+    except:
+        pass
+    try:
+        if str(barcodes).startswith('999999999'):
+            return {'printer_code': barcodes[9:12]}
+    except:
+        pass
+    return {'barcode_id': None, 'printer_code': None}
