@@ -269,7 +269,7 @@ class Document(models.Model):
 class Document_internal(models.Model):
     type = models.IntegerField('type',blank=True,null=True,max_length=255,default=None)
     content = models.TextField('content',blank=True,null=True,default=None)
-
+    external_document = models.IntegerField('external_document',blank=True,null=True,max_length=255,default=None)
 
 class Invoice(models.Model):
     id_dreem = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)

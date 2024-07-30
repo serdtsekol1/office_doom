@@ -770,6 +770,11 @@ def invoice_origin_check():
 ##      More scenarios need to be check and done.
 def dreamkas_invoice(request, invoiceid):
     print(invoiceid)
+    if str(invoiceid).startswith('2F'):
+        invoiceid = invoiceid.replace('2F','')
+    if str(invoiceid).startswith('F'):
+        invoiceid = invoiceid.replace('F','')
+
     invoice = DREAM_KAS_API.get_document(invoiceid)
     Invoice.objects.update_or_create(id_dreem=invoiceid, defaults={
         "invoice_status": True if invoice['status'] == "ACCEPTED" else False,
@@ -1005,6 +1010,25 @@ def create_internal_document(request):
     #     return -1
     # document_internal.date_of_creation = datetime.datetime.today()
     return 1
+@csrf_exempt
+def update_internal_document(request):
+    external_document_id = request.POST.get('document_id')
+    method = request.POST.get('method')
+
+    #0 - remove
+    #1 - add
+    #2 - rewrite
+    internal_document = Document_internal.objects.get(id=external_document_id)
+    if method == 0:
+        internal_document.content[request.POST.get('line_to_delete')] = ''
+        return
+    if method == 1:
+        internal_document.content = internal_document.content + request.POST.get('content')
+        return
+    if method == 2:
+        internal_document.content = request.POST.get('content')
+        return
+
 
 @csrf_exempt
 def update_inventory_check(request, inventory_check_id):  # document_id
