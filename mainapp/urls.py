@@ -41,7 +41,7 @@ urlpatterns = [
 
     ##DREAMKAS INVOICES
     path('invoices/', invoices, name="invoices"),
-    path('dreamkas_invoice/<int:invoiceid>/', dreamkas_invoice, name="dreamkas_invoice"),
+    path('dreamkas_invoice/<str:invoiceid>/', dreamkas_invoice, name="dreamkas_invoice"),
     path('invoices_update/', invoices_update, name="invoices_update"),
     path('create_pricing_order/', create_pricing_order, name="create_pricing_order"),
     path('paid_update/', paid_update, name="paid_update"),

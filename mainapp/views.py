@@ -774,6 +774,7 @@ def dreamkas_invoice(request, invoiceid):
         invoiceid = invoiceid.replace('2F','')
     if str(invoiceid).startswith('F'):
         invoiceid = invoiceid.replace('F','')
+    invoiceid = int(invoiceid)
 
     invoice = DREAM_KAS_API.get_document(invoiceid)
     Invoice.objects.update_or_create(id_dreem=invoiceid, defaults={
