@@ -108,8 +108,16 @@ def create_or_change_contents_for_product(id_out,contents):
     return True
 def debug_redo_all_codes_back():
     for product in Product.objects.filter(barcodes__barcode__startswith=999999999):
-        print(product.id_out, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode[9:12])
-        create_or_change_massak_codes_for_product(product.id_out, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode[9:12])
+        product_external = DREAM_KAS_API.get_product_v2(product.id_out)
+        code_exists = False
+        for barcode in product_external['barcodes']:
+            if str(barcode).startswith('999999999') and str(barcode).__len__() == 13:
+                code_exists = True
+                break
+        if code_exists == False:
+            print(product.id_out, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode[9:12])
+            create_or_change_massak_codes_for_product(product.id_out, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode[9:12])
+
 
 
 def debug_remove_printer_code_from_long_not_accepted_products():
