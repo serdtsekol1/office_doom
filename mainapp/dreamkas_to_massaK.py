@@ -106,6 +106,32 @@ def create_or_change_contents_for_product(id_out,contents):
         product_internal.contents = contents
     product_internal.save()
     return True
+def debug_redo_all_codes_back():
+    for product in Product.objects.filter(barcodes__barcode__startswith=999999999):
+        print(product.id_out, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode[9:12])
+        create_or_change_massak_codes_for_product(product.id_out, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode[9:12])
+
+
+def debug_remove_printer_code_from_long_not_accepted_products():
+    list_of_deleted_products = []
+    for product in Product.objects.filter(barcodes__barcode__startswith=999999999):
+        import datetime
+        httpres = DREAM_KAS_API.get_product_history(product.id_out)
+        try:
+            if (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days > 120:
+                create_or_change_massak_codes_for_product(product.id_out,'')
+                list_of_deleted_products.append([product.name, product.barcodes_set.get(barcode__startswith=999999999).barcode[9:12]])
+                #print(product.name, 'Deleted code for Massa K. Days passed since last invoice - ', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days )
+            #else:
+                #list_of_deleted_products.append(product.name)
+                #print(product.name, 'Days since last invoice:', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days)
+        except:
+            create_or_change_massak_codes_for_product(product.id_out,'')
+            if httpres.status_code == 200:
+                #print(product.name, 'Deleted code for Massa K. No invoice')
+                list_of_deleted_products.append(product.name)
+    for deleted_product in list_of_deleted_products:
+        print(deleted_product[0], 'deleted. Code:' , deleted_product[1])
 def create_or_change_massak_codes_for_product(id_out,code):
     # zfill(3) :5 = 005, 55 = 055, 555 = 555
     # zfill(4) :5 = 0005, 55 = 0055, 555 = 0555

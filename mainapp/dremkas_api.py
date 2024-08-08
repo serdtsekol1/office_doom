@@ -78,7 +78,6 @@ class DreamKasApi:
         self.LOGIN = login
         self.PASSWORD = password
         self.login_http()
-
     def login_http(self):
         """
         Можливо колись понадобиться стандартний логін через https
@@ -94,6 +93,11 @@ class DreamKasApi:
         else:
             print("Login failed")
             return "Login Failed"
+
+    def get_product_history(self,id_out):
+        link = 'https://kabinet.dreamkas.ru/api/stock/history/' + str(id_out)
+        http_resp = self.session.get(link)
+        return http_resp
 
     def get_inventory_checks(self):
         inventory_checks = self.session.get(
@@ -232,44 +236,76 @@ class DreamKasApi:
     def get_devices(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/devices").json()
 
-    def goods_analyzer(self, date_from, date_to):
-        departments = self.get_departments()
-        valid_Departments = []
-        for department in departments:
-            if "[" in department['name'] and "]" in department['name']:
-                valid_Departments.append(department['id'])
-        devices = self.get_devices()
-        problematic_goods_invalid_department = []
-        for device in devices:
-            result = self.get_receipts(date_from, date_to, device['id'])
-            for receipt in result['data']:
-                for position in receipt['positions']:
-                    if position['departmentId'] not in valid_Departments:
-                        problematic_good = position['id']
-                        if problematic_good not in problematic_goods_invalid_department:
-                            problematic_goods_invalid_department.append(problematic_good)
-        resulting_list_problematic_goods_invalid_department = []
-        for good in problematic_goods_invalid_department:
-            responce = self.session.get(f"https://kabinet.dreamkas.ru/api/v2/products/{good}").json()
-            new_good = {'good_id' : responce['id'],  "good_name": responce['name'], "department_id": responce['departmentId']}
-
-            resulting_list_problematic_goods_invalid_department.append(new_good)
-        date = datetime.datetime.strftime(datetime.datetime.today(), "%d-%m-%Y")
-        save_to_json(f"media/report_technical_files/report_goods_invalid_department_{date}.json",resulting_list_problematic_goods_invalid_department)
-        return None
+    # def goods_analyzer(self, date_from, date_to):
+    #     departments = self.get_departments()
+    #     valid_Departments = []
+    #     for department in departments:
+    #         if "[" in department['name'] and "]" in department['name']:
+    #             valid_Departments.append(department['id'])
+    #     devices = self.get_devices()
+    #     problematic_goods_invalid_department = []
+    #     for device in devices:
+    #         result = self.get_receipts(date_from, date_to, device['id'])
+    #         for receipt in result['data']:
+    #             for position in receipt['positions']:
+    #                 if position['departmentId'] not in valid_Departments:
+    #                     problematic_good = position['id']
+    #                     if problematic_good not in problematic_goods_invalid_department:
+    #                         problematic_goods_invalid_department.append(problematic_good)
+    #     resulting_list_problematic_goods_invalid_department = []
+    #     for good in problematic_goods_invalid_department:
+    #         responce = self.session.get(f"https://kabinet.dreamkas.ru/api/v2/products/{good}").json()
+    #         new_good = {'good_id' : responce['id'],  "good_name": responce['name'], "department_id": responce['departmentId']}
+    #
+    #         resulting_list_problematic_goods_invalid_department.append(new_good)
+    #     date = datetime.datetime.strftime(datetime.datetime.today(), "%d-%m-%Y")
+    #     save_to_json(f"media/report_technical_files/report_goods_invalid_department_{date}.json",resulting_list_problematic_goods_invalid_department)
+    #     return None
 
     def get_departments(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/departments").json()
 
-    def get_receipts(self,date_from = None, date_to = None, device = None):
-        if date_from == None:
-            date_from = ''
+    def get_receipts(self, date_from_year = None, date_from_month = None, date_from_day = None,  date_to_year = None, date_to_month = None, date_to_day = None, devices = None, store = None):
+        if devices == None:
+            if store == None:
+                print('No device is or store selected')
+                return
+            from mainapp.models import Store
+            devices = Store.objects.get(store_id=185449).store_devices
         else:
-            date_from = '&from=' + str(date_from) + "T00:00:00Z"
-        if date_to == None:
-            date_to = ''
+            if type(devices) is not list:
+                print('devices accepts only list items. If there is only one device - put it into list of one')
+        date_from = datetime(date_from_year,date_from_month,date_from_day)
+        date_to = datetime(date_to_year,date_to_month,date_to_day)
+        current_date = date_from
+        list_of_days = []
+        while current_date <= date_to:
+            list_of_days.append(current_date)
+            current_date += datetime.timedelta(days=1)
+        for device in devices:
+            for date in list_of_days:
+                self.get_receipts_for_a_day(date_from_year = date.year, date_from_month = date.month, date_from_day = date.day, date_to_year = date_to.year, date_to_month = date_to.month, date_to_day = date_to.day, device = device )
+
+    def get_receipts_for_a_day(self,date_from_year = None, date_from_month = None, date_from_day = None,  date_to_year = None, date_to_month = None, date_to_day = None, device = None):
+        date_from = None
+        date_to = None
+        if date_from_year is None:
+            if date_from_year == None and date_from_month == None and date_from_day == None:
+                date_from = ''
+            else:
+                date_from = ''
+                print('You need to enter year, month and day for "FROM" date. Applying no date instead')
         else:
-            date_to = '&to=' + str(date_to) + "T00:00:00Z"
+            date_from = '&from=' + str(date_from_year) + '-' + str(date_from_month) + '-' + str(date_from_day) + "T00:00:00Z"
+
+        if date_to_year is None:
+            if date_to_year == None and date_to_month == None and date_to_day == None:
+                date_to = ''
+            else:
+                date_to = ''
+                print('You need to enter year, month and day for "FROM" date. Applying no date instead')
+        else:
+            date_to = '&from=' + str(date_to_year) + '-' + str(date_to_month) + '-' + str(date_to_day) + "23:59:59Z"
         if device == None:
             device = ''
         else:

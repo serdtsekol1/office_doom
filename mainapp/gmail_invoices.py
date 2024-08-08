@@ -11,10 +11,12 @@ from simplegmail.query import construct_query
 from dremkas.settings import DREAM_KAS_API
 from mainapp.models import PresetGmail, Store, Gmail_Messages
 
+
 nds = ["0%", "10%", "20%", "30%", "Без НДС"]
 amount_type = ["шт", "шт.", "штук", "упак.", "упак", "кг", "гр", "г"]
 
 being_updated = 0
+
 def check_gmail_invoice_original(filepath):
     try:
         file = pandas.read_excel(filepath)
@@ -28,17 +30,34 @@ def open_document_as_data_dict(document_path):
     pandas_document = pandas.read_excel(document_path, keep_default_na=False).transpose()
     return pandas_document
 
+def get_gmail_messages_alternative():
+    import undetected_chromedriver as uc
+    from selenium.webdriver.common.by import By
+    from dremkas.settings import BASE_DIR
+    CHROME_DRIVER_PATH = f'{BASE_DIR}/chromedriver.exe'
+    options = uc.ChromeOptions()
+    #options.add_argument('--disable-gpu')
+    driver = uc.Chrome(options=options, driver_executable_path=CHROME_DRIVER_PATH)
+    print("Driver - OK")
+    driver.get("https://accounts.google.com/")
 
+    return
 def get_gmail_messages(client_secret_json, days=14):
-    gmail = simplegmail.Gmail(client_secret_file=client_secret_json)
-    query_params = {
-        "newer_than": (days, "day")
-    }
-    print('Настройка почты завершена, посылаем запрос.')
+    try:
+        gmail = simplegmail.Gmail(client_secret_file=client_secret_json)
+        query_params = {
+            "newer_than": (days, "day")
+        }
+        print('Настройка почты завершена, посылаем запрос.')
+        try:
+            result = gmail.get_messages(query=construct_query(query_params))
+        except:
+            print('b')
 
-    result = gmail.get_messages(query=construct_query(query_params))
-    print('Запрос был послан. Результат - ', result)
-    return result
+        print('Запрос был послан. Результат - ', result)
+        return result
+    except:
+        print('a')
 
     # Create_dreamkas_document_from_excel
 

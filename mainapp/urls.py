@@ -8,7 +8,7 @@ from mainapp.views import get_index_page, test, invoices, manual_invoice, good_g
     update_store, update_diadoc_invoices_v2, invoices_diadoc_v2, diadoc_presets, create_diadoc_preset, update_diadoc_preset, create_document_from_diadoc_v2, create_documents_from_gmail_message_v2, \
     delete_all_stores, delete_gmail_messages, update_supplier_prefix, delete_diadoc_invoices, debug, debug_update_all_invoices, debug_concat_rests_2, concat_list_of_rests, \
     delete_duplicate_barcode_objects, delete_duplicate_invoice_objects, delete_duplicate_and_invalid_product_objects, debug_remove_deuplicate_diadoc_invoice_objects, debug_force_update_all_products, \
-    invoice_delete_position, create_or_change_expiry_duration_for_product, create_or_change_contents_for_product
+    invoice_delete_position, create_or_change_expiry_duration_for_product, create_or_change_contents_for_product, debug_remove_printer_code_from_long_not_accepted_products, debug_redo_all_codes_back
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -109,5 +109,8 @@ urlpatterns = [
     path('delete_duplicate_invoice_objects/', delete_duplicate_invoice_objects, name='delete_duplicate_invoice_objects'),
     path('delete_duplicate_and_invalid_product_objects/', delete_duplicate_and_invalid_product_objects, name='delete_duplicate_and_invalid_product_objects'),
     path('debug_remove_deuplicate_diadoc_invoice_objects/', debug_remove_deuplicate_diadoc_invoice_objects, name='debug_remove_deuplicate_diadoc_invoice_objects'),
+    path('debug_remove_printer_code_from_long_not_accepted_products/', debug_remove_printer_code_from_long_not_accepted_products, name='debug_remove_printer_code_from_long_not_accepted_products'),
+    path('debug_redo_all_codes_back/', debug_redo_all_codes_back, name='debug_redo_all_codes_back'),
+
     # re_path(r'^sitemap1-(?P<section>.+).xml$', {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap')
 ]
