@@ -234,6 +234,8 @@ def Find_and_delete_barcode(barcode):
     product_update(search_result['id'])
 
 
+
+
 def delete_duplicate_barcode_objects():
     from django.db.models import Count, Max
     from django.db.models import F
