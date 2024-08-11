@@ -837,6 +837,7 @@ def dreamkas_suppliers(request):
 
 
 def dreamkas_supplier(request, supplier_data):
+    store = Store.objects.get(store_id=request.session.get('store_id'))
     if supplier_data.isdigit():
         supplier = Supplier.objects.get(inn=supplier_data)
     else:
@@ -844,7 +845,7 @@ def dreamkas_supplier(request, supplier_data):
     supplier_names = []
     for supplier_name_obj in supplier.supplier_name_set.all():
         supplier_names.append(supplier_name_obj.name)
-    dreamkas_invoices = Invoice.objects.filter(hide=False).order_by("-issue_date")
+    dreamkas_invoices = Invoice.objects.filter(hide=False, store=store).order_by("-issue_date")
     return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices, 'supplier_names': supplier_names})
 
 
