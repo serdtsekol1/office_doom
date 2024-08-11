@@ -127,15 +127,18 @@ def debug_remove_printer_code_from_long_not_accepted_products():
         httpres = DREAM_KAS_API.get_product_history(product.id_out)
         try:
             if (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days > 120:
-                create_or_change_massak_codes_for_product(product.id_out,'')
+                print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
                 list_of_deleted_products.append([product.name, product.barcodes_set.get(barcode__startswith=999999999).barcode[9:12]])
+                create_or_change_massak_codes_for_product(product.id_out,'')
                 #print(product.name, 'Deleted code for Massa K. Days passed since last invoice - ', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days )
             #else:
                 #list_of_deleted_products.append(product.name)
                 #print(product.name, 'Days since last invoice:', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days)
         except:
-            create_or_change_massak_codes_for_product(product.id_out,'')
             if httpres.status_code == 200:
+                print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
+                list_of_deleted_products.append([product.name, product.barcodes_set.get(barcode__startswith=999999999).barcode[9:12]])
+                create_or_change_massak_codes_for_product(product.id_out, '')
                 #print(product.name, 'Deleted code for Massa K. No invoice')
                 list_of_deleted_products.append(product.name)
     for deleted_product in list_of_deleted_products:
