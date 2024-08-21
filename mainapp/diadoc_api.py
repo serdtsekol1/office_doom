@@ -164,43 +164,51 @@ class DiadocApi():
     def get_documents_v2(self,diadoc_id,debug = 0):
         self.LIST_DOCUMENTS = []
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{diadoc_id}/Folder/Inbox")
-        test2222 = self.session.get(f"https://diadoc.kontur.ru/webapi/boxes/{diadoc_id}/documents?category=IncomingOrProxyOrTemplate&action=Filter")
-        print(test2222.text)
-        with open('text.html','wb') as htmlfile:
-            htmlfile.write(page_list_documents.content)
         list_elements_with_document = page_list_documents.html.find("#letterList > li")
-        for element_with_document in list_elements_with_document:
-            list_elements_with_document_attach = element_with_document.find("ul[ft-name='attachments-list'] > li")
-            for element_with_document_attach in list_elements_with_document_attach:
-                try:
-                    status = element_with_document_attach.find('span[ft-name="statusName"]', first=True).text
-                    if debug == 1:
-                        print('id:', element_with_document_attach.attrs.get("id"))
-                        print('date:', element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentdate").strip())
-                        print('num:', element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentnumber").strip())
-                        print('sum:', element_with_document_attach.find("span[locstr=\"Sum_with_currency\"]", first=True).text.encode("utf-8").decode('ascii', 'ignore'))
-                        print('kontragent:', element_with_document.find("span[ft-name=\"documentCounteragentName\"]", first=True).text)
-                        print('letterid:',element_with_document_attach.attrs.get("letterid"))
-                        print('ft-name:',  element_with_document_attach.attrs.get("ft-name"))
-                        print('link_document:', list(element_with_document_attach.absolute_links)[0])
-                        print('link_document_attachment:', f'https://diadoc.kontur.ru/{diadoc_id}/Download/Attachment?letterId={element_with_document_attach.attrs.get("letterid")}&attachmentId={element_with_document_attach.attrs.get("documentid")}')
-                        print('status:', status)
-                    self.LIST_DOCUMENTS.append({
+        if list_elements_with_document.__len__() != 0:
+            for element_with_document in list_elements_with_document:
+                list_elements_with_document_attach = element_with_document.find("ul[ft-name='attachments-list'] > li")
+                for element_with_document_attach in list_elements_with_document_attach:
+                    try:
+                        status = element_with_document_attach.find('span[ft-name="statusName"]', first=True).text
+                        self.LIST_DOCUMENTS.append({
+                            'id': element_with_document_attach.attrs.get("id"),
+                            'date': element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentdate").strip(),
+                            'num': element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentnumber").strip(),
+                            'sum': element_with_document_attach.find("span[locstr=\"Sum_with_currency\"]", first=True).text.encode("utf-8").decode('ascii', 'ignore'),
+                            'kontragent': element_with_document.find("span[ft-name=\"documentCounteragentName\"]", first=True).text,
+                            'documentid': element_with_document_attach.attrs.get("documentid"),
+                            'letterid': element_with_document_attach.attrs.get("letterid"),
+                            'ft-name': element_with_document_attach.attrs.get("ft-name"),
+                            'link_document': list(element_with_document_attach.absolute_links)[0],
+                            'link_document_attachment': f'https://diadoc.kontur.ru/{diadoc_id}/Download/Attachment?letterId={element_with_document_attach.attrs.get("letterid")}&attachmentId={element_with_document_attach.attrs.get("documentid")}',
+                            'status': status,
+                        })
+                    except Exception as e:
+                        print("diadoc_api get_documents Exception [000]" + str(e))
+        if list_elements_with_document.__len__() == 0:
+            page_list_documents = self.session.get(f"https://diadoc.kontur.ru/webapi/boxes/{diadoc_id}/documents?category=IncomingOrProxyOrTemplate&action=Filter")
+            for element_with_document in page_list_documents:
+                list_elements_with_document_attach = element_with_document.find("ul[ft-name='attachments-list'] > li")
+                for element_with_document_attach in list_elements_with_document_attach:
+                    try:
+                        status = element_with_document_attach.find('span[ft-name="statusName"]', first=True).text
+                        self.LIST_DOCUMENTS.append({
+                            'id': element_with_document_attach.attrs.get("id"),
+                            'date': element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentdate").strip(),
+                            'num': element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentnumber").strip(),
+                            'sum': element_with_document_attach.find("span[locstr=\"Sum_with_currency\"]", first=True).text.encode("utf-8").decode('ascii', 'ignore'),
+                            'kontragent': element_with_document.find("span[ft-name=\"documentCounteragentName\"]", first=True).text,
+                            'documentid': element_with_document_attach.attrs.get("documentid"),
+                            'letterid': element_with_document_attach.attrs.get("letterid"),
+                            'ft-name': element_with_document_attach.attrs.get("ft-name"),
+                            'link_document': list(element_with_document_attach.absolute_links)[0],
+                            'link_document_attachment': f'https://diadoc.kontur.ru/{diadoc_id}/Download/Attachment?letterId={element_with_document_attach.attrs.get("letterid")}&attachmentId={element_with_document_attach.attrs.get("documentid")}',
+                            'status': status,
+                        })
+                    except Exception as e:
+                        print("diadoc_api get_documents Exception [000]" + str(e))
 
-                        'id': element_with_document_attach.attrs.get("id"),
-                        'date': element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentdate").strip(),
-                        'num': element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentnumber").strip(),
-                        'sum': element_with_document_attach.find("span[locstr=\"Sum_with_currency\"]", first=True).text.encode("utf-8").decode('ascii', 'ignore'),
-                        'kontragent': element_with_document.find("span[ft-name=\"documentCounteragentName\"]", first=True).text,
-                        'documentid': element_with_document_attach.attrs.get("documentid"),
-                        'letterid': element_with_document_attach.attrs.get("letterid"),
-                        'ft-name': element_with_document_attach.attrs.get("ft-name"),
-                        'link_document': list(element_with_document_attach.absolute_links)[0],
-                        'link_document_attachment': f'https://diadoc.kontur.ru/{diadoc_id}/Download/Attachment?letterId={element_with_document_attach.attrs.get("letterid")}&attachmentId={element_with_document_attach.attrs.get("documentid")}',
-                        'status': status,
-                    })
-                except Exception as e:
-                    print("diadoc_api get_documents Exception [000]" + str(e))
         return self.LIST_DOCUMENTS
     def download(self, url, file_name):
         if not os.path.exists(os.path.dirname(file_name)):
