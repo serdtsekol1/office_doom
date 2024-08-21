@@ -163,13 +163,11 @@ class DiadocApi():
                 except Exception as e:
                     print("diadoc_api get_documents Exception [000]" + str(e))
         return self.LIST_DOCUMENTS
-    def get_documents_v2(self,diadoc_id,debug = 1):
+    def get_documents_v2(self,diadoc_id,debug = 0):
         self.LIST_DOCUMENTS = []
+        print(diadoc_id)
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{diadoc_id}/Folder/Inbox")
-        print(page_list_documents)
         list_elements_with_document = page_list_documents.html.find("#letterList > li")
-        print('list_elements_with_document: ',list_elements_with_document)
-        print('HTML:', page_list_documents.text)
         for element_with_document in list_elements_with_document:
             list_elements_with_document_attach = element_with_document.find("ul[ft-name='attachments-list'] > li")
             for element_with_document_attach in list_elements_with_document_attach:
