@@ -166,6 +166,9 @@ class DiadocApi():
     def get_documents_v2(self,diadoc_id,debug = 0):
         self.LIST_DOCUMENTS = []
         print(diadoc_id)
+        print(self.session.headers)
+        print('-----------')
+        print(self.session.cookies)
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{diadoc_id}/Folder/Inbox")
         print(page_list_documents.content)
         with open('text.html','wb') as htmlfile:
