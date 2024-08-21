@@ -49,7 +49,6 @@ class DiadocApi():
         status_code = login_check.status_code
         print(status_code)
         print(login_check.text)
-        return False
         return True if status_code == 200 else False
         #return False if 'AccessDenied' in str(login_check.content) else True
     def login_http(self):
