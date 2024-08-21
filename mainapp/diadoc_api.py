@@ -166,11 +166,13 @@ class DiadocApi():
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{diadoc_id}/Folder/Inbox")
         print(page_list_documents)
         list_elements_with_document = page_list_documents.html.find("#letterList > li")
+        print('list_elements_with_document: ',list_elements_with_document)
         for element_with_document in list_elements_with_document:
             list_elements_with_document_attach = element_with_document.find("ul[ft-name='attachments-list'] > li")
             for element_with_document_attach in list_elements_with_document_attach:
                 try:
                     status = element_with_document_attach.find('span[ft-name="statusName"]', first=True).text
+                    print('status 1"  ',status)
                     if debug == 1:
                         print('id:', element_with_document_attach.attrs.get("id"))
                         print('date:', element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentdate").strip())
