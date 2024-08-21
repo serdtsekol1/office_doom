@@ -275,18 +275,22 @@ class DreamKasApi:
         else:
             if type(devices) is not list:
                 print('devices accepts only list items. If there is only one device - put it into list of one')
-        date_from = datetime(date_from_year,date_from_month,date_from_day)
-        date_to = datetime(date_to_year,date_to_month,date_to_day)
+                return
+        date_from = datetime.datetime(date_from_year,date_from_month,date_from_day)
+        date_to = datetime.datetime(date_to_year,date_to_month,date_to_day)
         current_date = date_from
         list_of_days = []
         while current_date <= date_to:
             list_of_days.append(current_date)
             current_date += datetime.timedelta(days=1)
+        receipts = []
         for device in devices:
-            for date in list_of_days:
-                self.get_receipts_for_a_day(date_from_year = date.year, date_from_month = date.month, date_from_day = date.day, date_to_year = date_to.year, date_to_month = date_to.month, date_to_day = date_to.day, device = device )
-
+            for one_day in list_of_days:
+                receipt = (self.get_receipts_for_a_day(date_from_year = one_day.year, date_from_month = one_day.month, date_from_day = one_day.day, date_to_year = one_day.year, date_to_month = one_day.month, date_to_day = one_day.day, device = device ))
+                receipts.append(receipt)
+        return receipts
     def get_receipts_for_a_day(self,date_from_year = None, date_from_month = None, date_from_day = None,  date_to_year = None, date_to_month = None, date_to_day = None, device = None):
+        print('getting a receipt for a day', date_from_year, date_from_month, date_from_day)
         date_from = None
         date_to = None
         if date_from_year is None:
@@ -296,7 +300,7 @@ class DreamKasApi:
                 date_from = ''
                 print('You need to enter year, month and day for "FROM" date. Applying no date instead')
         else:
-            date_from = '&from=' + str(date_from_year) + '-' + str(date_from_month) + '-' + str(date_from_day) + "T00:00:00Z"
+            date_from = '&from=' + str(date_from_year) + '-' + str(date_from_month).zfill(2) + '-' + str(date_from_day).zfill(2) + "T00:00:00Z"
 
         if date_to_year is None:
             if date_to_year == None and date_to_month == None and date_to_day == None:
@@ -305,12 +309,27 @@ class DreamKasApi:
                 date_to = ''
                 print('You need to enter year, month and day for "FROM" date. Applying no date instead')
         else:
-            date_to = '&from=' + str(date_to_year) + '-' + str(date_to_month) + '-' + str(date_to_day) + "23:59:59Z"
+            date_to = '&to=' + str(date_to_year) + '-' + str(date_to_month).zfill(2) + '-' + str(date_to_day).zfill(2) + "T23:59:59Z"
         if device == None:
             device = ''
         else:
             device = '&devices=' + str(device)
-        return self.session.get("https://kabinet.dreamkas.ru/api/receipts?" + date_from + date_to + device + "&limit=1000").json()
+        receipts = []
+        receipt = self.session.get("https://kabinet.dreamkas.ru/api/receipts?" + date_from + date_to + device + "&limit=1000").json()
+        receipts.append(receipt)
+        if 'status' in str(receipt):
+            print("https://kabinet.dreamkas.ru/api/receipts?" + date_from + date_to + device + "&limit=1000")
+            print('status 400')
+        offset = 0
+        while receipt['data'].__len__() >= 1000:
+            print(offset)
+            offset = offset + 1000
+            receipt = self.session.get("https://kabinet.dreamkas.ru/api/receipts?" + date_from + date_to + device + "&limit=1000&offset=" + str(offset)).json()
+            if receipt['data'].__len__() != 0:
+                receipts.append(receipt)
+            else:
+                break
+        return receipts
 
 
     def createdocument(self, dataofdocument, comment, partner_id, doc_id, target_store_id=185449, positions=None):

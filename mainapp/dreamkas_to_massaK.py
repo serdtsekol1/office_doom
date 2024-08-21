@@ -1,11 +1,60 @@
 import os
-
+import datetime as dt
 import pandas as pd
 
 from dremkas.settings import DREAM_KAS_API, CURRENT_IDS
 from mainapp.dreamkas_Products import turn_number_to_ean_13, Create_barcode_for_product, Delete_barcode_for_product
 from mainapp.models import Barcodes, Product, Store
 
+
+def debug_remove_printer_code_from_long_not_accepted_products():
+    list_of_devices = []
+    for store in Store.objects.all():
+        for device in store.store_devices:
+            list_of_devices.append(device)
+    print(list_of_devices)
+    date_from = dt.datetime.now() - dt.timedelta(days=90)
+    date_now = dt.datetime.now() - dt.timedelta(days=1)
+    date_from_year, date_from_month, date_from_day = date_from.year, date_from.month, date_from.day
+    date_to_year, date_to_month, date_to_day = date_now.year, date_now.month, date_now.day
+    receipts  = DREAM_KAS_API.get_receipts(date_from_year, date_from_month, date_from_day, date_to_year, date_to_month, date_to_day, list_of_devices)
+
+    unique_ids = set()
+    for receipt_collection in receipts:
+        for receipt_subcollection in receipt_collection:
+            for receipt_dict in receipt_subcollection['data']:
+                for position in receipt_dict['positions']:
+                    unique_ids.add(position['id'])
+    del receipts
+    del receipt_collection
+    del receipt_subcollection
+    del receipt_dict
+    del position
+
+    list_of_deleted_products = []
+    for product in Product.objects.filter(barcodes__barcode__startswith=999999999):
+        import datetime
+        httpres = DREAM_KAS_API.get_product_history(product.id_out)
+        try:
+            if (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days > 91:
+                if product.id_out not in unique_ids:
+                    print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
+                    list_of_deleted_products.append([product.name, product.barcodes_set.get(barcode__startswith=999999999).barcode[9:12]])
+                    create_or_change_massak_codes_for_product(product.id_out,'')
+                #print(product.name, 'Deleted code for Massa K. Days passed since last invoice - ', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days )
+            #else:
+                #list_of_deleted_products.append(product.name)
+                #print(product.name, 'Days since last invoice:', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days)
+        except:
+            if httpres.status_code == 200:
+                if product.id_out not in unique_ids:
+                    print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
+                    list_of_deleted_products.append([product.name, product.barcodes_set.get(barcode__startswith=999999999).barcode[9:12]])
+                    create_or_change_massak_codes_for_product(product.id_out, '')
+                #print(product.name, 'Deleted code for Massa K. No invoice')
+                    list_of_deleted_products.append(product.name)
+    for deleted_product in list_of_deleted_products:
+        print(deleted_product[0], 'deleted. Code:' , deleted_product[1])
 
 #unit 796 - countable.
 #unit 166 - kg
@@ -120,29 +169,7 @@ def debug_redo_all_codes_back():
 
 
 
-def debug_remove_printer_code_from_long_not_accepted_products():
-    list_of_deleted_products = []
-    for product in Product.objects.filter(barcodes__barcode__startswith=999999999):
-        import datetime
-        httpres = DREAM_KAS_API.get_product_history(product.id_out)
-        try:
-            if (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days > 120:
-                print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
-                list_of_deleted_products.append([product.name, product.barcodes_set.get(barcode__startswith=999999999).barcode[9:12]])
-                create_or_change_massak_codes_for_product(product.id_out,'')
-                #print(product.name, 'Deleted code for Massa K. Days passed since last invoice - ', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days )
-            #else:
-                #list_of_deleted_products.append(product.name)
-                #print(product.name, 'Days since last invoice:', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days)
-        except:
-            if httpres.status_code == 200:
-                print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
-                list_of_deleted_products.append([product.name, product.barcodes_set.get(barcode__startswith=999999999).barcode[9:12]])
-                create_or_change_massak_codes_for_product(product.id_out, '')
-                #print(product.name, 'Deleted code for Massa K. No invoice')
-                list_of_deleted_products.append(product.name)
-    for deleted_product in list_of_deleted_products:
-        print(deleted_product[0], 'deleted. Code:' , deleted_product[1])
+
 def create_or_change_massak_codes_for_product(id_out,code):
     # zfill(3) :5 = 005, 55 = 055, 555 = 555
     # zfill(4) :5 = 0005, 55 = 0055, 555 = 0555

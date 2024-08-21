@@ -5,7 +5,9 @@ from datetime import datetime as datetime2
 from django.utils import timezone
 from datetime import timedelta, date
 
+def delete_long_not_accepted_documents():
 
+    return
 def delete_all_suppliers():
     Supplier.objects.all().delete()
 def delete_broken_suppliers():

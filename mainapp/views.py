@@ -455,6 +455,13 @@ def delete_duplicate_invoice_objects(request):
 def delete_duplicate_and_invalid_product_objects(request):
     dreamkas_Products.delete_duplicate_and_invalid_product_objects()
     return redirect(reverse('debug'))
+
+@csrf_exempt
+def pricing_documents(request):
+    return render(request,"mainapp/pages/pricing_invoices.html")
+def create_new_document(request):
+    return render(request, "mainapp/pages/create_new_document.html")
+
 @csrf_exempt
 def update_all_suppliers(request):
     dreamkas_documents.dreamkas_update_suppliers()
