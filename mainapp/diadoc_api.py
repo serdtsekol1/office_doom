@@ -167,6 +167,7 @@ class DiadocApi():
         print(page_list_documents)
         list_elements_with_document = page_list_documents.html.find("#letterList > li")
         print('list_elements_with_document: ',list_elements_with_document)
+        print('HTML:', page_list_documents.html)
         for element_with_document in list_elements_with_document:
             list_elements_with_document_attach = element_with_document.find("ul[ft-name='attachments-list'] > li")
             for element_with_document_attach in list_elements_with_document_attach:
