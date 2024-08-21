@@ -47,8 +47,6 @@ class DiadocApi():
     def login_check(self):
         login_check = self.session.get("https://diadoc.kontur.ru/Box/Selection", allow_redirects=False)
         status_code = login_check.status_code
-        print(status_code)
-        print(login_check.text)
         return True if status_code == 200 else False
         #return False if 'AccessDenied' in str(login_check.content) else True
     def login_http(self):
@@ -165,10 +163,6 @@ class DiadocApi():
         return self.LIST_DOCUMENTS
     def get_documents_v2(self,diadoc_id,debug = 0):
         self.LIST_DOCUMENTS = []
-        print(diadoc_id)
-        print(self.session.headers)
-        print('-----------')
-        print(self.session.cookies)
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{diadoc_id}/Folder/Inbox")
         test2222 = self.session.get(f"https://diadoc.kontur.ru/webapi/boxes/{diadoc_id}/documents?category=IncomingOrProxyOrTemplate&action=Filter")
         print(test2222.text)
@@ -180,7 +174,6 @@ class DiadocApi():
             for element_with_document_attach in list_elements_with_document_attach:
                 try:
                     status = element_with_document_attach.find('span[ft-name="statusName"]', first=True).text
-                    print('status 1"  ',status)
                     if debug == 1:
                         print('id:', element_with_document_attach.attrs.get("id"))
                         print('date:', element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentdate").strip())
