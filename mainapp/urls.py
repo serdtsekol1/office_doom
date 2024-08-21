@@ -8,7 +8,8 @@ from mainapp.views import get_index_page, test, invoices, manual_invoice, good_g
     update_store, update_diadoc_invoices_v2, invoices_diadoc_v2, diadoc_presets, create_diadoc_preset, update_diadoc_preset, create_document_from_diadoc_v2, create_documents_from_gmail_message_v2, \
     delete_all_stores, delete_gmail_messages, update_supplier_prefix, delete_diadoc_invoices, debug, debug_update_all_invoices, debug_concat_rests_2, concat_list_of_rests, \
     delete_duplicate_barcode_objects, delete_duplicate_invoice_objects, delete_duplicate_and_invalid_product_objects, debug_remove_deuplicate_diadoc_invoice_objects, debug_force_update_all_products, \
-    invoice_delete_position, create_or_change_expiry_duration_for_product, create_or_change_contents_for_product, debug_remove_printer_code_from_long_not_accepted_products, debug_redo_all_codes_back
+    invoice_delete_position, create_or_change_expiry_duration_for_product, create_or_change_contents_for_product, debug_remove_printer_code_from_long_not_accepted_products, debug_redo_all_codes_back, \
+    create_new_document, pricing_documents
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -60,6 +61,8 @@ urlpatterns = [
     path('delete_all_suppliers/', delete_all_suppliers, name="delete_all_suppliers"),
     path('delete_broken_suppliers/', delete_broken_suppliers, name="delete_broken_suppliers"),
     path('update_all_suppliers/', update_all_suppliers, name="delete_all_suppliers"),
+    path('create_new_document/', create_new_document, name="create_new_document"),
+    path('pricing_documents/', pricing_documents, name="pricing_documents"),
 
     path('preset/', Preset.as_view(), name="preset"),
     path('update_item_group/', update_item_group, name="update_item_group"),

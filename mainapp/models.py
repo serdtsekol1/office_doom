@@ -264,7 +264,10 @@ class Position(models.Model):
 
 class Document(models.Model):
     id_dreem = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
-    document_type = models.Choices
+    status = models.BooleanField('status', blank=True, default=False, null=True)  ## Accepted = True, Draft = False
+    supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
+    supplier_fk = models.ForeignKey(Supplier, max_length=255, blank=True, default=None, null=True, on_delete=models.SET_NULL)
+    number = models.CharField('Номер', max_length=255, blank=True, default=None, null=True)
 
 class Document_internal(models.Model):
     type = models.IntegerField('type',blank=True,null=True,max_length=255,default=None)
@@ -711,6 +714,14 @@ class Invoice(models.Model):
         document = DREAM_KAS_API.get_document(id_dreem)
         invoice, invoice_create = Invoice.objects.update(id_dreem=document['id'], defaults={
             'invoice_status': True if "ACCEPTED" in document["status"] else False})
+
+class Pricing_document(models.Model):
+    id_dreem = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+    status = models.BooleanField('status',blank=True,default=False,null=True) ## Accepted = True, Draft = False
+    number = models.CharField('Номер', max_length=255, blank=True, default=None, null=True)
+    parent_document_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+    parent_document_fk = models.ForeignKey(Invoice, max_length=255, blank=True, default=None, null=True, on_delete=models.SET_NULL)
+
 
 
 class LinkedDocuments(models.Model):

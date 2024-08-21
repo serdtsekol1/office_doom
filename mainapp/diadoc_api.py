@@ -161,7 +161,7 @@ class DiadocApi():
                 except Exception as e:
                     print("diadoc_api get_documents Exception [000]" + str(e))
         return self.LIST_DOCUMENTS
-    def get_documents_v2(self,diadoc_id):
+    def get_documents_v2(self,diadoc_id,debug = 0):
         self.LIST_DOCUMENTS = []
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{diadoc_id}/Folder/Inbox")
         print(page_list_documents)
@@ -171,6 +171,17 @@ class DiadocApi():
             for element_with_document_attach in list_elements_with_document_attach:
                 try:
                     status = element_with_document_attach.find('span[ft-name="statusName"]', first=True).text
+                    if debug == 1:
+                        print('id:', element_with_document_attach.attrs.get("id"))
+                        print('date:', element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentdate").strip())
+                        print('num:', element_with_document_attach.find("a[ft-name=\"documentLink\"]", first=True).attrs.get("documentnumber").strip())
+                        print('sum:', element_with_document_attach.find("span[locstr=\"Sum_with_currency\"]", first=True).text.encode("utf-8").decode('ascii', 'ignore'))
+                        print('kontragent:', element_with_document.find("span[ft-name=\"documentCounteragentName\"]", first=True).text)
+                        print('letterid:',element_with_document_attach.attrs.get("letterid"))
+                        print('ft-name:',  element_with_document_attach.attrs.get("ft-name"))
+                        print('link_document:', list(element_with_document_attach.absolute_links)[0])
+                        print('link_document_attachment:', f'https://diadoc.kontur.ru/{diadoc_id}/Download/Attachment?letterId={element_with_document_attach.attrs.get("letterid")}&attachmentId={element_with_document_attach.attrs.get("documentid")}')
+                        print('status:', status)
                     self.LIST_DOCUMENTS.append({
 
                         'id': element_with_document_attach.attrs.get("id"),
