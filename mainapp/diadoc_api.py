@@ -170,6 +170,8 @@ class DiadocApi():
         print('-----------')
         print(self.session.cookies)
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{diadoc_id}/Folder/Inbox")
+        test2222 = self.session.get(f"https://diadoc.kontur.ru/webapi/boxes/{diadoc_id}/documents?category=IncomingOrProxyOrTemplate&action=Filter")
+        print(test2222.text)
         with open('text.html','wb') as htmlfile:
             htmlfile.write(page_list_documents.content)
         list_elements_with_document = page_list_documents.html.find("#letterList > li")
