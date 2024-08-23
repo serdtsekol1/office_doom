@@ -189,23 +189,26 @@ class DiadocApi():
         if list_elements_with_document.__len__() == 0:
             page_list_documents = self.session.get(f"https://diadoc.kontur.ru/webapi/boxes/{diadoc_id}/documents?category=IncomingOrProxyOrTemplate&action=Filter").json()
             for element_with_document in page_list_documents['documentsByMessage']:
-                try:
-                    status = element_with_document['documents'][0]['status']['primary']['text']
-                    self.LIST_DOCUMENTS.append({
-                        'id': element_with_document['messageId'] + '-' + element_with_document['documents'][0]['documentId'],
-                        'date': datetime.strftime(datetime.strptime(element_with_document['documents'][0]['name'].split(' от ')[1], '%d.%m.%y'),'%d.%m.%Y') ,
-                        'num': element_with_document['documents'][0]['name'].split(' от ')[0].split('УПД №')[1],
-                        'sum': element_with_document['documents'][0]['metadata'][0]['primaryText'].replace('&#160;', '').replace('\xa0₽', ''),
-                        'kontragent': element_with_document['participants']['sender']['box']['shortName'],
-                        'documentid': element_with_document['documents'][0]['documentId'],
-                        'letterid': element_with_document['messageId'],
-                        'ft-name': element_with_document['documents'][0]['name'],
-                        'link_document': 'https://diadoc.kontur.ru/' + element_with_document['documents'][0]['url'],
-                        'link_document_attachment': f'https://diadoc.kontur.ru/{diadoc_id}/Download/Attachment?letterId={element_with_document["messageId"]}&attachmentId={element_with_document["documents"][0]["documentId"]}',
-                        'status': status,
-                    })
-                except Exception as e:
-                    print("diadoc_api get_documents Exception [000]" + str(e))
+                a = element_with_document['participants']['sender']['box']['shortName']
+                print(a)
+                for document in element_with_document['documents']:
+                    try:
+                        status = document['status']['primary']['text']
+                        self.LIST_DOCUMENTS.append({
+                            'id': element_with_document['messageId'] + '-' + document['documentId'],
+                            'date': datetime.strftime(datetime.strptime(document['name'].split(' от ')[1], '%d.%m.%y'),'%d.%m.%Y') ,
+                            'num': document['name'].split(' от ')[0].split('УПД №')[1],
+                            'sum': document['metadata'][0]['primaryText'].replace('&#160;', '').replace('\xa0₽', ''),
+                            'kontragent': element_with_document['participants']['sender']['box']['shortName'],
+                            'documentid': document['documentId'],
+                            'letterid': element_with_document['messageId'],
+                            'ft-name': document['name'],
+                            'link_document': 'https://diadoc.kontur.ru/' + document['url'],
+                            'link_document_attachment': f'https://diadoc.kontur.ru/{diadoc_id}/Download/Attachment?letterId={element_with_document["messageId"]}&attachmentId={document["documentId"]}',
+                            'status': status,
+                        })
+                    except Exception as e:
+                        print("diadoc_api get_documents Exception [000]" + str(e))
 
         return self.LIST_DOCUMENTS
     def download(self, url, file_name):
