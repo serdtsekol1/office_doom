@@ -68,11 +68,13 @@ def get_supplier_data_for_preset(supplier):
 
 
 def get_prerequisites_for_a_document(pandas_document, preset):
+    print('Попытка использовать шаблон: ',preset.preset_name)
     try:
         if preset.supplier_unique_information.replace('  ', ' ') not in pandas_document.iloc[
             preset.supplier_unique_information_row,
             preset.supplier_unique_information_col
         ].replace('  ', ' '):
+            print('Шаблон', preset.preset_name, 'Уникальная информация поставщика - НЕ ОК')
             return False
         # +         Get Store Destination
         if preset.document_store_information is not None:
@@ -80,6 +82,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
                 preset.document_store_information_row,
                 preset.document_store_information_col
             ].replace('  ', ' ').strip():
+                print('Шаблон', preset.preset_name, 'Информация о магазине в документе - НЕ ОК')
                 return False
         else:
             print('document_store_information is None')
@@ -99,6 +102,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
                     document_date = document_date_new
             document_date = datetime.datetime.strptime(document_date.strip(), preset.document_date_format).strftime("%Y-%m-%d")
         else:
+            print('Шаблон', preset.preset_name, 'Дата - невозможно разбрать, ставится дефолтная дата - Сегодня.')
             document_date = datetime.date.today().strftime("%Y-%m-%d")
         # Get Number
         if preset.document_number_col is not None and preset.document_number_row is not None:
@@ -114,6 +118,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
 
 
         else:
+            print('Шаблон', preset.preset_name, 'Невозможно разобрать номер документа')
             document_number = '000-000'
         document_supplier = DREAM_KAS_API.search_partner_id_by_inn(preset.supplier_inn)
         store_destination = None
@@ -122,6 +127,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
                                                                                                                                                                                           ' ').strip():
                 store_destination = preset.document_store_destination
             else:
+                print('Шаблон', preset.preset_name, 'Информация о адресе доставки - НЕ ОК')
                 return False
         if store_destination is None:
             store_destination = Store.objects.first().store_id
@@ -133,6 +139,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
         }
     except Exception as Ex:
         print(Ex)
+        print('Шаблон', preset.preset_name, 'НЕ ОК, общая ошибка')
         return False
 
 
