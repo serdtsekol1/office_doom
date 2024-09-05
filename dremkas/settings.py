@@ -307,7 +307,12 @@ print(CURRENT_IDS)
 DREAMKAS_LOGIN = os.environ.get('DREAMKAS_LOGIN')
 DREAMKAS_PASSWORD = os.environ.get('DREAMKAS_PASSWORD')
 TOKEN = os.environ.get(f'CURRENT_SHOP_{os.environ.get("DREAMKAS_TOKEN")}')
-DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
+try:
+    DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
+    print('a')
+except Exception as ex:
+    print(ex)
+    pass
 DIADOC_LOGIN = os.environ.get('DIADOC_LOGIN')
 DIADOC_PASSWORD = os.environ.get('DIADOC_PASSWORD')
 DIADOC_ID = os.environ.get('DIADOC_ID')

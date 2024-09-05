@@ -471,7 +471,14 @@ class DreamKasApi:
         existing_ids = set()  # Множина для зберігання існуючих id_out
 
         while True:
-            response = self.session.get(f"https://kabinet.dreamkas.ru/api/products?limit=1000&offset={offset}")
+            for attempt in range(5):
+                response = self.session.get(f"https://kabinet.dreamkas.ru/api/products?limit=1000&offset={offset}")
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    print(f"Attempt {attempt + 1} failed with status code {response.status_code}. Retrying in 500 ms...")
+                    time.sleep(1+attempt*attempt)
+            raise Exception("Failed to fetch products after 5 attempts")
             products_data = response.json()
 
             if not products_data:

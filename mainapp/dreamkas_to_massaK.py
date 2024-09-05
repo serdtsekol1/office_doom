@@ -35,24 +35,27 @@ def debug_remove_printer_code_from_long_not_accepted_products():
     for product in Product.objects.filter(barcodes__barcode__startswith=999999999):
         import datetime
         httpres = DREAM_KAS_API.get_product_history(product.id_out)
-        try:
-            if (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days > 91:
-                if product.id_out not in unique_ids:
-                    print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
-                    list_of_deleted_products.append([product.name, product.barcodes_set.get(barcode__startswith=999999999).barcode[9:12]])
-                    create_or_change_massak_codes_for_product(product.id_out,'')
-                #print(product.name, 'Deleted code for Massa K. Days passed since last invoice - ', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days )
-            #else:
-                #list_of_deleted_products.append(product.name)
-                #print(product.name, 'Days since last invoice:', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days)
-        except:
-            if httpres.status_code == 200:
-                if product.id_out not in unique_ids:
-                    print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
-                    list_of_deleted_products.append([product.name, product.barcodes_set.get(barcode__startswith=999999999).barcode[9:12]])
-                    create_or_change_massak_codes_for_product(product.id_out, '')
-                #print(product.name, 'Deleted code for Massa K. No invoice')
-                    list_of_deleted_products.append(product.name)
+        httpres2 = DREAM_KAS_API.get_product_v2(product.id_out)
+        if (datetime.datetime.now() - datetime.datetime.strptime(httpres2['updatedAt'], "%Y-%m-%dT%H:%M:%S.%fZ")).days > 90:
+
+            try:
+                if (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days > 90:
+                    if product.id_out not in unique_ids:
+                        print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
+                        list_of_deleted_products.append([product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode[9:12]])
+                        create_or_change_massak_codes_for_product(product.id_out,'')
+                    #print(product.name, 'Deleted code for Massa K. Days passed since last invoice - ', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days )
+                #else:
+                    #list_of_deleted_products.append(product.name)
+                    #print(product.name, 'Days since last invoice:', (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days)
+            except:
+                if httpres.status_code == 200:
+                    if product.id_out not in unique_ids:
+                        print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
+                        list_of_deleted_products.append([product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode[9:12]])
+                        create_or_change_massak_codes_for_product(product.id_out, '')
+                    #print(product.name, 'Deleted code for Massa K. No invoice')
+                        list_of_deleted_products.append(product.name)
     for deleted_product in list_of_deleted_products:
         print(deleted_product[0], 'deleted. Code:' , deleted_product[1])
 
