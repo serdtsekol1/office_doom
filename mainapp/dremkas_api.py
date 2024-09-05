@@ -4,6 +4,7 @@ import pickle
 import re
 from enum import Enum
 from itertools import groupby
+import time
 
 from slugify import slugify
 import barcodenumber
@@ -471,14 +472,15 @@ class DreamKasApi:
         existing_ids = set()  # Множина для зберігання існуючих id_out
 
         while True:
-            for attempt in range(5):
-                response = self.session.get(f"https://kabinet.dreamkas.ru/api/products?limit=1000&offset={offset}")
+            for attempt in range(20):
+                try:
+                    response = self.session.get(f"https://kabinet.dreamkas.ru/api/products?limit=1000&offset={offset}")
+                except:
+                    print(f"Не удалось скачать продукты. Следующая попытка через ", attempt*(attempt/2), " секунд")
+                    time.sleep(attempt * (attempt / 10))
+                    continue
                 if response.status_code == 200:
-                    return response.json()
-                else:
-                    print(f"Attempt {attempt + 1} failed with status code {response.status_code}. Retrying in 500 ms...")
-                    time.sleep(1+attempt*attempt)
-            raise Exception("Failed to fetch products after 5 attempts")
+                    break
             products_data = response.json()
 
             if not products_data:
