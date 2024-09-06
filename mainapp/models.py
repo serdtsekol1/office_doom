@@ -34,10 +34,22 @@ class Store(models.Model):
             Store.objects.update_or_create(store_id=store['id'], defaults = {
                 'store_name': store['name'],
             })
-        for device in DREAM_KAS_API.get_devices():
+        resp = DREAM_KAS_API.get_devices()
+        for device in resp:
             Device.objects.update_or_create(device_id=device['id'], defaults = {
                 'store_id' : device['groupId'],
             })
+        for device in Device.objects.all():
+            exists = 0
+            for device_resp in resp:
+                if device.device_id == device_resp['id']:
+                    exists = 1
+            if exists == 0:
+                print(device.device_id, ' being deleted for not existing!')
+                device.delete()
+
+
+
 
 
 class Device(models.Model):
