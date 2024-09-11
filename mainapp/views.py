@@ -5,6 +5,7 @@ import pickle
 import re
 import time
 import webbrowser
+import zipfile
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -1348,8 +1349,25 @@ def show_excel_document(request):
                 wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
                 pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
             except:
-                pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
+                try:
+                    pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
+                except:
+                    # Path to your Excel file
+                    temp_file_path = 'temp_file.xlsx'
 
+                    # Create a temporary copy of the file
+                    with zipfile.ZipFile(file_path, 'r') as z:
+                        with zipfile.ZipFile(temp_file_path, 'w') as new_z:
+                            for item in z.infolist():
+                                if item.filename == 'xl/SharedStrings.xml':
+                                    # Rename the file
+                                    new_z.writestr('xl/sharedStrings.xml', z.read(item.filename))
+                                else:
+                                    new_z.writestr(item, z.read(item.filename))
+
+                    # Replace the original file with the modified one
+                    os.replace(temp_file_path, file_path)
+                    pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
             return JsonResponse({"document_html": pandas_document.to_json(orient='index')}, safe=False)
     # document = document.to_html()
     return render(request, 'mainapp/parts/show_document.html')
