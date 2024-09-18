@@ -183,7 +183,7 @@ def get_products_from_a_document(pandas_document, preset):
                     met_conditions = met_conditions + 1
             product_amount = float(pandas_document.iloc[i, preset.product_amount_col])
             met_conditions = met_conditions + 1
-            product_sum = float(pandas_document.iloc[i, preset.product_sum_col])
+            product_sum = float((pandas_document.iloc[i, preset.product_sum_col]).replace(",", "."))
             met_conditions = met_conditions + 1
             if met_conditions == conditions:
                 good = {
@@ -265,49 +265,43 @@ def create_document_from_excel(excel_attachment, msg_sender):
     # mode:
     # 0 - by code, if availible
     # 1 - by name.
-    if excel_attachment.endswith('.csv'):
+    file_path = 'media/gmail_invoices/' + excel_attachment
+    if excel_attachment.lower().endswith('.csv'):
         try:
-            with open('D:\\downloads\\ЕВПАТОРИЙСКИЙ ХЛЕБОКОМБИНАТ-ФИЛИАЛ АО КРЫМХЛЕБ_ЕА000134053.CSV', newline='') as csvfile:
-                spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
-                lines = []
-                for row in spamreader:
-                    lines.append(row)
-            df = pandas.DataFrame(lines)
-            xlsfile = ''.join(random.choice("qwertyuiopasdfghjklzxcvbnmQWERTYUIIOPASDFGHJKLZXCVBNM0123456789") for _ in range(50)) + '.xlsx'
+            with open(default_storage.path(excel_attachment)) as csvfile:
+                df = pandas.read_csv(default_storage.path(excel_attachment), encoding='cp1251', delimiter=';', header=None)
+                df.to_excel('media/gmail_invoices/file.xlsx', index=False)
+                file_path = 'media/gmail_invoices/file.xlsx'
         except:
+            print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
             return
-    else:
+    try:
         try:
-            file_path = 'media/gmail_invoices/' + excel_attachment
+            wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
+            pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
+        except:
             try:
-                wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
-                pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
+                pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
             except:
                 try:
                     pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
                 except:
-                    try:
-                        pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
-                    except:
-                        # Path to your Excel file
-                        temp_file_path = 'temp_file.xlsx'
+                    temp_file_path = 'temp_file.xlsx'
+                    with zipfile.ZipFile(file_path, 'r') as z:
+                        with zipfile.ZipFile(temp_file_path, 'w') as new_z:
+                            for item in z.infolist():
+                                if item.filename == 'xl/SharedStrings.xml':
+                                    # Rename the file
+                                    new_z.writestr('xl/sharedStrings.xml', z.read(item.filename))
+                                else:
+                                    new_z.writestr(item, z.read(item.filename))
 
-                        # Create a temporary copy of the file
-                        with zipfile.ZipFile(file_path, 'r') as z:
-                            with zipfile.ZipFile(temp_file_path, 'w') as new_z:
-                                for item in z.infolist():
-                                    if item.filename == 'xl/SharedStrings.xml':
-                                        # Rename the file
-                                        new_z.writestr('xl/sharedStrings.xml', z.read(item.filename))
-                                    else:
-                                        new_z.writestr(item, z.read(item.filename))
-
-                        # Replace the original file with the modified one
-                        os.replace(temp_file_path, file_path)
-                        pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
-        except Exception as Ex:
-            print(Ex)
-            return False
+                    # Replace the original file with the modified one
+                    os.replace(temp_file_path, file_path)
+                    pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
+    except Exception as Ex:
+        print(Ex)
+        return False
 
     for preset in PresetGmail.objects.filter(supplier_mail=msg_sender):
         prerequisites = get_prerequisites_for_a_document(pandas_document, preset)

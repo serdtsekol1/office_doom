@@ -235,6 +235,8 @@ def change_printer_file_location(request):
 def create_or_change_printer_code_for_product(request):
     if request.method == 'POST':
         status, code = create_or_change_massak_codes_for_product(request.POST.get("id_out", None), request.POST.get("printer_code", None))
+        if status is False and type(code) != int:
+            return JsonResponse({'success': False, 'message': f'{code}'}, safe=False)
         if status is None:
             return JsonResponse({'success': False, 'message': f'Код {code} или Товар является неверным'}, safe=False)
         elif status is True:
@@ -1345,6 +1347,14 @@ def show_excel_document(request):
             result = request.FILES['file']
             file_name = default_storage.save(result.name, result)
             file_path = default_storage.path(file_name)
+            if file_name.lower().endswith('.csv'):
+                try:
+                    with open(default_storage.path(file_name)) as csvfile:
+                        df = pandas.read_csv(default_storage.path(file_name), encoding='cp1251',delimiter=';', header=None)
+                        df.to_excel('temp\\gmail_attachments\\file.xlsx', index=False)
+                        file_path = 'temp\\gmail_attachments\\file.xlsx'
+                except:
+                    print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
             try:
                 wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
                 pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
