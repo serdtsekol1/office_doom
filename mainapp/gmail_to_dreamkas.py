@@ -165,25 +165,32 @@ def get_products_from_a_document(pandas_document, preset):
     else:
         start_row = 0
     goods_list = []
+    step = 'start'
     for i in range(start_row, pandas_document.shape[0]):
         try:
             product_code = None
             met_conditions = 0
+            step = 'get product name'
             if preset.product_name_col is not None:
                 product_name = str(pandas_document.iloc[i, preset.product_name_col])
                 met_conditions = met_conditions + 1
+            step = 'get product code'
             if preset.product_code_col is not None:
                 product_code = str(pandas_document.iloc[i, preset.product_code_col])
                 met_conditions = met_conditions + 1
+            step = 'get product amount'
             if preset.product_amount_type_col is not None:
                 if str(pandas_document.iloc[i, preset.product_amount_type_col]) in amount_type:
                     met_conditions = met_conditions + 1
+            step = 'get product nds'
             if preset.product_nds_col is not None:
                 if str(pandas_document.iloc[i, preset.product_nds_col]) in nds:
                     met_conditions = met_conditions + 1
+            step = 'get product amount'
             product_amount = float(pandas_document.iloc[i, preset.product_amount_col])
             met_conditions = met_conditions + 1
-            product_sum = float((pandas_document.iloc[i, preset.product_sum_col]).replace(",", "."))
+            step = 'get product sum'
+            product_sum = float(str(pandas_document.iloc[i, preset.product_sum_col]).replace(",", "."))
             met_conditions = met_conditions + 1
             if met_conditions == conditions:
                 good = {
@@ -194,6 +201,8 @@ def get_products_from_a_document(pandas_document, preset):
                 }
                 goods_list.append(good)
         except:
+            print(slugify(preset.preset_name))
+            print(f'error {step}')
             continue
     return goods_list
 
@@ -318,6 +327,7 @@ def create_document_from_excel(excel_attachment, msg_sender):
         # Get goods from document
         products_list = get_products_from_a_document(pandas_document, preset)
         if products_list == [] or products_list is None:
+            print(slugify(preset.preset_name))
             print('0 goods error')
             continue
 
