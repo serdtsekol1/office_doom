@@ -183,7 +183,7 @@ def get_products_from_a_document(pandas_document, preset):
                     met_conditions = met_conditions + 1
             product_amount = float(pandas_document.iloc[i, preset.product_amount_col])
             met_conditions = met_conditions + 1
-            product_sum = float(pandas_document.iloc[i, preset.product_sum_col])
+            product_sum = float((pandas_document.iloc[i, preset.product_sum_col]).replace(",", "."))
             met_conditions = met_conditions + 1
             if met_conditions == conditions:
                 good = {
@@ -265,19 +265,17 @@ def create_document_from_excel(excel_attachment, msg_sender):
     # mode:
     # 0 - by code, if availible
     # 1 - by name.
-    if excel_attachment.endswith('.csv'):
-        file_path = default_storage.path(excel_attachment)
-        if excel_attachment.lower().endswith('.csv'):
-            try:
-                with open(default_storage.path(excel_attachment)) as csvfile:
-                    df = pandas.read_csv(default_storage.path(excel_attachment), encoding='cp1251', delimiter=';', header=None)
-                    df.to_excel('temp\\gmail_attachments\\file.xlsx', index=False)
-                    file_path = 'temp\\gmail_attachments\\file.xlsx'
-            except:
-                print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
-                return
+    file_path = 'media/gmail_invoices/' + excel_attachment
+    if excel_attachment.lower().endswith('.csv'):
+        try:
+            with open(default_storage.path(excel_attachment)) as csvfile:
+                df = pandas.read_csv(default_storage.path(excel_attachment), encoding='cp1251', delimiter=';', header=None)
+                df.to_excel('media/gmail_invoices/file.xlsx', index=False)
+                file_path = 'media/gmail_invoices/file.xlsx'
+        except:
+            print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
+            return
     try:
-        file_path = 'media/gmail_invoices/' + excel_attachment
         try:
             wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
             pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)
@@ -288,10 +286,7 @@ def create_document_from_excel(excel_attachment, msg_sender):
                 try:
                     pandas_document = pandas.read_excel(file_path, engine='openpyxl').fillna('')
                 except:
-                    # Path to your Excel file
                     temp_file_path = 'temp_file.xlsx'
-
-                    # Create a temporary copy of the file
                     with zipfile.ZipFile(file_path, 'r') as z:
                         with zipfile.ZipFile(temp_file_path, 'w') as new_z:
                             for item in z.infolist():

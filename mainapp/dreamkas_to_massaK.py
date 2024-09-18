@@ -218,6 +218,9 @@ def create_or_change_massak_codes_for_product(id_out,code):
             Delete_barcode_for_product(id_out, create_massak_code(code, mode=0))
             return resp, code
         return True, code
+    if product_external['unit'] != str(166) and product_external['unit'] != str(796):
+        print("Товар имеет некорректную единицу измерения. Поставьте либо ШТ либо КГ!")
+        return False, "Товар имеет некорректную единицу измерения. Поставьте либо ШТ либо КГ!"
     return False, code
 
 def check_code_massaK(barcode):
