@@ -13,24 +13,12 @@ from django.core.files.storage import default_storage
 def update_diadoc_invoices_v2(diadoc_id, store_id):
     invoices = DIADOC_API.get_documents_v2(diadoc_id)
     for item in invoices:
-        try:
-            download_invoice_from_diadoc(item['id'])
-            with open(f'media/diadoc_files/{item["id"]}.xml', "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
-                data_dict = xmltodict.parse(xmlfileObj.read())
-            valid_presets = get_diadoc_presets_for_file(data_dict)
-        except Exception as ex:
-            print(ex)
-            continue
         store_destination_id = store_id
-        if valid_presets is not False and valid_presets.__len__() is not 0:
-            print(valid_presets)
-            store_destination_id = valid_presets[0].store_destination_fk.store_id
         diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
             'kontragent': item['kontragent'],
             'sum': item['sum'],
             'number': item['num'],
             'issue_date': datetime.strptime(item['date'], "%d.%m.%Y").strftime("%Y-%m-%d"),
-            # ({"date": datetime.datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
             'invoice_status': item['status'],
             'downloadlink': item['link_document_attachment'],
             'store_id': store_destination_id,
@@ -39,6 +27,20 @@ def update_diadoc_invoices_v2(diadoc_id, store_id):
         print(diadoc_invoice.kontragent)
         print(diadoc_invoice.number)
         print(diadoc_invoice.issue_date)
+        try:
+            download_invoice_from_diadoc(item['id'])
+            with open(f'media/diadoc_files/{item["id"]}.xml', "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
+                data_dict = xmltodict.parse(xmlfileObj.read())
+            valid_presets = get_diadoc_presets_for_file(data_dict)
+        except Exception as ex:
+            print(ex)
+            continue
+        if valid_presets is not False and valid_presets.__len__() is not 0:
+            print(valid_presets)
+            store_destination_id = valid_presets[0].store_destination_fk.store_id
+            diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
+                'store_id': store_destination_id,
+            })
 
 def get_diadoc_presets_for_file(file):
     inn = None
