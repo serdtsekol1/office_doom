@@ -21,9 +21,10 @@ def update_diadoc_invoices_v2(diadoc_id, store_id):
         except Exception as ex:
             print(ex)
             continue
+        store_destination_id = store_id
         if valid_presets is not False and valid_presets.__len__() is not 0:
             print(valid_presets)
-            store_id = valid_presets[0].store_destination_fk.store_id
+            store_destination_id = valid_presets[0].store_destination_fk.store_id
         diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
             'kontragent': item['kontragent'],
             'sum': item['sum'],
@@ -32,7 +33,7 @@ def update_diadoc_invoices_v2(diadoc_id, store_id):
             # ({"date": datetime.datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
             'invoice_status': item['status'],
             'downloadlink': item['link_document_attachment'],
-            'store_id': store_id,
+            'store_id': store_destination_id,
         })
         print(diadoc_invoice_status)
         print(diadoc_invoice.kontragent)
