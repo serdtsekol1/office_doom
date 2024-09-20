@@ -1,4 +1,5 @@
 import datetime
+import time
 
 import pandas
 import os
@@ -43,21 +44,27 @@ def get_gmail_messages_alternative():
 
     return
 def get_gmail_messages(client_secret_json, days=14):
-    try:
-        gmail = simplegmail.Gmail(client_secret_file=client_secret_json)
-        query_params = {
-            "newer_than": (days, "day")
-        }
-        print('Настройка почты завершена, посылаем запрос.')
-        try:
-            result = gmail.get_messages(query=construct_query(query_params))
-        except:
-            print('b')
+    for i in range(15):
 
-        print('Запрос был послан. Результат - ', result)
-        return result
-    except:
-        print('a')
+        try:
+            gmail = simplegmail.Gmail(client_secret_file=client_secret_json)
+            query_params = {
+                "newer_than": (days, "day")
+            }
+            print('Настройка почты завершена, посылаем запрос.')
+            try:
+                result = gmail.get_messages(query=construct_query(query_params))
+            except:
+                print('b')
+
+            print('Запрос был послан. Результат - ', result)
+            return result
+        except:
+            pass
+        if type(result) is not None:
+            return(result)
+        else:
+            time.wait(i)
 
     # Create_dreamkas_document_from_excel
 
