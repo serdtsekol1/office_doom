@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from mainapp.diadoc_api import DiadocApi
@@ -307,12 +308,15 @@ print(CURRENT_IDS)
 DREAMKAS_LOGIN = os.environ.get('DREAMKAS_LOGIN')
 DREAMKAS_PASSWORD = os.environ.get('DREAMKAS_PASSWORD')
 TOKEN = os.environ.get(f'CURRENT_SHOP_{os.environ.get("DREAMKAS_TOKEN")}')
-try:
-    DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
-    print('a')
-except Exception as ex:
-    print(ex)
-    pass
+for i in range(10):
+    try:
+        DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
+        break
+    except Exception as ex:
+        print('Попытка установить соединение неудачна. Попытка - ', i, '. Следующая попытка через',i*i/2, "секунд")
+        print(ex)
+        time.sleep(i*i/2)
+        pass
 DIADOC_LOGIN = os.environ.get('DIADOC_LOGIN')
 DIADOC_PASSWORD = os.environ.get('DIADOC_PASSWORD')
 DIADOC_ID = os.environ.get('DIADOC_ID')

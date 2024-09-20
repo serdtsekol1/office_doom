@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from slugify import slugify
 
@@ -12,6 +13,16 @@ from django.core.files.storage import default_storage
 def update_diadoc_invoices_v2(diadoc_id, store_id):
     invoices = DIADOC_API.get_documents_v2(diadoc_id)
     for item in invoices:
+        try:
+            download_invoice_from_diadoc(item['id'])
+            with open(f'media/diadoc_files/{item["id"]}.xml', "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
+                data_dict = xmltodict.parse(xmlfileObj.read())
+            valid_presets = get_diadoc_presets_for_file(data_dict)
+        except:
+            continue
+        if valid_presets is not False and valid_presets.__len__() is not 0:
+            print(valid_presets)
+            store_id = valid_presets[0].store_destination_fk.store_id
         diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
             'kontragent': item['kontragent'],
             'sum': item['sum'],
@@ -76,10 +87,15 @@ def get_diadoc_presets_for_file(file):
 def generate_document_from_preset(document,diadocpreset):
     prefix = diadocpreset
     return
-def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
+def download_invoice_from_diadoc(diadoc_document_id):
     file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
-    download_link = DiadocInvoice.objects.get(diadoc_id=diadoc_document_id).downloadlink
-    DIADOC_API.download(url=download_link, file_name=file_name)
+    if not os.path.exists(file_name):
+        download_link = DiadocInvoice.objects.get(diadoc_id=diadoc_document_id).downloadlink
+        DIADOC_API.download(url=download_link, file_name=file_name)
+
+def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
+    download_invoice_from_diadoc(diadoc_document_id)
+    file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
     with open(file_name, "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
         data_dict = xmltodict.parse(xmlfileObj.read())
     valid_presets = get_diadoc_presets_for_file(data_dict)
