@@ -277,10 +277,9 @@ def create_document_from_excel(excel_attachment, msg_sender):
     file_path = 'media/gmail_invoices/' + excel_attachment
     if excel_attachment.lower().endswith('.csv'):
         try:
-            with open(default_storage.path(excel_attachment)) as csvfile:
-                df = pandas.read_csv(default_storage.path(excel_attachment), encoding='cp1251', delimiter=';', header=None)
-                df.to_excel('media/gmail_invoices/file.xlsx', index=False)
-                file_path = 'media/gmail_invoices/file.xlsx'
+            df = pandas.read_csv(file_path, encoding='cp1251', delimiter=';', header=None)
+            df.to_excel('media/gmail_invoices/file.xlsx', index=False)
+            file_path = 'media/gmail_invoices/file.xlsx'
         except:
             print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
             return
