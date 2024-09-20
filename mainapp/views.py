@@ -44,7 +44,7 @@ from .dreamkas_Products import product_update, Find_and_delete_barcode, Create_b
 from .dreamkas_to_massaK import create_or_change_massak_codes_for_product, create_excel_document_for_massaK
 from .gmail_invoices import create_document_from_excel, get_gmail_messages
 from .gmail_to_dreamkas import get_document_and_attachments_from_gmail, get_supplier_data_for_preset
-from .helper import send_document, delete_file, save_to_json
+from .helper import send_document, delete_file, save_to_json, convert_csv_to_excel
 from django.http import HttpResponse
 from django.core.validators import MinValueValidator, MaxValueValidator, EMPTY_VALUES
 from django.utils import timezone
@@ -1348,13 +1348,7 @@ def show_excel_document(request):
             file_name = default_storage.save(result.name, result)
             file_path = default_storage.path(file_name)
             if file_name.lower().endswith('.csv'):
-                try:
-                    with open(default_storage.path(file_name)) as csvfile:
-                        df = pandas.read_csv(default_storage.path(file_name), encoding='cp1251',delimiter=';', header=None)
-                        df.to_excel('temp\\gmail_attachments\\file.xlsx', index=False)
-                        file_path = 'temp\\gmail_attachments\\file.xlsx'
-                except:
-                    print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
+                file_path = convert_csv_to_excel(file_path)
             try:
                 wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
                 pandas_document = pandas.read_excel(wb, keep_default_na=False, header=None)

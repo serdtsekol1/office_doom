@@ -2,6 +2,7 @@ import os
 import json
 
 import barcodenumber
+import pandas
 import pandas as pd
 import xlrd
 import xmltodict
@@ -17,6 +18,19 @@ def delete_file(path):
     except Exception as ex:
         print(ex)
 
+def convert_csv_to_excel(file_path):
+    if file_path.lower().endswith('.csv'):
+        try:
+            df = pandas.read_csv(file_path, encoding='cp1251', delimiter=';', header=None)
+            df.to_excel('temp\\gmail_attachments\\file.xlsx', index=False)
+            resulting_file_path = 'temp\\gmail_attachments\\file.xlsx'
+        except:
+            print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
+            return False
+        return resulting_file_path
+    else:
+        print('Указанный файл не CSV')
+        return False
 
 def normalizer_xls(file_name):
     print (file_name)
