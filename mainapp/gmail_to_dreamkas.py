@@ -71,6 +71,7 @@ def get_supplier_data_for_preset(supplier):
 def get_prerequisites_for_a_document(pandas_document, preset):
     print('Попытка использовать шаблон: ',preset.preset_name)
     try:
+        step = "Получение уник. Инфы в документе"
         if preset.supplier_unique_information.replace('  ', ' ') not in pandas_document.iloc[
             preset.supplier_unique_information_row,
             preset.supplier_unique_information_col
@@ -78,6 +79,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
             print('Шаблон', preset.preset_name, 'Уникальная информация поставщика - НЕ ОК')
             return False
         # +         Get Store Destination
+        step = "Получение Магазина в документе"
         if preset.document_store_information is not None:
             if preset.document_store_information.replace('  ', ' ').strip() not in pandas_document.iloc[
                 preset.document_store_information_row,
@@ -88,6 +90,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
         else:
             print('document_store_information is None')
         # Get Date
+        step = "Получение даты в документе"
         if preset.document_date_col is not None and preset.document_number_row is not None:
             document_date = pandas_document.iloc[
                 preset.document_date_row,
@@ -106,6 +109,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
             print('Шаблон', preset.preset_name, 'Дата - невозможно разбрать, ставится дефолтная дата - Сегодня.')
             document_date = datetime.date.today().strftime("%Y-%m-%d")
         # Get Number
+        step = "Получение номера в документе"
         if preset.document_number_col is not None and preset.document_number_row is not None:
             document_number = pandas_document.iloc[
                 preset.document_number_row,
@@ -121,6 +125,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
         else:
             print('Шаблон', preset.preset_name, 'Невозможно разобрать номер документа')
             document_number = '000-000'
+        step = "Получение поставщика в документе"
         document_supplier = DREAM_KAS_API.search_partner_id_by_inn(preset.supplier_inn)
         store_destination = None
         if preset.document_store_information_row is not None and preset.document_store_information_col is not None:
@@ -130,6 +135,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
             else:
                 print('Шаблон', preset.preset_name, 'Информация о адресе доставки - НЕ ОК')
                 return False
+        step = "Получение магазина доставки в документе"
         if store_destination is None:
             store_destination = Store.objects.first().store_id
         return {
@@ -140,7 +146,7 @@ def get_prerequisites_for_a_document(pandas_document, preset):
         }
     except Exception as Ex:
         print(Ex)
-        print('Шаблон', preset.preset_name, 'НЕ ОК, общая ошибка')
+        print('Шаблон', preset.preset_name, 'НЕ ОК, общая ошибка, Шаг - ',step)
         return False
 
 
