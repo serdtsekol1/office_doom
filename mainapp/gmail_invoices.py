@@ -44,7 +44,7 @@ def get_gmail_messages_alternative():
 
     return
 def get_gmail_messages(client_secret_json, days=14):
-    for i in range(15):
+    for i in range(45):
 
         try:
             gmail = simplegmail.Gmail(client_secret_file=client_secret_json)
@@ -64,7 +64,8 @@ def get_gmail_messages(client_secret_json, days=14):
         if type(result) is not None:
             return(result)
         else:
-            time.wait(i)
+            print(f'Попытка получить накладные по почте не удалась. Следующая - через {i/3} секунд, Лимит в 45 попыток.')
+            time.wait(i/3)
 
     # Create_dreamkas_document_from_excel
 
