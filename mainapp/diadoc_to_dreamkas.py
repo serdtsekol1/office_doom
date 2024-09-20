@@ -82,7 +82,12 @@ def get_diadoc_presets_for_file(file):
                     continue
         except:
             pass
-
+        try:
+            if str(xmltodict.parse(preset.store_destination_information)) == str(file['Файл']['Документ']['СвСчФакт']['ГрузПолуч']['ИдСв']):
+                valid_presets_store_destination.append(preset)
+                continue
+        except:
+            pass
 
     return valid_presets_store_destination
 
