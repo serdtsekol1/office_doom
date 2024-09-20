@@ -18,7 +18,8 @@ def update_diadoc_invoices_v2(diadoc_id, store_id):
             with open(f'media/diadoc_files/{item["id"]}.xml', "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
                 data_dict = xmltodict.parse(xmlfileObj.read())
             valid_presets = get_diadoc_presets_for_file(data_dict)
-        except:
+        except Exception as ex:
+            print(ex)
             continue
         if valid_presets is not False and valid_presets.__len__() is not 0:
             print(valid_presets)
