@@ -1347,6 +1347,8 @@ def show_excel_document(request):
             result = request.FILES['file']
             file_name = default_storage.save(result.name, result)
             file_path = default_storage.path(file_name)
+            print(file_name)
+            print(file_path)
             if file_name.lower().endswith('.csv'):
                 file_path = convert_csv_to_excel(file_path)
             try:
