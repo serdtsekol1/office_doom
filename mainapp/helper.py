@@ -24,6 +24,8 @@ def convert_csv_to_excel(file_path):
             print('a')
             df = pandas.read_csv(file_path, encoding='cp1251', delimiter=';', header=None)
             print('b')
+            if not os.path.exists(os.path.dirname('temp/csv_to_excel/file.xlsx')):
+                os.makedirs(os.path.dirname('temp/csv_to_excel/file.xlsx'))
             df.to_excel('temp/csv_to_excel/file.xlsx', index=False)
             print('c')
             resulting_file_path = 'temp/gmail_attachments/file.xlsx'
