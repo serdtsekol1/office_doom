@@ -21,9 +21,13 @@ def delete_file(path):
 def convert_csv_to_excel(file_path):
     if file_path.lower().endswith('.csv'):
         try:
+            print('a')
             df = pandas.read_csv(file_path, encoding='cp1251', delimiter=';', header=None)
+            print('b')
             df.to_excel('temp/gmail_attachments/file.xlsx', index=False)
+            print('c')
             resulting_file_path = 'temp/gmail_attachments/file.xlsx'
+            print('d')
         except Exception as ex:
             print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
             print(ex)
