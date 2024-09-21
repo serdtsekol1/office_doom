@@ -21,17 +21,12 @@ def delete_file(path):
 def convert_csv_to_excel(file_path):
     if file_path.lower().endswith('.csv'):
         try:
-            print('a')
             df = pandas.read_csv(file_path, encoding='cp1251', delimiter=';', header=None)
-            print('b')
             if not os.path.exists(os.path.dirname('temp/csv_to_excel/file.xlsx')):
                 os.makedirs(os.path.dirname('temp/csv_to_excel/file.xlsx'))
             df.to_excel('temp/csv_to_excel/file.xlsx', index=False)
-            print('c')
             resulting_file_path = 'temp/csv_to_excel/file.xlsx'
-            print('d')
         except Exception as ex:
-            print(ex)
             print(ex)
             print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
             return False

@@ -15,7 +15,7 @@ from slugify import slugify
 
 from dremkas.settings import DREAM_KAS_API
 from mainapp.gmail_invoices import get_gmail_messages, replace_month_to_number
-from mainapp.helper import check_EAN13_EAN8
+from mainapp.helper import check_EAN13_EAN8, convert_csv_to_excel
 from mainapp.models import PresetGmail, Store
 
 
@@ -282,13 +282,7 @@ def create_document_from_excel(excel_attachment, msg_sender):
     # 1 - by name.
     file_path = 'media/gmail_invoices/' + excel_attachment
     if excel_attachment.lower().endswith('.csv'):
-        try:
-            df = pandas.read_csv(file_path, encoding='cp1251', delimiter=';', header=None)
-            df.to_excel('media/gmail_invoices/file.xlsx', index=False)
-            file_path = 'media/gmail_invoices/file.xlsx'
-        except:
-            print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
-            return
+        file_path = convert_csv_to_excel(file_path)
     try:
         try:
             wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
