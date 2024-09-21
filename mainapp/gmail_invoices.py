@@ -65,7 +65,7 @@ def get_gmail_messages(client_secret_json, days=14):
             return(result)
         else:
             print(f'Попытка получить накладные по почте не удалась. Следующая - через {i/3} секунд, Лимит в 45 попыток.')
-            time.wait(i/3)
+            time.sleep(i/3)
 
     # Create_dreamkas_document_from_excel
 

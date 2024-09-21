@@ -47,7 +47,7 @@ def get_document_and_attachments_from_gmail(message_id, store_id):
             message = gmail.get_messages(query=construct_query(query_params))[0]
             break
         except:
-            time.wait(i)
+            time.sleep(i)
             print(f"Попытка получить сообщение неудачна. Следующая попытка через {i} секунд.Попытка {i}/20")
     message = gmail.get_messages(query=construct_query(query_params))[0]
     if message.attachments:
