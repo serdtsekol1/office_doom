@@ -24,8 +24,9 @@ def convert_csv_to_excel(file_path):
             df = pandas.read_csv(file_path, encoding='cp1251', delimiter=';', header=None)
             df.to_excel('temp/gmail_attachments/file.xlsx', index=False)
             resulting_file_path = 'temp/gmail_attachments/file.xlsx'
-        except:
+        except Exception as ex:
             print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
+            print(ex)
             return False
         return resulting_file_path
     else:
