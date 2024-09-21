@@ -22,8 +22,8 @@ def convert_csv_to_excel(file_path):
     if file_path.lower().endswith('.csv'):
         try:
             df = pandas.read_csv(file_path, encoding='cp1251', delimiter=';', header=None)
-            df.to_excel('temp\\gmail_attachments\\file.xlsx', index=False)
-            resulting_file_path = 'temp\\gmail_attachments\\file.xlsx'
+            df.to_excel('temp/gmail_attachments/file.xlsx', index=False)
+            resulting_file_path = 'temp/gmail_attachments/file.xlsx'
         except:
             print('Файл - CSV Но попытка его открыть и конвертировать не удалась.')
             return False
@@ -31,7 +31,15 @@ def convert_csv_to_excel(file_path):
     else:
         print('Указанный файл не CSV')
         return False
-
+def save_file_from_request(request,save_folder):
+    result = request.FILES['file']
+    file_path = os.path.join(save_folder, result.name)
+    if not os.path.exists(os.path.dirname(file_path)):
+        os.makedirs(os.path.dirname(file_path))
+    with open(file_path, 'wb+') as destination:
+        for chunk in result.chunks():
+            destination.write(chunk)
+    return
 def normalizer_xls(file_name):
     print (file_name)
     xls = pd.read_excel(file_name, header=None)

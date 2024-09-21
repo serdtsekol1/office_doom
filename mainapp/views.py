@@ -44,7 +44,7 @@ from .dreamkas_Products import product_update, Find_and_delete_barcode, Create_b
 from .dreamkas_to_massaK import create_or_change_massak_codes_for_product, create_excel_document_for_massaK
 from .gmail_invoices import create_document_from_excel, get_gmail_messages
 from .gmail_to_dreamkas import get_document_and_attachments_from_gmail, get_supplier_data_for_preset
-from .helper import send_document, delete_file, save_to_json, convert_csv_to_excel
+from .helper import send_document, delete_file, save_to_json, convert_csv_to_excel, save_file_from_request
 from django.http import HttpResponse
 from django.core.validators import MinValueValidator, MaxValueValidator, EMPTY_VALUES
 from django.utils import timezone
@@ -1345,11 +1345,14 @@ def show_excel_document(request):
     if request.method == "POST":
         if request.FILES:
             result = request.FILES['file']
-            file_name = default_storage.save(result.name, result)
-            file_path = default_storage.path(file_name)
-            print(file_name)
-            print(file_path)
-            if file_name.lower().endswith('.csv'):
+            file_path = os.path.join('/temp/', result.name)
+            # save_file_from_request(request, file_path)
+            if not os.path.exists(os.path.dirname(file_path)):
+                os.makedirs(os.path.dirname(file_path))
+            with open(file_path, 'wb+') as destination:
+                for chunk in result.chunks():
+                    destination.write(chunk)
+            if file_path.lower().endswith('.csv'):
                 file_path = convert_csv_to_excel(file_path)
             try:
                 wb = xlrd.open_workbook(file_path, encoding_override='cp1251')
