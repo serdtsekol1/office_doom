@@ -72,6 +72,9 @@ def get_prerequisites_for_a_document(pandas_document, preset):
     print('Попытка использовать шаблон: ',preset.preset_name)
     try:
         step = "Получение уник. Инфы в документе"
+        print(preset.supplier_unique_information)
+        print(preset.supplier_unique_information_row)
+        print(preset.supplier_unique_information_col)
         if preset.supplier_unique_information.replace('  ', ' ') not in pandas_document.iloc[
             preset.supplier_unique_information_row,
             preset.supplier_unique_information_col
