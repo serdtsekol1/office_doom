@@ -2,6 +2,7 @@ import csv
 import datetime
 import os
 import random
+import time
 import zipfile
 
 import patoolib
@@ -41,7 +42,13 @@ def get_document_and_attachments_from_gmail(message_id, store_id):
     query_params = {
         "id": message_id
     }
-
+    for i in range(20):
+        try:
+            message = gmail.get_messages(query=construct_query(query_params))[0]
+            break
+        except:
+            time.wait(i)
+            print(f"Попытка получить сообщение неудачна. Следующая попытка через {i} секунд.Попытка {i}/20")
     message = gmail.get_messages(query=construct_query(query_params))[0]
     if message.attachments:
         for attachment in message.attachments:
