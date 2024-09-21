@@ -28,7 +28,7 @@ def convert_csv_to_excel(file_path):
                 os.makedirs(os.path.dirname('temp/csv_to_excel/file.xlsx'))
             df.to_excel('temp/csv_to_excel/file.xlsx', index=False)
             print('c')
-            resulting_file_path = 'temp/gmail_attachments/file.xlsx'
+            resulting_file_path = 'temp/csv_to_excel/file.xlsx'
             print('d')
         except Exception as ex:
             print(ex)
