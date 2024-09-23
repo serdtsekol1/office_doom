@@ -26,7 +26,7 @@
         </div>
         {% for invoice in dreamkas_invoices %}
             {% if invoice.supplier in supplier_names %}
-                <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.paid %} list-group-item-success {% endif %}">
+                <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.paid %} list-group-item-success {% endif %} {% if invoice.overdue_ %} list-group-item-danger {% endif %}">
                     <div style="flex-basis: 50%; flex-grow: 1;" class="">
                         <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.id_dreem %}">{{ invoice.number }}</a></div>
                         <div class="text-dark">{{ invoice.supplier }}</div>

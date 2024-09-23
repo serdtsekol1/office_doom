@@ -230,7 +230,8 @@ class Barcodes(models.Model):
     # product_obj.barcodes_set.update_or_create(barcode=[Barcode that I need to add to product])
     # To find an object by barcode
     # Product.objects.filter(barcodes__barcode=1231231231234)
-
+class Rests(models.Model):
+    product_fk = models.ForeignKey(Product, max_length=255, blank=True, default=None, null=True, on_delete=models.CASCADE)
 
 class Prices_shop(models.Model):
     product_fk = models.ForeignKey(Product, max_length=255, blank=True, default=None, null=True, on_delete=models.CASCADE)
@@ -253,6 +254,17 @@ class Supplier(models.Model):
     invoices_non_program = models.CharField('invoices_non_program', max_length=5000, blank=True, default='', null=True)
     invoice_program = models.CharField('invoices_program', max_length=5000, blank=True, default='', null=True)
     supplier_prefix = models.CharField('comment', max_length=255, blank=True, default=None, null=True)
+    def debt(self):
+        #Returns - sum of all invoices that are not paid.
+        debt_invoices = Invoice.objects.filter(supplier_fk=self, paid=False)
+        debt = 0
+        for invoice in debt_invoices:
+            debt = debt + invoice.sum
+        return debt
+    def unpaid_invoices(self):
+        #Returns - amount of invoices that are not paid.
+        return Invoice.objects.filter(supplier_fk=self, paid=False).__len__()
+
 
 
 
@@ -312,7 +324,13 @@ class Invoice(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE, null=True)
 
     # linked_documents = models.ManyToManyField("self", blank=True)
-
+    def overdue_(self):
+        if self.supplier_fk.paymenttime is None:
+            return None
+        if (datetime.datetime.today().date() - self.issue_date).days > self.supplier_fk.paymenttime and self.paid is False:
+            return True
+        else:
+            return False
     @property
     def date_to_pay(self):
         if self.supplier_fk:

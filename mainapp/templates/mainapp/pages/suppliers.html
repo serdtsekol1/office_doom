@@ -6,7 +6,7 @@
 
         <div class="search_field" data-search_data_field="{{ supplier.supplier_name_set.first.name }} {{ supplier.name }} {{ supplier.inn }}">
             <li class="list-group-item d-flex justify-content-end align-items-center">
-                <div style="flex-basis: 50%; flex-grow: 1">
+                <div style="flex-basis: 33%; flex-grow: 1">
                     {% if supplier.inn != None %}
                         <a href="{% url "dreamkas_supplier" supplier_data=supplier.inn %}">
                             <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.supplier_name_set.all.0.name }}</div>
@@ -16,11 +16,31 @@
                     {% if supplier.inn == None %}
                         {% if supplier.supplier_name_set.first != None %}
                             <a href="{% url "dreamkas_supplier" supplier_data=supplier.supplier_name_set.all.first.name %}">
-                                <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.supplier_name_set.all.0.name }}</div>
-                                <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
+                                <div>
+                                    <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.supplier_name_set.all.0.name }}</div>
+                                    <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
+                                </div>
+                                <div>
+                                </div>
                             </a>
                         {% endif %}
                     {% endif %}
+                </div>
+                <div style="flex-basis: 20%">
+                    <div>
+                        Сумма неоплаченых накладных:
+                    </div>
+                    <div>
+                        {{ supplier.debt }}
+                    </div>
+                </div>
+                <div style="flex-basis: 20%">
+                    <div>
+                        Кол-во неоплаченых накладных:
+                    </div>
+                    <div>
+                        {{ supplier.unpaid_invoices }}
+                    </div>
                 </div>
 
 
