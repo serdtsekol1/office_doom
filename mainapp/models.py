@@ -230,8 +230,8 @@ class Barcodes(models.Model):
     # product_obj.barcodes_set.update_or_create(barcode=[Barcode that I need to add to product])
     # To find an object by barcode
     # Product.objects.filter(barcodes__barcode=1231231231234)
-class Rests(models.Model):
-    product_fk = models.ForeignKey(Product, max_length=255, blank=True, default=None, null=True, on_delete=models.CASCADE)
+# class Rests(models.Model):
+#     product_fk = models.ForeignKey(Product, max_length=255, blank=True, default=None, null=True, on_delete=models.CASCADE)
 
 class Prices_shop(models.Model):
     product_fk = models.ForeignKey(Product, max_length=255, blank=True, default=None, null=True, on_delete=models.CASCADE)
