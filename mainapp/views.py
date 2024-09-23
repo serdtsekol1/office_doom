@@ -855,7 +855,10 @@ def dreamkas_supplier(request, supplier_data):
     supplier_names = []
     for supplier_name_obj in supplier.supplier_name_set.all():
         supplier_names.append(supplier_name_obj.name)
-    dreamkas_invoices = Invoice.objects.filter(hide=False, store=store).order_by("-issue_date")
+    #dreamkas_invoices = Invoice.objects.filter(hide=False, store=store).order_by("-issue_date")
+    unpaid_invoices = Invoice.objects.filter(hide=False, store=store, paid=False).order_by("-issue_date")
+    paid_invoices = Invoice.objects.filter(hide=False, store=store, paid=True).order_by("-issue_date")
+    dreamkas_invoices = list(unpaid_invoices) + list(paid_invoices)
     return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices, 'supplier_names': supplier_names})
 
 
