@@ -643,8 +643,11 @@ def create_pricing_order(request):
 @csrf_exempt
 def invoices_update(request):
     if request.method == 'POST':
-        dreamkas_documents.update_invoices()
-        return redirect(reverse('invoices'))
+        result = dreamkas_documents.update_invoices()
+        if result is True:
+            return redirect(reverse('invoices'))
+        else:
+            return JsonResponse({'success': False, 'result':result})
 
 
 @csrf_exempt

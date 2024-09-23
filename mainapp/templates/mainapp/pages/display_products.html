@@ -151,6 +151,37 @@
                 }
             });
         }, 500)
+        $(".refresh-dreamkas-invoices").on('click', (e) => {
+                e.preventDefault()
+                let spinner = $(".refresh-diadoc-invoices span.loading-spinner-stuff");
+                spinner.css("display", "inherit")
+                {#element.getElementById('update-diadoc-invoices').setAttribute(class, "btn btn-success refresh-diadoc-invoices spinner-border spinner-border-sm")#}
+                $.ajax({
+                    type: "POST",
+                    url: '/invoices_diadoc_update_v2/',
+                    {#contentType: false,#}
+                    {#processData: false,#}
+                    {#async: false,#}
+
+                    success: function (data) {
+                        console.log(data)
+                        if (data.success === true) {
+                            document.location.reload()
+                        } else {
+                            Swal.fire({
+                                position: 'top-end',
+                                title: `Произошла Ошибка. Попробуйте позже либо обратитесь к администиатору`,
+                                showConfirmButton: false,
+                                timer: 10000,
+                                backdrop: false
+                            })
+                            spinner.css("display", "none")
+                        }
+
+                    }
+                })
+            }
+        )
 
 
         {% comment %}        $("#search").on('input', (e) => {
