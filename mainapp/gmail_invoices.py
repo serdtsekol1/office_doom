@@ -45,7 +45,7 @@ def get_gmail_messages_alternative():
     return
 def get_gmail_messages(client_secret_json, days=14):
     for i in range(45):
-
+        result = None
         try:
             gmail = simplegmail.Gmail(client_secret_file=client_secret_json)
             query_params = {
@@ -55,14 +55,12 @@ def get_gmail_messages(client_secret_json, days=14):
             try:
                 result = gmail.get_messages(query=construct_query(query_params))
             except:
-                print('b')
-
+                pass
             print('Запрос был послан. Результат - ', result)
-            return result
         except:
             pass
         if type(result) is not None:
-            return(result)
+            return result
         else:
             print(f'Попытка получить накладные по почте не удалась. Следующая - через {i/3} секунд, Лимит в 45 попыток.')
             time.sleep(i/3)
