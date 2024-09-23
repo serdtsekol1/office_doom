@@ -59,7 +59,7 @@ def get_gmail_messages(client_secret_json, days=14):
             print('Запрос был послан. Результат - ', result)
         except:
             pass
-        if type(result) is not None:
+        if result is not None:
             return result
         else:
             print(f'Попытка получить накладные по почте не удалась. Следующая - через {i/3} секунд, Лимит в 45 попыток.')
