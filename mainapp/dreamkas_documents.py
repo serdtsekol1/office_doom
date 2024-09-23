@@ -1,4 +1,8 @@
+import threading
+import time
+
 from dremkas.settings import DREAM_KAS_API
+from mainapp import global_var
 from mainapp.models import Invoice, Supplier, Supplier_name, Supplier_id_dreamkas, Store
 from decimal import Decimal
 from datetime import datetime as datetime2
@@ -73,12 +77,33 @@ def dreamkas_update_suppliers():
 
 
 
-
-
     return
+
+
+
+
+
+def failsafe_invoices_being_updated():
+    if global_var.Failsafe_flag is True:
+        return
+    global_var.Failsafe_flag = True
+    time.sleep(1200)
+    if global_var.invoices_being_updated is True:
+        global_var.invoices_being_updated = False
+    global_var.Failsafe_flag = False
+
+
 def update_invoices(offset=None):
+    if global_var.Failsafe_flag is False:
+        reset_thread = threading.Thread(target=failsafe_invoices_being_updated)
+        reset_thread.start()
+    if global_var.invoices_being_updated == True:
+        print("Накладные уже обновляются. Подождите и попытайтесь снова.")
+        return "Накладные уже обновляются. Подождите и попытайтесь снова."
+    global_var.invoices_being_updated = True
     documents = DREAM_KAS_API.get_documents(limit=1000, offset=offset)
     if documents.__len__() == 0:
+        global_var.invoices_being_updated = False
         return False
     source_map_external = []
     external_dreamkas_documents_map = []
@@ -143,6 +168,7 @@ def update_invoices(offset=None):
         except:
             print('Error creating or updating invoice')
             print(document)
+            global_var.invoices_being_updated = False
     print('Создаются накладные. Кол-во - ', invoices_to_create.__len__())
     print('Обновляются накладные. Кол-во - ', invoices_to_update.__len__())
     Invoice.objects.bulk_create(invoices_to_create)
@@ -150,7 +176,9 @@ def update_invoices(offset=None):
     for invoice_internal in Invoice.objects.filter(invoice_status = False):
         if DREAM_KAS_API.get_document(invoice_internal.id_dreem)['status'] == 404:
             invoice_internal.delete()
+    global_var.invoices_being_updated = False
     return True
+
 
 
 
