@@ -752,7 +752,7 @@ def find_invoice_duplicates(request):
 
 def invoices(request):
     invoices = Invoice.objects.all().filter(hide=False).order_by("-issue_date")
-    page = Paginator(invoices, 500).page(request.GET.get("page", 1))
+    page = Paginator(invoices, 200).page(request.GET.get("page", 1))
     return render(request, 'mainapp/pages/invoices.html', {'invoices': page})
 
 
@@ -881,7 +881,7 @@ def invoices_diadoc(request):
         for dreamkas_invoice in dreamkas_invoices:
             if dreamkas_invoice.number == diadoc_invoice.number and dreamkas_invoice.issue_date == diadoc_invoice.issue_date and dreamkas_invoice.supplier == diadoc_invoice.kontragent:
                 matching_invoices.append(dreamkas_invoice)
-    page = Paginator(diadocinvoices, 1000).page(request.GET.get("page", 1))
+    page = Paginator(diadocinvoices, 300).page(request.GET.get("page", 1))
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
 
 
@@ -912,7 +912,7 @@ def invoices_diadoc_v2(request):
         if key in dreamkas_dict:
             matching_invoices.extend(dreamkas_dict[key])
     print('6:', time.time() - start_time)
-    page = Paginator(diadocinvoices, 1000).page(request.GET.get("page", 1))
+    page = Paginator(diadocinvoices, 300).page(request.GET.get("page", 1))
     print('7:', time.time() - start_time)
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
 

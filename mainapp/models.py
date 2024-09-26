@@ -285,13 +285,31 @@ class Position(models.Model):
     position_amount = models.DecimalField("position_amount", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
     position_sum = models.DecimalField("position_sum", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
 
+class Position_v2(models.Model):
+    invoice_v2_fk = models.ForeignKey("Invoice_v2", blank=True, default=None, null=True, on_delete=models.CASCADE)
+    #In case of d
+    position_name = models.CharField('name', blank=True, null=True, max_length=255, default=None)
+    #Number in list, so 1st position is on 1st line
+    position_num = models.IntegerField('number', blank=True, default=None, null=True)
+    position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
+    position_amount = models.DecimalField("position_amount", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    position_price = models.DecimalField("position_", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    position_sum = models.DecimalField("position_sum", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+
 
 class Document(models.Model):
+    ## dreamkas id
     id_dreem = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
-    status = models.BooleanField('status', blank=True, default=False, null=True)  ## Accepted = True, Draft = False
-    supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
-    supplier_fk = models.ForeignKey(Supplier, max_length=255, blank=True, default=None, null=True, on_delete=models.SET_NULL)
+    ## Accepted = True, Draft = False
+    status = models.BooleanField('status', blank=True, default=False, null=True)
     number = models.CharField('Номер', max_length=255, blank=True, default=None, null=True)
+    date = models.DateField('Дата', blank=True, default=None, null=True)
+    class Meta:
+        abstract = True
+
+class Invoice_v2(Document):
+    supplier_fk = models.ForeignKey(Supplier, blank=True, default=None, null=True, on_delete=models.SET_NULL)
+
 
 class Document_internal(models.Model):
     type = models.IntegerField('type',blank=True,null=True,max_length=255,default=None)
@@ -300,9 +318,8 @@ class Document_internal(models.Model):
 
 class Invoice(models.Model):
     id_dreem = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
-    latest_edit_id_dreem = models.IntegerField('id_dreem', blank=True, default=None, null=True)
     supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
-    supplier_fk = models.ForeignKey(Supplier, max_length=255, blank=True, default=None, null=True, on_delete=models.SET_NULL)
+    supplier_fk = models.ForeignKey(Supplier, blank=True, default=None, null=True, on_delete=models.SET_NULL)
     number = models.CharField('Номер', max_length=255, blank=True, default=None, null=True)
     sum = models.DecimalField('Сумма', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
     income = models.DecimalField('Доход', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
@@ -623,7 +640,6 @@ class Invoice(models.Model):
                     continue
             if "INCOME_INVOICE_CORRECTION" in str(document):
                 Invoice.map_document(invoice, document)
-            latest_edit_id_dreem = None
             current_document = document
             if invoice.previous_snapshot:
                 previous_snapshot = invoice.previous_snapshot
