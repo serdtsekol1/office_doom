@@ -10,7 +10,6 @@ from django.utils import timezone
 from datetime import timedelta, date
 
 def delete_long_not_accepted_documents():
-
     return
 def delete_all_suppliers():
     Supplier.objects.all().delete()
@@ -28,6 +27,11 @@ def delete_broken_suppliers():
     print(supplier_dupes)
 
 
+def calculate_income(document_id, pricing_id):
+    invoice = DREAM_KAS_API.get_document(document_id)
+    pricint = DREAM_KAS_API.get_document(pricing_id)
+    print('a')
+    return
 
 def dreamkas_update_suppliers():
     supplier_list = DREAM_KAS_API.get_suppliers()
@@ -94,6 +98,7 @@ def failsafe_invoices_being_updated():
 
 
 def update_invoices(offset=None):
+    calculate_income()
     if global_var.Failsafe_flag is False:
         reset_thread = threading.Thread(target=failsafe_invoices_being_updated)
         reset_thread.start()
