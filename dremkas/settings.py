@@ -313,7 +313,7 @@ DIADOC_API = None
 DIADOC_LOGIN = os.environ.get('DIADOC_LOGIN')
 DIADOC_PASSWORD = os.environ.get('DIADOC_PASSWORD')
 DIADOC_ID = os.environ.get('DIADOC_ID')
-if os.environ.get('RUN_MAIN', None) != 'true':
+if os.environ.get('RUN_MAIN', None) == 'true':
     for i in range(10):
         try:
             DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)

@@ -23,7 +23,7 @@ class MainappConfig(AppConfig):
     name = 'mainapp'
     verbose_name = _('admin__mainapp')
     def ready(self):
-        if os.environ.get('RUN_MAIN', None) != 'true':
+        if os.environ.get('RUN_MAIN', None) == 'true':
             thread = threading.Thread(target=periodicTask)
             thread.daemon = True
             thread.start()
