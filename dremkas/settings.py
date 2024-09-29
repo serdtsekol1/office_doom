@@ -308,18 +308,22 @@ print(CURRENT_IDS)
 DREAMKAS_LOGIN = os.environ.get('DREAMKAS_LOGIN')
 DREAMKAS_PASSWORD = os.environ.get('DREAMKAS_PASSWORD')
 TOKEN = os.environ.get(f'CURRENT_SHOP_{os.environ.get("DREAMKAS_TOKEN")}')
-for i in range(10):
-    try:
-        DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
-        break
-    except Exception as ex:
-        print('Попытка установить соединение неудачна. Попытка - ', i, '. Следующая попытка через',i*i/2, "секунд")
-        print(ex)
-        time.sleep(i*i/2)
-        pass
+DREAM_KAS_API = None
+DIADOC_API = None
 DIADOC_LOGIN = os.environ.get('DIADOC_LOGIN')
 DIADOC_PASSWORD = os.environ.get('DIADOC_PASSWORD')
 DIADOC_ID = os.environ.get('DIADOC_ID')
-print("Diadoc Login , PW - OK")
-DIADOC_API = DiadocApi(DIADOC_LOGIN, DIADOC_PASSWORD, DIADOC_ID)
-print(DIADOC_LOGIN)
+if os.environ.get('RUN_MAIN', None) != 'true':
+    for i in range(10):
+        try:
+            DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
+            break
+        except Exception as ex:
+            print('Попытка установить соединение неудачна. Попытка - ', i, '. Следующая попытка через',i*i/2, "секунд")
+            print(ex)
+            time.sleep(i*i/2)
+            pass
+
+    print("Diadoc Login , PW - OK")
+    DIADOC_API = DiadocApi(DIADOC_LOGIN, DIADOC_PASSWORD, DIADOC_ID)
+    print(DIADOC_LOGIN)

@@ -98,7 +98,7 @@ def failsafe_invoices_being_updated():
 
 
 def update_invoices(offset=None):
-    calculate_income()
+    #calculate_income()
     if global_var.Failsafe_flag is False:
         reset_thread = threading.Thread(target=failsafe_invoices_being_updated)
         reset_thread.start()

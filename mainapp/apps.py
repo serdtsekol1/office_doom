@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 
@@ -22,6 +23,7 @@ class MainappConfig(AppConfig):
     name = 'mainapp'
     verbose_name = _('admin__mainapp')
     def ready(self):
-        thread = threading.Thread(target=periodicTask)
-        thread.daemon = True
-        thread.start()
+        if os.environ.get('RUN_MAIN', None) != 'true':
+            thread = threading.Thread(target=periodicTask)
+            thread.daemon = True
+            thread.start()
