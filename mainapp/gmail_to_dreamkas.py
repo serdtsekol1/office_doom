@@ -206,7 +206,8 @@ def get_products_from_a_document(pandas_document, preset):
             product_amount = float(pandas_document.iloc[i, preset.product_amount_col])
             met_conditions = met_conditions + 1
             step = 'get product sum'
-            product_sum = float(str(pandas_document.iloc[i, preset.product_sum_col]).replace(",", "."))
+            import re
+            product_sum = float(re.sub(r'[^\d,\.]', '', str(pandas_document.iloc[i, preset.product_sum_col])).replace(',', '.'))
             met_conditions = met_conditions + 1
             if met_conditions == conditions:
                 good = {

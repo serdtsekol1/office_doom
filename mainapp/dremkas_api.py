@@ -478,7 +478,7 @@ class DreamKasApi:
                     response = self.session.get(f"https://kabinet.dreamkas.ru/api/products?limit=1000&offset={offset}")
                 except:
                     print(f"Не удалось скачать продукты. Следующая попытка через ", attempt*(attempt/2), " секунд")
-                    time.sleep(attempt * (attempt / 10))
+                    #time.sleep(attempt * (attempt / 1000))
                     continue
                 if response.status_code == 200:
                     break

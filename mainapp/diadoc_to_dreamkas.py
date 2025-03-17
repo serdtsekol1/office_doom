@@ -13,36 +13,40 @@ from django.core.files.storage import default_storage
 def update_diadoc_invoices_v2(diadoc_id, store_id):
     invoices = DIADOC_API.get_documents_v2(diadoc_id)
     for item in invoices:
-        store_destination_id = store_id
-        diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
-            'kontragent': item['kontragent'],
-            'sum': item['sum'],
-            'number': item['num'],
-            'issue_date': datetime.strptime(item['date'], "%d.%m.%Y").strftime("%Y-%m-%d"),
-            'invoice_status': item['status'],
-            'downloadlink': item['link_document_attachment'],
-            'store_id': store_destination_id,
-        })
-        print(diadoc_invoice_status)
-        print(diadoc_invoice.kontragent)
-        print(diadoc_invoice.number)
-        print(diadoc_invoice.issue_date)
         try:
-            download_invoice_from_diadoc(item['id'])
-            with open(f'media/diadoc_files/{item["id"]}.xml', "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
-                data_dict = xmltodict.parse(xmlfileObj.read())
-            valid_presets = get_diadoc_presets_for_file(data_dict)
-        except Exception as ex:
-            print(ex)
-            continue
-        if valid_presets is not False and valid_presets.__len__() is not 0:
-            print(valid_presets)
-            store_destination_id = valid_presets[0].store_destination_fk.store_id
+            store_destination_id = store_id
             diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
+                'kontragent': item['kontragent'],
+                'sum': item['sum'],
+                'number': item['num'],
+                'issue_date': datetime.strptime(item['date'], "%d.%m.%Y").strftime("%Y-%m-%d"),
+                'invoice_status': item['status'],
+                'downloadlink': item['link_document_attachment'],
                 'store_id': store_destination_id,
             })
+            print(diadoc_invoice_status)
+            print(diadoc_invoice.kontragent)
+            print(diadoc_invoice.number)
+            print(diadoc_invoice.issue_date)
+            try:
+                download_invoice_from_diadoc(item['id'])
+                with open(f'media/diadoc_files/{item["id"]}.xml', "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
+                    data_dict = xmltodict.parse(xmlfileObj.read())
+                valid_presets = get_diadoc_presets_for_file(data_dict)
+            except Exception as ex:
+                print(ex)
+                continue
+            if valid_presets is not False and valid_presets.__len__() is not 0:
+                print(valid_presets)
+                store_destination_id = valid_presets[0].store_destination_fk.store_id
+                diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
+                    'store_id': store_destination_id,
+                })
+        except:
+            print('f')
 
 def get_diadoc_presets_for_file(file):
+    print('1111')
     inn = None
     try:
         inn = file["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвЮЛУч"]["@ИННЮЛ"]
@@ -52,6 +56,10 @@ def get_diadoc_presets_for_file(file):
         inn = file["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвИП"]["@ИННФЛ"]
     except:
         pass
+    try:
+        print(file["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"])
+    except Exception as ex:
+        print(file)
     if inn is None:
         print('Невозможно найти ИНН')
         return False
@@ -97,13 +105,19 @@ def generate_document_from_preset(document,diadocpreset):
     prefix = diadocpreset
     return
 def download_invoice_from_diadoc(diadoc_document_id):
+    print('1113')
     file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
-    if not os.path.exists(file_name):
-        download_link = DiadocInvoice.objects.get(diadoc_id=diadoc_document_id).downloadlink
-        DIADOC_API.download(url=download_link, file_name=file_name)
+    print('1114')
+    download_link = DiadocInvoice.objects.get(diadoc_id=diadoc_document_id).downloadlink
+    print('11')
+    print(download_link)
+    print('asd')
+    DIADOC_API.download(url=download_link, file_name=file_name)
+    print('asd2')
 
 def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
     download_invoice_from_diadoc(diadoc_document_id)
+    print('1112')
     file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
     with open(file_name, "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
         data_dict = xmltodict.parse(xmlfileObj.read())
@@ -152,6 +166,7 @@ def check_code(input):
 def search_goods_xml_diadoc(prefix,item):
     found_product = None
     productcode = None
+    tempproductcode = ""
     try:
         if check_code(item['ДопСведТов']['@КодТов']):  # Case 1 : Barcode - correct, Found a good, product code is of a good. All good.
             productcode = item['ДопСведТов']['@КодТов']  # Case 2 : Barcode - correct, didn't find a good, product code is of a good. All good.
@@ -239,20 +254,26 @@ def search_goods_xml_diadoc(prefix,item):
     #   // IF NO CODE FOUND, IF NO PRODUCT FOUND - ADD NAME OF GOOD,LITERALLY NAME! INTO productcode!!!!!!!!!!!
     if found_product is None:
         try:
-            tempproductcode = ""
-            for word in slugify(item['@НаимТов']).split("-"):
-                tempproductcode = tempproductcode + word[0]
-                try:
-                    tempproductcode = tempproductcode + word[1]
-                except:
-                    pass
-                try:
-                    tempproductcode = tempproductcode + word[3]
-                except:
-                    pass
+            if tempproductcode == "":
+                for word in slugify(item['@НаимТов']).split("-"):
+                    tempproductcode = tempproductcode + word[0]
+                    try:
+                        tempproductcode = tempproductcode + word[1]
+                    except:
+                        pass
+                    try:
+                        tempproductcode = tempproductcode + word[3]
+                    except:
+                        pass
             found_product = DREAM_KAS_API.search_goods(prefix + tempproductcode)
             if productcode is None:
                 productcode = prefix + tempproductcode
+        except:
+            pass
+    if found_product is None:
+        try:
+            productcode = item["ИнфПолФХЖ2"][1]["@Значен"]
+            found_product = DREAM_KAS_API.search_goods(productcode)
         except:
             pass
     new_position = {
