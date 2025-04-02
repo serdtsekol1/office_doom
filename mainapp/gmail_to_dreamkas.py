@@ -64,8 +64,10 @@ def get_document_and_attachments_from_gmail(message_id, store_id):
                         os.remove('media/gmail_invoices/' + attachment.filename)
                     except:
                         pass
-    return message.sender.split('<')[1].replace('>', '')
-
+    try:
+        return message.sender.split('<')[1].replace('>', '')
+    except:
+        return message.sender
 
 def get_supplier_data_for_preset(supplier):
     supplier_data = {}

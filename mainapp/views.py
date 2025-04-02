@@ -1455,8 +1455,10 @@ def create_document_from_diadoc_v2(request):
             link = create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id)
             if link is not None:
                 links.append(link)
-        except:
+        except Exception as Ex:
             return JsonResponse({'success': False, 'errormsg': 'Произошла ошибка при попытке создать накладную. Обратитесь к администратору.'})
+            print('Test Print')
+            print('Test Print')
         if links.__len__() == 0:
             return JsonResponse({'success': False, 'errormsg': 'Не найден подходящий шаблон для данной накладной.'})
         return JsonResponse({'success': True, 'links': links})

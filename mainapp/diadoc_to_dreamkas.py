@@ -73,6 +73,12 @@ def get_diadoc_presets_for_file(file):
         except:
             pass
         try:
+            if str(xmltodict.parse(preset.store_destination_information)) == str(file['Файл']['Документ']['СвСчФакт']['СвПрод']['Адрес']):
+                valid_presets_store_destination.append(preset)
+                continue
+        except:
+            pass
+        try:
             if str(xmltodict.parse(preset.store_destination_information)) == str(file['Файл']['Документ']['СвСчФакт']['ГрузПолуч']['Адрес']).replace('  ',' '):
                 valid_presets_store_destination.append(preset)
                 continue
@@ -96,7 +102,6 @@ def get_diadoc_presets_for_file(file):
                 continue
         except:
             pass
-
     return valid_presets_store_destination
 
 
@@ -117,7 +122,7 @@ def download_invoice_from_diadoc(diadoc_document_id):
 
 def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
     download_invoice_from_diadoc(diadoc_document_id)
-    print('1112')
+    print('test_1')
     file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
     with open(file_name, "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
         data_dict = xmltodict.parse(xmlfileObj.read())
@@ -125,6 +130,7 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
     if valid_presets.__len__() == 0:
         print('Количество подходящих шаблонов - 0. Настройте шаблоны')
         return
+    print('test_2')
     if valid_presets.__len__() > 1:
         print('КОличество подходящик шаблонов - более одного. Настройте шаблоны.')
         for valid_preset in valid_presets:
@@ -135,9 +141,34 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
         return
     data = {}
     preset = valid_presets[0]
-    data.update({"date": datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
+    print('test_3')
+    date_flag = False
+    try:
+        data.update({"date": datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
+        date_flag = True
+    except Exception as Ex:
+        pass
+    if date_flag is not True:
+        try:
+            data.update({"date": datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаДок"], "%d.%m.%Y").strftime("%Y-%m-%d")})
+            date_flag = True
+        except Exception as Ex:
+            pass
+    if date_flag == False:
+        raise Exception
     data.update({"inn": preset.supplier_inn})
-    data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерСчФ"]})
+    number_flag = False
+    try:
+        data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерСчФ"]})
+        number_flag = True
+    except Exception as Ex:
+        pass
+    if number_flag is not True:
+        try:
+            data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерДок"]})
+            number_flag = True
+        except Exception as Ex:
+            pass
     goods = []
     for item in data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов']:
         if item == "@НомСтр" or item == "@КолТов":
@@ -149,12 +180,15 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
         print(new_position)
         goods.append(new_position)
     data.update({"positions": goods})
-
     partnerid = DREAM_KAS_API.search_partner_id_by_inn(data["inn"])
     print('creating_document')
+    print('test_1')
     print(data["date"])
+    print('test_2')
     print(partnerid)
+    print('test_3')
     print(str(data["doc_id"]))
+    print('test_4')
     result = DREAM_KAS_API.createdocument(data["date"], "Документ Создан Автоматически. Источник - Диадок", partnerid, str(data["doc_id"]), positions=data["positions"],target_store_id=preset.store_destination_fk.store_id)
     return 'https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']
 def check_code(input):
@@ -167,22 +201,29 @@ def search_goods_xml_diadoc(prefix,item):
     found_product = None
     productcode = None
     tempproductcode = ""
+    if prefix is None:
+        prefix = ''
     try:
+        #Method 1
         if check_code(item['ДопСведТов']['@КодТов']):  # Case 1 : Barcode - correct, Found a good, product code is of a good. All good.
             productcode = item['ДопСведТов']['@КодТов']  # Case 2 : Barcode - correct, didn't find a good, product code is of a good. All good.
             found_product = DREAM_KAS_API.search_goods(productcode)  # Case 3 : Barcode - incorrect, nothing happens. All good.
+            print('Method 1 Success')
     except:
         pass
     if found_product is None:
+        #Method 2
         try:
             found_product = DREAM_KAS_API.search_goods((prefix + str(item['ДопСведТов']['@КодТов']).strip()))
             if productcode is None:
                 productcode = prefix + str(item['ДопСведТов']['@КодТов'])  # If product code is not a barcode from prev. - apply prefix to code and set productcode as it.
-
+            print('Method 2 Success')
+            print("productcode :", productcode)
         ## Get good by applying Prefix to received code
         except:
             pass
     if found_product is None:
+        #Method 3
         # if isinstance(productcode, list):
         #    productcode = productcode[0][3:16]
         # else:
@@ -199,9 +240,11 @@ def search_goods_xml_diadoc(prefix,item):
                 found_product = DREAM_KAS_API.search_goods(tempproductcode)
 
                 ## Get good by stripping irrelevant numbers from list of codes, getting a good code
+            print('Method 3 Success')
         except:
             pass
     if found_product is None:
+        #Method 4
         try:
             goodtofind = []
             try:
@@ -234,9 +277,11 @@ def search_goods_xml_diadoc(prefix,item):
                     pass
             else:
                 pass
+            print('Method 4 Success')
         except:
             pass
     if found_product is None:
+        #Method 5
         try:
             tempproductcode = item['ДопСведТов']['НомСредИдентТов']['КИЗ']
             if isinstance(tempproductcode, list):
@@ -246,6 +291,7 @@ def search_goods_xml_diadoc(prefix,item):
             if check_code(tempproductcode):
                 productcode = tempproductcode  # Barcode found in here, so this replaces any bs from before, including prefix and a code
                 found_product = DREAM_KAS_API.search_goods(tempproductcode)
+            print('Method 5 Success')
         except:
             pass
         # if found_product is None:
@@ -253,6 +299,7 @@ def search_goods_xml_diadoc(prefix,item):
     # productcode=item[] // ADD!!! ! ! ! ! ! !
     #   // IF NO CODE FOUND, IF NO PRODUCT FOUND - ADD NAME OF GOOD,LITERALLY NAME! INTO productcode!!!!!!!!!!!
     if found_product is None:
+        #Method 6
         try:
             if tempproductcode == "":
                 for word in slugify(item['@НаимТов']).split("-"):
@@ -268,31 +315,62 @@ def search_goods_xml_diadoc(prefix,item):
             found_product = DREAM_KAS_API.search_goods(prefix + tempproductcode)
             if productcode is None:
                 productcode = prefix + tempproductcode
+            print('Method 6 Success')
+            print("Productcode:", productcode)
+
         except:
             pass
     if found_product is None:
+        #Method 7
         try:
-            productcode = item["ИнфПолФХЖ2"][1]["@Значен"]
-            found_product = DREAM_KAS_API.search_goods(productcode)
+            tempproductcode = item["ИнфПолФХЖ2"][1]["@Значен"]
+            found_product = DREAM_KAS_API.search_goods(tempproductcode)
+            print('Method 7 Success')
+            print("found_product:", found_product )
+            print("tempproductcode :", tempproductcode  )
         except:
             pass
-    new_position = {
-        "name": None if found_product else productcode,
-        "barcodeControl": None,
-        "amount": round(float(item["@КолТов"]) * 1000),
-        "costWithTax": round(round(float(item["@СтТовУчНал"]) / float(item["@КолТов"]), 2) * 100),
-        "sumCost": round(float(item["@СтТовУчНал"]) * 100),
-        "product": None,
-        "barcode": None,
-        "productId": found_product.get("id", None) if found_product else None,
-        "marks": None,
-        "marksChecked": None,
-        "egaisAlc": None,
-        "egaisCode": None,
-        "egaisVolume": None,
-        "egaisTypeCode": None,
-        "egaisIsPacked": None
-    }
+    if found_product is None:
+        #Method 8
+        print('Method 8')
+        try:
+            if tempproductcode == "":
+                for word in slugify(item['@НаимТов']).split('-'):
+                    tempproductcode = tempproductcode + word[0]
+                    try:
+                        tempproductcode = tempproductcode + word[1]
+                    except:
+                        pass
+                    try:
+                        tempproductcode = tempproductcode + word[3]
+                    except:
+                        pass
+                found_product = DREAM_KAS_API.search_goods(prefix + tempproductcode)
+                productcode = prefix + tempproductcode
+                print('Method 8 Success')
+        except Exception as Ex:
+            print(Ex)
+            pass
+    try:
+        new_position = {
+            "name": None if found_product else productcode,
+            "barcodeControl": None,
+            "amount": round(float(item["@КолТов"]) * 1000),
+            "costWithTax": round(round(float(item["@СтТовУчНал"]) / float(item["@КолТов"]), 2) * 100),
+            "sumCost": round(float(item["@СтТовУчНал"]) * 100),
+            "product": None,
+            "barcode": None,
+            "productId": found_product.get("id", None) if found_product else None,
+            "marks": None,
+            "marksChecked": None,
+            "egaisAlc": None,
+            "egaisCode": None,
+            "egaisVolume": None,
+            "egaisTypeCode": None,
+            "egaisIsPacked": None
+        }
+    except Exception as Ex:
+        print(Ex)
     return new_position
 def debug_remove_deuplicate_diadoc_invoice_objects():
     from django.db.models import Count, Max

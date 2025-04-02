@@ -219,12 +219,8 @@ class DiadocApi():
                 if exc.errno != errno.EEXIST:
                     raise
         try:
-            print('it reaches here')
             with open(file_name, "wb") as file:
                 response = self.session.get(url, timeout=4, allow_redirects=True)
-                print('resp')
-                print(response)
-                print('resp end')
                 if "File or directory not" in str(response.text):
                     url = url.split('ru/')[0] + "ru/webapi/" + url.split('ru/')[1]
                     response = self.session.get(url, timeout=4, allow_redirects=True)

@@ -93,6 +93,7 @@ class DreamKasApi:
             return response.json()
         else:
             print("Login failed")
+            print(response.json())
             return "Login Failed"
 
     def get_product_history(self,id_out):
