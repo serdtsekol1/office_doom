@@ -188,8 +188,15 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
     print(partnerid)
     print('test_3')
     print(str(data["doc_id"]))
+    print('test_3.5')
+    try:
+        result = DREAM_KAS_API.createdocument(data["date"], "Документ Создан Автоматически. Источник - Диадок", partnerid, str(data["doc_id"]), positions=data["positions"],target_store_id=preset.store_destination_fk.store_id)
+    except Exception as Ex:
+        print(Ex)
+    print('result')
+    print(result)
+    print('endresult')
     print('test_4')
-    result = DREAM_KAS_API.createdocument(data["date"], "Документ Создан Автоматически. Источник - Диадок", partnerid, str(data["doc_id"]), positions=data["positions"],target_store_id=preset.store_destination_fk.store_id)
     return 'https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']
 def check_code(input):
         try:
@@ -211,6 +218,24 @@ def search_goods_xml_diadoc(prefix,item):
             print('Method 1 Success')
     except:
         pass
+    if found_product is None:
+        try:
+            #Method 1.5
+            if check_code(item['ДопСведТов']['@КодТов'][1:14]):  # Case 1 : Barcode - correct, Found a good, product code is of a good. All good.
+                productcode = item['ДопСведТов']['@КодТов'][1:14]  # Case 2 : Barcode - correct, didn't find a good, product code is of a good. All good.
+                found_product = DREAM_KAS_API.search_goods(productcode)  # Case 3 : Barcode - incorrect, nothing happens. All good.
+                print('Method 1.5 Success')
+        except:
+            pass
+    if found_product is None:
+        try:
+            #Method 1.75
+            if check_code(item['ДопСведТов']['@ГТИН'][1:14]):  # Case 1 : Barcode - correct, Found a good, product code is of a good. All good.
+                productcode = item['ДопСведТов']['@ГТИН'][1:14]  # Case 2 : Barcode - correct, didn't find a good, product code is of a good. All good.
+                found_product = DREAM_KAS_API.search_goods(productcode)  # Case 3 : Barcode - incorrect, nothing happens. All good.
+                print('Method 1.75 Success')
+        except:
+            pass
     if found_product is None:
         #Method 2
         try:
