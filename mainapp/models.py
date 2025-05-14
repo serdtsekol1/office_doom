@@ -315,7 +315,8 @@ class Invoice_v2(Document):
 class Document_v3(models.Model):
     dreamkas_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     number = models.CharField('Номер', max_length=255, blank=True, default=None, null=True)
-    issue_date = models.DateField('Дата', blank=True, default=None, null=True)
+    issue_date = models.DateField('Дата Создания', blank=True, default=None, null=True)
+    acceptedAt = models.DateField('Дата Принятия', blank=True, default=None, null=True)
     flag_status = models.CharField('DRAFT|ACCEPTED|DELETED', null=True, blank=True, default=False, max_length=25)
     # 0 - Draft
     # 1 - Accepted
@@ -378,6 +379,8 @@ class Position_correction_invoice_v3(models.Model):
     position_profit = models.DecimalField('Прибыль', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
     position_income = models.DecimalField('Доход', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
 class Correction_invoice_v3(Document_v3):
+    latest_iteration_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+    latest_pricing_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     parent_document_dreamkas_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
     supplier_fk = models.ForeignKey(Supplier, blank=True, default=None, null=True, on_delete=models.SET_NULL)

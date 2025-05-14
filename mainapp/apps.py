@@ -9,7 +9,11 @@ import datetime
 
 from mainapp import global_var
 
+
+
 def periodicTask():
+    from mainapp.Dreamkas_documents.pricing_orders import create_pricing_order
+    from mainapp.models import GoodGroups
     if global_var.init is True:
         return
     global_var.init = True
@@ -39,12 +43,18 @@ def periodicTask():
                 print(pos.position_num, '|',pos.position_name,'|', pos.position_price_old, '->', pos.position_price_new)
     # get_doc_and_info(84953840)
     # get_doc_and_info(84953852)
-    update_documents(invoices=True,pricing_orders=True,invoice_limit=100,pricing_order_limit=100,correction_invoices=True,correction_invoice_limit=100)
-    build_tree_of_documents(document_id=85150510)
-    
+    GoodGroups.update_good_groups()
+    create_pricing_order(85615144)
+    update_documents(invoices=True,pricing_orders=True,invoice_limit=100,pricing_order_limit=100,correction_invoices=True,correction_invoice_limit=35)
+    i = 0
     while True:
-        time.sleep(30)
-        update_documents(invoices=True,pricing_orders=True,invoice_limit=5,pricing_order_limit=5,correction_invoices=True,correction_invoice_limit=3)
+        i = i + 1
+        time.sleep(90)
+        update_documents(invoices=True,pricing_orders=True,invoice_limit=15,pricing_order_limit=66,correction_invoices=True,correction_invoice_limit=5)
+        if i > 60:
+            time.sleep(45)
+            update_documents(invoices=True,pricing_orders=True,invoice_limit=50,pricing_order_limit=20,correction_invoices=True,correction_invoice_limit=20)
+            i = 0
 class MainappConfig(AppConfig):
     name = 'mainapp'
     verbose_name = _('admin__mainapp')

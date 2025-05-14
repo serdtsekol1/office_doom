@@ -267,7 +267,8 @@ class DreamKasApi:
     def get_departments(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/departments").json()
     
-    
+    def accept_document(self,dreamkas_id):
+        return self.session.post("https://kabinet.dreamkas.ru/api/v1/documents/" + dreamkas_id + "/accept")
     def fetch_receipts_range(self,date_from,date_to,device):
         print("Fetching receipts")
         if date_from == None:
@@ -405,15 +406,6 @@ class DreamKasApi:
                     print(item)
                     print(price)
                     item['price'] = str(int(price * 100))
-                    ## a = round(a*(1+b/100)),2)
-                    ## a = result
-                    ## b = percent to multiply. e.g. : 15% = 15, so in end it becomes 0.15, and multiply value is 1.15
-
-                    ## if method = biggest
-                    ## a = number
-                    ## b = result
-                    ## b =
-                    # int(round(multiplied_sum/
                 else:
                     item['price'] = "0"
             except Exception as ex:
@@ -424,13 +416,69 @@ class DreamKasApi:
     ## DREAM_KAS_API.create_pricing_order(type="PRICING_ORDER",parentId="39130105",comment="TESTTESTTESTTEST")
     ##responce2 = DREAM_KAS_API.create_pricing_order(39305438, type="PRICING_ORDER", parentId="39305438", comment="TESTTESTTESTTEST")
     ## Вот як отослати шо угодно через дримкас апи.
-    def create_pricing_order(self, **keyword):
+    def create_pricing_order(self,leave_prices=False,**keyword):
         # from mainapp.models import GoodGroups
         parentId = keyword.get("parentId")
         parent_document = self.get_document(parentId)
         target_store_id = parent_document['targetStoreId']
         positions = self.price_invoice(parent_document["positions"])
+        data = {"products": [], "useMrp": True}
+        for item in positions:
+            data["products"].append({"id": item['productId']})
+        original_positios = self.session.post("https://kabinet.dreamkas.ru/api/v2/products/find", json=data).json()
+        for pos in positions:
+            print(pos['name'], pos['amount'])
+            
+        for pos in original_positios:
+            for stock in pos['stock']:
+                if stock[0] == target_store_id:
+                    print(pos['name'], stock[1])
+        for pos in positions:
+            found = False
+            for pos_2 in original_positios:
+                if found == True:
+                    continue
+                if pos['productId'] == pos_2['id']:
+                    for stock in pos_2['stock']:
+                        if stock[0] == target_store_id:
+                            print('Old pos',pos['name'],'|',pos['amount'])
+                            print(pos['name'],'|' ,pos['amount'],' ->', stock[1])
+                            pos['amount'] = stock[1]
+                            found = True
+                            print('New pos',pos['name'],'|',pos['amount'])
+        if leave_prices == True:
+            new_position_list = []
+            all_prices = {}
+            for pos in original_positios:
+                if pos['prices'] is not None:
+                    for price in pos['prices']:
+                        if price['shopId'] == target_store_id:
+                            price_val = str(price['price'])
+                    new_price = {pos['id']:price_val}
+                    all_prices.update(new_price)
+                else:
+                    new_price = {pos['id']:'Delete'}
+                    all_prices.update(new_price)
 
+            for pos in positions:
+                pos['price'] = all_prices.get(pos['productId'])
+                pos['priceRef'] = pos['price']
+                if pos['price'] != "Delete":
+                    new_position_list.append(pos)
+            positions = new_position_list                    
+            # for pos in positions:
+            #     found = False
+            #     for original_pos in original_positios:
+            #         if found == True:
+            #             break
+            #         if original_pos['id'] == pos['productId']:
+            #             for price in original_pos['prices']:
+            #                 if price['shopId'] == target_store_id:
+            #                     pos['price']=str(price['price'])
+            #                     found=True
+            #                     break   
+                    
+            
         # for item in positions:
         #     try:
         #         product = item['product']
@@ -475,6 +523,7 @@ class DreamKasApi:
                 "status": "DRAFT"}
         data.update(keyword)
         response = self.session.post(self.URL_DOCUMENTS_v1_API, json=data)
+
         return response.json()
 
 
@@ -540,7 +589,7 @@ class DreamKasApi:
 
     def get_suppliers(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/v1/edx/paper/contacts").json()
-    def get_documents(self,offset, limit=100, document_type="5,13", ):
+    def get_documents(self,offset=0, limit=100, document_type="5,13",acceptedAtFrom=None,acceptedAtTo=None,query=None ):
         # 0: {label: "Перемещение", value: 2}
         # 1: {label: "Оприходование", value: 3}
         # 2: {label: "Списание", value: 4}
@@ -553,10 +602,22 @@ class DreamKasApi:
         # https://kabinet.dreamkas.ru/api/v1/documents?limit=1000&filter[type]=5&filter[source]=PAPER,KABINET
         # Request URL: https://kabinet.dreamkas.ru/api/v1/documents?limit=30&offset=0&filter[type]=5,13&filter[preset]=DOCUMENTS
         print("Послан запрос на получение документов.")
-        if offset == 0:
-            link = f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS"
-        else:
-            link = f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&offset={offset}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS"
+        if acceptedAtFrom == None:
+            acceptedAtFrom = ''
+        if acceptedAtTo == None:
+            acceptedAtTo = ''
+        link = f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS"
+        if offset != 0:
+            link += f"&offset={offset}"
+
+        if acceptedAtTo is not None:
+            link += f"&filter[toAcceptedAt]={acceptedAtTo}"
+
+        if acceptedAtFrom is not None:
+            link += f"&filter[fromAcceptedAt]={acceptedAtFrom}"
+        
+        if query is not None:
+            link += f"&filter[q]={query}"
         i = 0 
         while i < 20:
             try:
@@ -579,16 +640,21 @@ class DreamKasApi:
             return "Login Failed"
 
     def get_document(self, id_document):
-        i = 0
+        i = 1
         while i < 20:
             try:
                 print('Попытка №',i,' получить документ')
+                i += 1
                 response = self.session.get(f"{self.URL_DOCUMENTS_v1_API}/{id_document}")
                 if response.status_code == 200:
                     break
+                if response.status_code == 404:
+                    return False
+                time.sleep(i*(i/2))
             except Exception as e:
                 print(e)
                 print(f"Не удалось скачать документ. Следующая попытка через ", i*(i/2), " секунд")
+                time.sleep(i*(i/2))
                 i += 1
         return response.json()
 
