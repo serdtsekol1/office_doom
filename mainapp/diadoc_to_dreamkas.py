@@ -9,47 +9,81 @@ from django.core.files.uploadedfile import UploadedFile
 from dremkas.settings import DIADOC_API, DREAM_KAS_API
 from mainapp.models import DiadocInvoice, Supplier, DiadocPreset
 from django.core.files.storage import default_storage
+from mainapp.logging_utils import log_manager
 
 def update_diadoc_invoices_v2(diadoc_id, store_id):
-    invoices = DIADOC_API.get_documents_v2(diadoc_id)
-    for item in invoices:
-        try:
-            store_destination_id = store_id
-            diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
-                'kontragent': item['kontragent'],
-                'sum': item['sum'],
-                'number': item['num'],
-                'issue_date': datetime.strptime(item['date'], "%d.%m.%Y").strftime("%Y-%m-%d"),
-                'invoice_status': item['status'],
-                'downloadlink': item['link_document_attachment'],
-                'store_id': store_destination_id,
-            })
-            print(diadoc_invoice_status)
-            print(diadoc_invoice.kontragent)
-            print(diadoc_invoice.number)
-            print(diadoc_invoice.issue_date)
+    log_manager.log_session('info', f'Starting update_diadoc_invoices_v2', {'diadoc_id': diadoc_id, 'store_id': store_id})
+    try:
+        invoices = DIADOC_API.get_documents_v2(diadoc_id)
+        log_manager.log_session('info', f'Retrieved {len(invoices)} invoices from Diadoc')
+        
+        for item in invoices:
             try:
-                download_invoice_from_diadoc(item['id'])
-                with open(f'media/diadoc_files/{item["id"]}.xml', "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
-                    data_dict = xmltodict.parse(xmlfileObj.read())
-                valid_presets = get_diadoc_presets_for_file(data_dict)
-            except Exception as ex:
-                print(ex)
-                continue
-            if valid_presets is not False and valid_presets.__len__() is not 0:
-                print(valid_presets)
-                store_destination_id = valid_presets[0].store_destination_fk.store_id
-                diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(diadoc_id=item['id'], defaults={
-                    'store_id': store_destination_id,
+                store_destination_id = store_id
+                log_manager.log_session('debug', f'Processing invoice', {'invoice_id': item['id'], 'kontragent': item['kontragent']})
+                
+                diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(
+                    diadoc_id=item['id'], 
+                    defaults={
+                        'kontragent': item['kontragent'],
+                        'sum': item['sum'],
+                        'number': item['num'],
+                        'issue_date': datetime.strptime(item['date'], "%d.%m.%Y").strftime("%Y-%m-%d"),
+                        'invoice_status': item['status'],
+                        'downloadlink': item['link_document_attachment'],
+                        'store_id': store_destination_id,
+                    }
+                )
+                log_manager.log_session('info', f'Updated/Created DiadocInvoice', {
+                    'invoice_id': diadoc_invoice.diadoc_id,
+                    'status': diadoc_invoice_status,
+                    'kontragent': diadoc_invoice.kontragent,
+                    'number': diadoc_invoice.number,
+                    'issue_date': diadoc_invoice.issue_date
                 })
-        except:
-            print('f')
+                
+                try:
+                    download_invoice_from_diadoc(item['id'])
+                    with open(f'media/diadoc_files/{item["id"]}.xml', "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
+                        data_dict = xmltodict.parse(xmlfileObj.read())
+                    valid_presets = get_diadoc_presets_for_file(data_dict)
+                    log_manager.log_session('debug', f'Processed XML and found presets', {
+                        'invoice_id': item['id'],
+                        'presets_found': len(valid_presets) if valid_presets else 0
+                    })
+                except Exception as ex:
+                    log_manager.log_session('error', f'Failed to process XML', {
+                        'invoice_id': item['id'],
+                        'error': str(ex)
+                    })
+                    continue
+                
+                if valid_presets is not False and valid_presets.__len__() is not 0:
+                    store_destination_id = valid_presets[0].store_destination_fk.store_id
+                    diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(
+                        diadoc_id=item['id'], 
+                        defaults={'store_id': store_destination_id}
+                    )
+                    log_manager.log_session('info', f'Updated store destination', {
+                        'invoice_id': item['id'],
+                        'new_store_id': store_destination_id
+                    })
+            except Exception as e:
+                log_manager.log_session('error', f'Error processing invoice', {
+                    'invoice_id': item['id'],
+                    'error': str(e)
+                })
+                continue
+    except Exception as e:
+        log_manager.log_session('error', f'Error in update_diadoc_invoices_v2', {'error': str(e)})
+        raise
 
 def get_diadoc_presets_for_file(file):
-    print('1111')
+    log_manager.log_session('info', 'Starting get_diadoc_presets_for_file')
     inn = None
     try:
         inn = file["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвЮЛУч"]["@ИННЮЛ"]
+        log_manager.log_session('debug', 'Found INN from СвЮЛУч', {'inn': inn})
     except:
         pass
     try:
@@ -77,7 +111,7 @@ def get_diadoc_presets_for_file(file):
                 valid_presets_store_destination.append(preset)
                 continue
         except:
-            pass
+             pass
         try:
             if str(xmltodict.parse(preset.store_destination_information)) == str(file['Файл']['Документ']['СвСчФакт']['ГрузПолуч']['Адрес']).replace('  ',' '):
                 valid_presets_store_destination.append(preset)
@@ -102,6 +136,9 @@ def get_diadoc_presets_for_file(file):
                 continue
         except:
             pass
+    log_manager.log_session('info', 'Completed get_diadoc_presets_for_file', {
+        'total_matches': len(valid_presets_store_destination)
+    })
     return valid_presets_store_destination
 
 
@@ -110,94 +147,118 @@ def generate_document_from_preset(document,diadocpreset):
     prefix = diadocpreset
     return
 def download_invoice_from_diadoc(diadoc_document_id):
-    print('1113')
-    file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
-    print('1114')
-    download_link = DiadocInvoice.objects.get(diadoc_id=diadoc_document_id).downloadlink
-    print('11')
-    print(download_link)
-    print('asd')
-    DIADOC_API.download(url=download_link, file_name=file_name)
-    print('asd2')
+    log_manager.log_session('info', 'Starting download_invoice_from_diadoc', {'document_id': diadoc_document_id})
+    try:
+        file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
+        print('1114')
+        download_link = DiadocInvoice.objects.get(diadoc_id=diadoc_document_id).downloadlink
+        print('11')
+        print(download_link)
+        print('asd')
+        DIADOC_API.download(url=download_link, file_name=file_name)
+        print('asd2')
+        log_manager.log_session('info', 'Successfully downloaded invoice', {'file_name': file_name})
+    except Exception as e:
+        log_manager.log_session('error', 'Failed to download invoice', {
+            'document_id': diadoc_document_id,
+            'error': str(e)
+        })
+        raise
 
 def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
-    download_invoice_from_diadoc(diadoc_document_id)
-    print('test_1')
-    file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
-    with open(file_name, "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
-        data_dict = xmltodict.parse(xmlfileObj.read())
-    valid_presets = get_diadoc_presets_for_file(data_dict)
-    if valid_presets.__len__() == 0:
-        print('Количество подходящих шаблонов - 0. Настройте шаблоны')
-        return
-    print('test_2')
-    if valid_presets.__len__() > 1:
-        print('КОличество подходящик шаблонов - более одного. Настройте шаблоны.')
-        for valid_preset in valid_presets:
-            print(valid_preset.id)
-            print(valid_preset.preset_name)
-            print(valid_preset.supplier_fk)
-
-        return
-    data = {}
-    preset = valid_presets[0]
-    print('test_3')
-    date_flag = False
+    log_manager.log_session('info', 'Starting create_invoice_from_diadoc_document_v2', {
+        'user_id': diadoc_user_id,
+        'document_id': diadoc_document_id
+    })
+    
     try:
-        data.update({"date": datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
-        date_flag = True
-    except Exception as Ex:
-        pass
-    if date_flag is not True:
+        download_invoice_from_diadoc(diadoc_document_id)
+        print('test_1')
+        file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
+        with open(file_name, "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
+            data_dict = xmltodict.parse(xmlfileObj.read())
+        valid_presets = get_diadoc_presets_for_file(data_dict)
+        log_manager.log_session('debug', 'Retrieved valid presets', {
+            'presets_count': len(valid_presets) if valid_presets else 0
+        })
+        if valid_presets.__len__() == 0:
+            print('Количество подходящих шаблонов - 0. Настройте шаблоны')
+            return
+        print('test_2')
+        if valid_presets.__len__() > 1:
+            print('КОличество подходящик шаблонов - более одного. Настройте шаблоны.')
+            for valid_preset in valid_presets:
+                print(valid_preset.id)
+                print(valid_preset.preset_name)
+                print(valid_preset.supplier_fk)
+
+            return
+        data = {}
+        preset = valid_presets[0]
+        print('test_3')
+        date_flag = False
         try:
-            data.update({"date": datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаДок"], "%d.%m.%Y").strftime("%Y-%m-%d")})
+            data.update({"date": datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаСчФ"], "%d.%m.%Y").strftime("%Y-%m-%d")})
             date_flag = True
         except Exception as Ex:
             pass
-    if date_flag == False:
-        raise Exception
-    data.update({"inn": preset.supplier_inn})
-    number_flag = False
-    try:
-        data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерСчФ"]})
-        number_flag = True
-    except Exception as Ex:
-        pass
-    if number_flag is not True:
+        if date_flag is not True:
+            try:
+                data.update({"date": datetime.strptime(data_dict["Файл"]["Документ"]["СвСчФакт"]["@ДатаДок"], "%d.%m.%Y").strftime("%Y-%m-%d")})
+                date_flag = True
+            except Exception as Ex:
+                pass
+        if date_flag == False:
+            raise Exception
+        data.update({"inn": preset.supplier_inn})
+        number_flag = False
         try:
-            data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерДок"]})
+            data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерСчФ"]})
             number_flag = True
         except Exception as Ex:
             pass
-    goods = []
-    for item in data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов']:
-        if item == "@НомСтр" or item == "@КолТов":
-            new_position = search_goods_xml_diadoc(preset.supplier_prefix, data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов'])
+        if number_flag is not True:
+            try:
+                data.update({"doc_id": data_dict["Файл"]["Документ"]["СвСчФакт"]["@НомерДок"]})
+                number_flag = True
+            except Exception as Ex:
+                pass
+        goods = []
+        for item in data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов']:
+            if item == "@НомСтр" or item == "@КолТов":
+                new_position = search_goods_xml_diadoc(preset.supplier_prefix, data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов'])
+                print(new_position)
+                goods.append(new_position)
+                break
+            new_position = search_goods_xml_diadoc(preset.supplier_prefix, item)
             print(new_position)
             goods.append(new_position)
-            break
-        new_position = search_goods_xml_diadoc(preset.supplier_prefix, item)
-        print(new_position)
-        goods.append(new_position)
-    data.update({"positions": goods})
-    partnerid = DREAM_KAS_API.search_partner_id_by_inn(data["inn"])
-    print('creating_document')
-    print('test_1')
-    print(data["date"])
-    print('test_2')
-    print(partnerid)
-    print('test_3')
-    print(str(data["doc_id"]))
-    print('test_3.5')
-    try:
-        result = DREAM_KAS_API.createdocument(data["date"], "Документ Создан Автоматически. Источник - Диадок", partnerid, str(data["doc_id"]), positions=data["positions"],target_store_id=preset.store_destination_fk.store_id)
-    except Exception as Ex:
-        print(Ex)
-    print('result')
-    print(result)
-    print('endresult')
-    print('test_4')
-    return 'https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']
+        data.update({"positions": goods})
+        partnerid = DREAM_KAS_API.search_partner_id_by_inn(data["inn"])
+        print('creating_document')
+        print('test_1')
+        print(data["date"])
+        print('test_2')
+        print(partnerid)
+        print('test_3')
+        print(str(data["doc_id"]))
+        print('test_3.5')
+        try:
+            result = DREAM_KAS_API.createdocument(data["date"], "Документ Создан Автоматически. Источник - Диадок", partnerid, str(data["doc_id"]), positions=data["positions"],target_store_id=preset.store_destination_fk.store_id)
+        except Exception as Ex:
+            print(Ex)
+        print('result')
+        print(result)
+        print('endresult')
+        print('test_4')
+        return 'https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']
+    except Exception as e:
+        log_manager.log_session('error', 'Failed to create invoice', {
+            'error': str(e),
+            'user_id': diadoc_user_id,
+            'document_id': diadoc_document_id
+        })
+        raise
 def check_code(input):
         try:
             if barcodenumber.check_code('ean13', str(input)) or barcodenumber.check_code('ean8', str(input)):

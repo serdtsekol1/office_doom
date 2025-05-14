@@ -29,6 +29,8 @@
     <div style="flex:1%"></div>
     <div style="flex:35%">Товар</div>
     <div style="flex:15%"><span class="ml-3">Категория</span></div>
+    <div style="flex:5px"></div>
+    <div style="flex:25px">Код</div>
     <div style="flex:8%" class="text-center">Количество</div>
     <div style="flex:8%" class="text-center">Цена</div>
     <div style="flex:8%" class="text-center">Сумма</div>
@@ -61,6 +63,7 @@
                     <option {% if group.group_id == item.product.categoryId %} selected="selected" {% endif %} value={{ group.group_id }}>{{ group.name }}</option>
                 {% endfor %}
             </select></div>
+        <div style="flex:5px"> </div>
         <div style="flex:25px">
             {% for barcode in item.product.barcodes %}
                 {% get_printer_code_from_barcode barcode as printer_code %}
@@ -69,32 +72,32 @@
                 {% endif %}
             {% endfor %}
         </div>
-        <div style="flex:8%" class="text-right position-amount ">
+        <div style="flex:8%" class="text-center position-amount ">
             {% if invoice.status == "ACCEPTED" %}{{ item.amount|divide:1000 }}{% endif %}
             {% if invoice.status == "DRAFT" %}
                 <input class="item-amount inputter" style="width : 80%" type="text" value="{{ item.amount|divide:1000 }}">
             {% endif %}
         </div>
-        <div style="flex:8%" class="text-right position-costwithtax ">
+        <div style="flex:8%" class="text-center position-costwithtax ">
             {% if invoice.status == "ACCEPTED" %}{{ item.costWithTax|divide:100 }}{% endif %}
             {% if invoice.status == "DRAFT" %}
                 <input class="item-cost-with-tax inputter" style="width : 80%" type="text" value="{{ item.costWithTax|divide:100 }}">
             {% endif %}
         </div>
-        <div style="flex:8%" class="text-right position-sum ">
+        <div style="flex:8%" class="text-center position-sum ">
             {% if invoice.status == "ACCEPTED" %}{{ item.sumCost|divide:100 }}{% endif %}
             {% if invoice.status == "DRAFT" %}
                 <input class="item-sum inputter" style="width : 80%" type="text" value="{{ item.sumCost|divide:100 }}">
             {% endif %}
         </div>
-        <div style="flex:8%" class="text-right position-price ">
+        <div style="flex:8%" class="text-center position-price ">
             {% if invoice.status == "ACCEPTED" %}{{ item.price|divide:100 }}{% endif %}
             {% if invoice.status == "DRAFT" %}
                 {#                        <input class="item-selling-price" style="width : 100%" type="text" value="{{ item.price|divide:100 }}">#}
             {% endif %}
         </div>
 
-        <div style="flex:8%" class="text-right">
+        <div style="flex:8%" class="text-center">
             {% if invoice.status == "ACCEPTED" %}
                 {{ item.price|divide:item.costWithTax|subtract:1|floatformat:4|multiply:100|floatformat:2 }}%
             {% endif %}

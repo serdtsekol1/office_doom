@@ -25,3 +25,4 @@ venv/
 mainapp/static/style.css
 **/migrations/*
 !**/migrations/__init__.py
+.qodo

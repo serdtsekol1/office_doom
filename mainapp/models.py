@@ -76,6 +76,8 @@ class Product(models.Model):
     short_name = models.TextField('short_name', blank=True, default=None, null=True)
     expiry_duration = models.IntegerField('expiry_duration', default=None, null=True, blank=True)
     contents = models.TextField('contents', blank=True, default=None, null=True)
+    flag_deleted = models.BooleanField('flag_deleted',blank=True,default=False,null=True)
+    flag_ignore_on_pricing = models.BooleanField('flag_ignore_on_pricing',blank=True,default=False,null=True)
     @property
     def price_for_shop(self):
         current_shop = os.environ.get('CURRENT_SHOP')
@@ -310,6 +312,100 @@ class Document(models.Model):
 class Invoice_v2(Document):
     supplier_fk = models.ForeignKey(Supplier, blank=True, default=None, null=True, on_delete=models.SET_NULL)
 
+class Document_v3(models.Model):
+    dreamkas_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+    number = models.CharField('Номер', max_length=255, blank=True, default=None, null=True)
+    issue_date = models.DateField('Дата', blank=True, default=None, null=True)
+    flag_status = models.CharField('DRAFT|ACCEPTED|DELETED', null=True, blank=True, default=False, max_length=25)
+    # 0 - Draft
+    # 1 - Accepted
+    # 2 - Deleted
+
+    flag_hide = models.BooleanField('Спрятать накладную от показа?', null=True, blank=True, default=False)
+    hide_reason = models.CharField('Комментарий \ Причина того что накладная не видна', max_length=255, blank=True, default=None, null=True)
+    flag_source_program = models.BooleanField('Created via program?', null=True, blank=True, default=False)
+    destination = models.ForeignKey(Store, on_delete=models.DO_NOTHING, null=True)
+    class Meta:
+        abstract = True
+class Position_invoice_v3(models.Model):
+    invoice_v3_fk = models.ForeignKey("Invoice_v3", blank=True, default=None, null=True, on_delete=models.CASCADE)
+    product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.DO_NOTHING)
+    position_name = models.CharField('name', blank=True, null=True, max_length=255, default=None)
+    position_num = models.IntegerField('number', blank=True, default=None, null=True)
+    position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
+    position_amount = models.DecimalField("position_amount", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    position_price = models.DecimalField("position_costwithtax", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    position_sum = models.DecimalField("position_sum", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    flag_found = models.BooleanField("if product FK is attached to position", blank=True, default=False,null=True)
+    flag_priced = models.BooleanField('Проведена ли расценка данной позициии?',default=False,blank=True,null=True)
+    flag_negative_income = models.BooleanField('Есть ли в позиции отрицательный доход?',default=False,blank=True,null=True)    
+    position_profit = models.DecimalField('Прибыль', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    position_income = models.DecimalField('Доход', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+class Position_pricing_order_v3(models.Model):
+    pricing_order_v3_fk = models.ForeignKey("Pricing_order_v3", blank=True, default=None, null=True, on_delete=models.CASCADE)
+    position_num = models.IntegerField('number', blank=True, default=None, null=True)
+    position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
+    position_name = models.CharField('name', blank=True, null=True, max_length=255, default=None)
+    product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.DO_NOTHING)
+    position_price_old = models.DecimalField("price_old", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    position_price_new = models.DecimalField("price_new", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    flag_found = models.BooleanField("if product FK is attached to position", blank=True, default=False,null=True)
+
+class Invoice_v3(Document_v3):
+    latest_iteration_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+    latest_pricing_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+    supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
+    supplier_fk = models.ForeignKey(Supplier, blank=True, default=None, null=True, on_delete=models.SET_NULL)
+    totalSum = models.DecimalField('Сумма', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    flag_paid = models.BooleanField('Оплата', default=False, blank=True, null=True, )
+    flag_payment_type = models.BooleanField('Тип накладной - НАЛ \ БЕЗНАЛ', default=False)
+    flag_payment_overdue = models.BooleanField('Payment Overdue',default=False,blank=True,null=True)
+    flag_priced = models.BooleanField('Расценка проведена ли?',default=False,blank=True,null=True)
+    profit = models.DecimalField('Прибыль', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    income = models.DecimalField('Доход', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+class Position_correction_invoice_v3(models.Model):
+    correction_invoice_v3_fk = models.ForeignKey("Correction_invoice_v3", blank=True, default=None, null=True, on_delete=models.CASCADE)
+    product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.DO_NOTHING)
+    position_name = models.CharField('name', blank=True, null=True, max_length=255, default=None)
+    position_num = models.IntegerField('number', blank=True, default=None, null=True)
+    position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
+    position_amount = models.DecimalField("position_amount", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    position_price = models.DecimalField("position_costwithtax", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    position_sum = models.DecimalField("position_sum", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    flag_found = models.BooleanField("if product FK is attached to position", blank=True, default=False,null=True)
+    flag_priced = models.BooleanField('Проведена ли расценка данной позициии?',default=False,blank=True,null=True)
+    flag_negative_income = models.BooleanField('Есть ли в позиции отрицательный доход?',default=False,blank=True,null=True)
+    position_profit = models.DecimalField('Прибыль', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    position_income = models.DecimalField('Доход', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+class Correction_invoice_v3(Document_v3):
+    parent_document_dreamkas_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+    supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
+    supplier_fk = models.ForeignKey(Supplier, blank=True, default=None, null=True, on_delete=models.SET_NULL)
+    totalSum = models.DecimalField('Сумма', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    flag_paid = models.BooleanField('Оплата', default=False, blank=True, null=True, )
+    flag_payment_type = models.BooleanField('Тип накладной - НАЛ \ БЕЗНАЛ', default=False)
+    flag_payment_overdue = models.BooleanField('Payment Overdue',default=False,blank=True,null=True)
+    profit = models.DecimalField('Прибыль', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+
+ 
+class Pricing_order_v3(Document_v3):
+    parent_document_dreamkas_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+
+class Outcome_order_v3(Document_v3):
+    parent_document_dreamkas_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+class position_outcome_order_v3(models.Model):
+    outcome_order_v3_fk = models.ForeignKey(Outcome_order_v3, blank=True, default=None, null=True, on_delete=models.CASCADE)
+    position_num = models.IntegerField('number', blank=True, default=None, null=True)
+    flag_found = models.BooleanField("if product FK is attached to position", blank=True, default=False,null=True)
+    position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
+    position_name = models.CharField('name', blank=True, null=True, max_length=255, default=None)
+    position_amount = models.DecimalField("position_amount", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    position_amount_removed = models.DecimalField("position_amount_removed", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
+    
+
+    
+class Receipt(models.Model):
+    a = 0
 
 class Document_internal(models.Model):
     type = models.IntegerField('type',blank=True,null=True,max_length=255,default=None)

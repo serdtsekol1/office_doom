@@ -9,16 +9,42 @@ import datetime
 
 from mainapp import global_var
 
-
 def periodicTask():
     if global_var.init is True:
         return
     global_var.init = True
-    from mainapp.dreamkas_documents import update_invoices
-    print("Следующее автоматическое обновление накладных через час")
+    from mainapp.dreamkas_documents import update_invoices_v2, generate_file_to_delete_from_rests_and_egais_rests
+    print("Автоматическое обновление накладных")
+    from mainapp.Dreamkas_documents.update_documents import update_invoices,update_documents
+    from mainapp.models import Invoice_v3, Position_invoice_v3 ,Pricing_order_v3, Position_pricing_order_v3
+    from mainapp.Dreamkas_documents.funcs import build_tree_of_documents, find_latest_document_iteration, calculate_profit
+    def get_doc_and_info(dreamkas_Id):
+        from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object,fetch_documents_positions
+        from mainapp.models import Invoice_v3
+        document = fetch_document_object(dreamkas_Id)
+        positions = fetch_documents_positions(document)
+
+        if document.__class__ == Invoice_v3:
+            print(document.number)
+            print(document.issue_date)
+            print(document.supplier)
+            print(document.destination)
+            for pos in positions:
+                print(pos.position_num, '|',pos.position_name,'|', pos.position_amount, '|', pos.position_price, '|', pos.position_sum)
+        elif document.__class__ == Pricing_order_v3:
+            print(document.number)
+            print(document.issue_date)
+            print(document.destination)
+            for pos in positions:
+                print(pos.position_num, '|',pos.position_name,'|', pos.position_price_old, '->', pos.position_price_new)
+    # get_doc_and_info(84953840)
+    # get_doc_and_info(84953852)
+    update_documents(invoices=True,pricing_orders=True,invoice_limit=100,pricing_order_limit=100,correction_invoices=True,correction_invoice_limit=100)
+    build_tree_of_documents(document_id=85150510)
+    
     while True:
-        time.sleep(3600)
-        update_invoices()
+        time.sleep(30)
+        update_documents(invoices=True,pricing_orders=True,invoice_limit=5,pricing_order_limit=5,correction_invoices=True,correction_invoice_limit=3)
 class MainappConfig(AppConfig):
     name = 'mainapp'
     verbose_name = _('admin__mainapp')

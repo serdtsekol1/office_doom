@@ -266,6 +266,29 @@ class DreamKasApi:
 
     def get_departments(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/departments").json()
+    
+    
+    def fetch_receipts_range(self,date_from,date_to,device):
+        print("Fetching receipts")
+        if date_from == None:
+            print("Error. date from == None!")            
+            raise Exception
+        if date_to == None:
+            print("Error. date to == None!")            
+            raise Exception
+        if device == None:
+            print("Error. device == None!")            
+            raise Exception
+        date_list = []
+        while current_date <= date_to:
+            date_list.append(current_date.strftime("%d.%m.%Y"))
+            current_date += datetime.timedelta(days=1)
+        for day in date_list:
+            fetch_receipt(day,device)
+            
+    def fetch_receipt(day,device):
+        date_from_year = day.year
+        date_from = '&from=' + str(date_from_year) + '-' + str(date_from_month).zfill(2) + '-' + str(date_from_day).zfill(2) + "T00:00:00Z"
 
     def get_receipts(self, date_from_year = None, date_from_month = None, date_from_day = None,  date_to_year = None, date_to_month = None, date_to_day = None, devices = None, store = None):
         if devices == None:
@@ -456,7 +479,8 @@ class DreamKasApi:
 
 
     def delete_document(self, document_id):
-        return
+        response = self.session.delete("https://kabinet.dreamkas.ru/api/v1/documents/" + str(document_id))
+        return response
 
     def get_problematic_products(self,devices=[34796,31391,163617]):
     #     from datetime import timedelta, date
@@ -533,7 +557,20 @@ class DreamKasApi:
             link = f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS"
         else:
             link = f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&offset={offset}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS"
-        response = self.session.get(link)
+        i = 0 
+        while i < 20:
+            try:
+                response = self.session.get(link)
+                break
+            except Exception as e:
+                print(e)
+                print(f"Не удалось скачать документы. Следующая попытка через ", i*(i/2), " секунд")
+                i += 1
+                time.sleep(i*(i/2))
+        if i == 20:
+            print("Не удалось скачать документы")
+            return -1
+            
         if response.status_code == 200:
             print("Документы получены")
             return response.json()
@@ -542,7 +579,17 @@ class DreamKasApi:
             return "Login Failed"
 
     def get_document(self, id_document):
-        response = self.session.get(f"{self.URL_DOCUMENTS_v1_API}/{id_document}")
+        i = 0
+        while i < 20:
+            try:
+                print('Попытка №',i,' получить документ')
+                response = self.session.get(f"{self.URL_DOCUMENTS_v1_API}/{id_document}")
+                if response.status_code == 200:
+                    break
+            except Exception as e:
+                print(e)
+                print(f"Не удалось скачать документ. Следующая попытка через ", i*(i/2), " секунд")
+                i += 1
         return response.json()
 
 

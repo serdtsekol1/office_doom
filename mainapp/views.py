@@ -63,45 +63,6 @@ GOOGLEMAIL = [
 #     company.append(file['supplier_inn'])
 
 COMPANIES = [
-    ('ip_martovoy', 'ИП Мартовой'),
-    ('ooo_partner', 'OOO Partnfer'),
-    ('ooo_VNNA', 'Vinniy Aliansv'),
-    ('ip_baykov', 'IP Baykov'),
-    ('ooo_invest_torg', 'OOO Invest Torg'),
-    ('ip_td_mihalin', 'Ip Td Mihalin'),
-    ('ip_glazichev_m_g', 'Ip Glazichev Maksim Gennadievich'),
-    ('ooo_veles_vip', 'OOO Veles ViP'),
-    ('ooo_faeton', 'OOO Faeton'),
-    ('ooo_prod_alians_krim', 'OOO ProdAlians-Krim'),
-    ('ooo_torgoviy_dom_vremia', 'OOO Torgoviy Dom Vremia'),
-    ('ooo_krim_frost', 'OOO Krim frost'),
-    ('ooo_sir_mol_prom_yug', 'OOO Sir Mol Prom Yug'),
-    ('ooo_partner_yug_diadoc', 'OOO Partner Yug'),
-    ('ooo_orient', 'OOO ORIENT'),
-    ('ip_atamanov_aleksandr_evgenievich', "IP Atmanov Aleksandr Evgenievich"),
-    ('ooo_krim_prod_snab', "OOO Krim Prod Snab"),
-    ('ooo_df_ruslana', "OOO DF Ruslana"),
-    ('ip_nikonenko_vasiliy_leonidovich', "IP Nikonenko Vasiliy Leonidovich"),
-    ('ooo_ideal_krim', "OOO Ideal Krim"),
-    ('ooo_td_ideal_krim', "OOO TD Ideal Krim"),
-    ('ip_baykov_diadoc', 'IP Baykov'),
-    ('ooo_ors', 'OOO ORS'),
-    ('ip_vovchenko_yana_iosifovna', 'IP Vovchenko Yana Iosifovna'),
-    ('ooo_megatreyd_yug', 'OOO Megatrade Yug'),
-    ('ooo_prodlayn', 'OOO ProdLayn'),
-    ('ooo_troyanda_krim', 'OOO Troyanda Krim'),
-    ('ooo_rosttreyd', 'OOO RostTreyd'),
-    ('ooo_td_stariy_amsterdam', 'OOO Staryiy Amsterdam'),
-    ('ooo_Dakort_Krim', "OOO Dakort Krim"),
-    ('ooo_krim_product', "OOO Krim Product"),
-    ('ooo_real_krim', "OOO Real Krim"),
-    ('ip_popov_aleksandr_aleksandrovich', "Saksoye Morojenoye, popov A A"),
-    ('ip_melnikova_tatiana_bogdanovna', "IP Melnikova Tatiana Bogdanovna"),
-    ('ip_yarosh_sergey_valerievich', 'IP Yarosh Sergey Valerievich'),
-    ('ip_desna_vasility_anatolievich', ", IP Desna Vasiliy Anatolievich"),
-    ('ip_trusov_A_Yu', ", IP Trusov Aleksandr Yurievich"),
-    ('ip_goliakov_vitaliy_viktorovich', ", IP Goliakov Vitaliy Viktorovich"),
-    ('ooo_yusan', "ooo Yusan")
 
 ]
 
@@ -642,8 +603,19 @@ def create_pricing_order(request):
 
 @csrf_exempt
 def invoices_update(request):
+    print('test')
     if request.method == 'POST':
-        result = dreamkas_documents.update_invoices()
+        start_time = time.time()
+        result = dreamkas_documents.update_invoices_v2(limit=100)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Execution time for 1000 :{execution_time} seconds")
+        
+        start_time = time.time()
+        result = dreamkas_documents.update_invoices_v2(limit=50)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Execution time for 1000 :{execution_time} seconds")
         if result is True:
             return redirect(reverse('invoices'))
         else:
@@ -895,7 +867,7 @@ def delete_diadoc_invoices(request):
 @csrf_exempt
 def invoices_diadoc_v2(request):
     start_time = time.time()
-    diadocinvoices = DiadocInvoice.objects.filter(store_id=request.session['store_id']).order_by("-issue_date")[:request.GET.get("page", 1) * 1000]
+    diadocinvoices = DiadocInvoice.objects.filter(store_id=request.session['store_id']).order_by("-issue_date")[:request.GET.get("page", 1) * 100]
     dreamkas_invoices = Invoice.objects.all()
     dreamkas_dict = {}
     for dreamkas_invoice in dreamkas_invoices:
@@ -912,7 +884,7 @@ def invoices_diadoc_v2(request):
         if key in dreamkas_dict:
             matching_invoices.extend(dreamkas_dict[key])
     print('6:', time.time() - start_time)
-    page = Paginator(diadocinvoices, 300).page(request.GET.get("page", 1))
+    page = Paginator(diadocinvoices, 100).page(request.GET.get("page", 1))
     print('7:', time.time() - start_time)
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
 

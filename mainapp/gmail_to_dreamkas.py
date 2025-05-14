@@ -17,7 +17,7 @@ from slugify import slugify
 from dremkas.settings import DREAM_KAS_API
 from mainapp.gmail_invoices import get_gmail_messages, replace_month_to_number
 from mainapp.helper import check_EAN13_EAN8, convert_csv_to_excel
-from mainapp.models import PresetGmail, Store
+from mainapp.models import Barcodes, PresetGmail, Store
 
 
 def preset_init():
@@ -265,11 +265,18 @@ def search_product_thorough(prefix, product_name, product_code, product_amount, 
                 productcode = prefix + tempproductcode
         except:
             pass
+        multiplier = None
+        if found_product:
+            try:
+                 multiplier = Barcodes.objects.filter(barcode=productcode).first().multiplier
+            except:
+                pass
+                
     new_position = {
         "name": None if found_product else productcode,
         "barcodeControl": None,
-        "amount": round(float(product_amount) * 1000),
-        "costWithTax": round(round(float(product_sum) / float(product_amount), 2) * 100),
+        "amount": round(float(product_amount) * 1000) if multiplier is None else round(float(product_amount) * 1000 * multiplier),
+        "costWithTax": round(round(float(product_sum) / float(product_amount), 2) * 100) if multiplier is None else round(round(float(product_sum) / float(product_amount) / float(multiplier), 2) * 100),
         "sumCost": round(float(product_sum) * 100),
         "product": None,
         "barcode": None,
