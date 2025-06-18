@@ -1,0 +1,30 @@
+2025-06-16 17:02:30,120 - mainapp.logging_utils - INFO - Log file created: 2025-06-16_17-02-30.log
+2025-06-16 17:02:30,120 - mainapp.apps - INFO - Django up
+2025-06-16 17:02:30,174 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-16 17:02:31,135 - mainapp.logging_utils - INFO - [2025-06-16 17:02:31] Updating_invoices, params: True, True, True, 100, 200, 20, None, None, True, True, None, True, True
+2025-06-16 17:02:31,135 - mainapp.logging_utils - INFO - [2025-06-16 17:02:31] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=100&filter[type]=5,13&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 17:02:31,135 - mainapp.logging_utils - INFO - [2025-06-16 17:02:31] Get request sent
+2025-06-16 17:02:58,033 - mainapp.logging_utils - INFO - [2025-06-16 17:02:58] update_invoices: documents external fetched
+2025-06-16 17:02:58,037 - mainapp.logging_utils - INFO - [2025-06-16 17:02:58] update_invoices: draft cleanup done
+2025-06-16 17:02:58,139 - mainapp.logging_utils - INFO - [2025-06-16 17:02:58] update_invoices: invoices to create and update defined
+2025-06-16 17:02:59,384 - mainapp.logging_utils - INFO - [2025-06-16 17:02:59] update_invoices: invoices to create and update prepared
+2025-06-16 17:02:59,794 - mainapp.logging_utils - INFO - [2025-06-16 17:02:59] update_invoices: invoices created and updated
+2025-06-16 17:02:59,794 - mainapp.logging_utils - INFO - [2025-06-16 17:02:59] update_invoices: getting positions
+2025-06-16 17:02:59,794 - mainapp.logging_utils - INFO - [2025-06-16 17:02:59] Updating_invoices. Progress: 0 / 100
+2025-06-16 17:03:08,801 - mainapp.logging_utils - INFO - [2025-06-16 17:03:08] Updating_invoices. Progress: 10 / 100
+2025-06-16 17:03:14,443 - mainapp.logging_utils - INFO - [2025-06-16 17:03:14] Updating_invoices. Progress: 20 / 100
+2025-06-16 17:03:17,082 - mainapp.logging_utils - INFO - [2025-06-16 17:03:17] Updating_invoices. Progress: 30 / 100
+2025-06-16 17:03:20,774 - mainapp.logging_utils - INFO - [2025-06-16 17:03:20] Updating_invoices. Progress: 40 / 100
+2025-06-16 17:03:28,070 - mainapp.logging_utils - INFO - [2025-06-16 17:03:28] Updating_invoices. Progress: 50 / 100
+2025-06-16 17:03:33,656 - mainapp.logging_utils - INFO - [2025-06-16 17:03:33] Updating_invoices. Progress: 60 / 100
+2025-06-16 17:03:39,500 - mainapp.logging_utils - INFO - [2025-06-16 17:03:39] Updating_invoices. Progress: 70 / 100
+2025-06-16 17:03:43,101 - mainapp.logging_utils - INFO - [2025-06-16 17:03:43] Updating_invoices. Progress: 80 / 100
+2025-06-16 17:03:46,773 - mainapp.logging_utils - INFO - [2025-06-16 17:03:46] Updating_invoices. Progress: 90 / 100
+2025-06-16 17:03:52,027 - mainapp.logging_utils - INFO - [2025-06-16 17:03:52] update_invoices: positions to create and update defined
+2025-06-16 17:03:54,408 - mainapp.logging_utils - INFO - [2025-06-16 17:03:54] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=200&filter[type]=11&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 17:03:54,408 - mainapp.logging_utils - INFO - [2025-06-16 17:03:54] Get request sent
+2025-06-16 17:05:57,969 - mainapp.logging_utils - INFO - [2025-06-16 17:05:57] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=20&filter[type]=7&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 17:05:57,969 - mainapp.logging_utils - INFO - [2025-06-16 17:05:57] Get request sent
+2025-06-16 17:08:11,912 - mainapp.logging_utils - INFO - [2025-06-16 17:08:11] Unable to price invoice: https://kabinet.dreamkas.ru/app/#!/documents/card~2F86978101
+2025-06-16 17:08:11,913 - mainapp.logging_utils - INFO - [2025-06-16 17:08:11] Unable to price invoice: https://kabinet.dreamkas.ru/app/#!/documents/card~2F85449229
+2025-06-16 17:08:11,913 - mainapp.logging_utils - INFO - [2025-06-16 17:08:11] Unable to price invoice: https://kabinet.dreamkas.ru/app/#!/documents/card~2F86361445

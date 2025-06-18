@@ -1,0 +1,3 @@
+2025-06-16 17:57:00,604 - mainapp.logging_utils - INFO - Log file created: 2025-06-16_17-57-00.log
+2025-06-16 17:57:00,604 - mainapp.apps - INFO - Django up
+2025-06-16 17:57:00,651 - django.utils.autoreload - INFO - Watching for file changes with StatReloader

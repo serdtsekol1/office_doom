@@ -13,6 +13,7 @@ from requests_html import HTMLSession
 
 # from dremkas.settings import MEDIA_ROOT
 from mainapp.helper import open_file_type, save_to_json
+from mainapp.logging_utils import log_item
 
 
 class DocType(Enum):
@@ -237,7 +238,8 @@ class DreamKasApi:
         return self.session.get("https://kabinet.dreamkas.ru/api/v1/shops?").json()
     def get_devices(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/devices").json()
-
+    def get_receipt(self,date_from,date_to,device,limit,offset):
+        return self.session.get(f"https://kabinet.dreamkas.ru/api/receipts?from={date_from}&to={date_to}&limit={limit}&offset={offset}&devices={device}").json()
     # def goods_analyzer(self, date_from, date_to):
     #     departments = self.get_departments()
     #     valid_Departments = []
@@ -412,14 +414,20 @@ class DreamKasApi:
                 print(ex, item)
         return (positions)
 
-
+    def create_pricing_order_v2(self,targetStoreId,positions,parentId=None, partnerId=None):
+        data = {"type": "PRICING_ORDER","parentId":parentId if parentId else None,
+        "targetStoreId": targetStoreId, "positions": positions,"partnerId" : partnerId if partnerId else None,
+        "issueDate":str(datetime.datetime.today().date()),"status": "DRAFT"}
+        response = self.session.post(self.URL_DOCUMENTS_v1_API, json=data)
+        return response.json()
     ## DREAM_KAS_API.create_pricing_order(type="PRICING_ORDER",parentId="39130105",comment="TESTTESTTESTTEST")
     ##responce2 = DREAM_KAS_API.create_pricing_order(39305438, type="PRICING_ORDER", parentId="39305438", comment="TESTTESTTESTTEST")
     ## Вот як отослати шо угодно через дримкас апи.
-    def create_pricing_order(self,leave_prices=False,**keyword):
+    def create_pricing_order(self,leave_prices=False,parent_document=None,**keyword):
         # from mainapp.models import GoodGroups
         parentId = keyword.get("parentId")
-        parent_document = self.get_document(parentId)
+        if parent_document is None:
+            parent_document = self.get_document(parentId)
         target_store_id = parent_document['targetStoreId']
         positions = self.price_invoice(parent_document["positions"])
         data = {"products": [], "useMrp": True}
@@ -451,9 +459,14 @@ class DreamKasApi:
             all_prices = {}
             for pos in original_positios:
                 if pos['prices'] is not None:
+                    if str(target_store_id) not in str(pos['prices']):
+                        return -1
+                    price_val = None
                     for price in pos['prices']:
                         if price['shopId'] == target_store_id:
                             price_val = str(price['price'])
+                    if price_val is None:
+                        price_val = 'Delete'
                     new_price = {pos['id']:price_val}
                     all_prices.update(new_price)
                 else:
@@ -465,6 +478,7 @@ class DreamKasApi:
                 pos['priceRef'] = pos['price']
                 if pos['price'] != "Delete":
                     new_position_list.append(pos)
+                    
             positions = new_position_list                    
             # for pos in positions:
             #     found = False
@@ -517,11 +531,14 @@ class DreamKasApi:
         #             item['price'] = "0"
         #     except Exception as ex:
         #         print(ex, item)
-
+        if positions.__len__() == 0:
+            return -2
         data = {"type": "PRICING_ORDER",
                 "targetStoreId": target_store_id, "positions": positions,
                 "status": "DRAFT"}
-        data.update(keyword)
+        # Filter out parent_document from keyword arguments before updating data
+        filtered_keyword = {k: v for k, v in keyword.items() if k != 'parent_document'}
+        data.update(filtered_keyword)
         response = self.session.post(self.URL_DOCUMENTS_v1_API, json=data)
 
         return response.json()
@@ -589,7 +606,8 @@ class DreamKasApi:
 
     def get_suppliers(self):
         return self.session.get("https://kabinet.dreamkas.ru/api/v1/edx/paper/contacts").json()
-    def get_documents(self,offset=0, limit=100, document_type="5,13",acceptedAtFrom=None,acceptedAtTo=None,query=None ):
+    def get_documents(self,offset=0, limit=100, document_type="5,13",acceptedAtFrom=None,acceptedAtTo=None,query=None):
+        
         # 0: {label: "Перемещение", value: 2}
         # 1: {label: "Оприходование", value: 3}
         # 2: {label: "Списание", value: 4}
@@ -601,12 +619,12 @@ class DreamKasApi:
 
         # https://kabinet.dreamkas.ru/api/v1/documents?limit=1000&filter[type]=5&filter[source]=PAPER,KABINET
         # Request URL: https://kabinet.dreamkas.ru/api/v1/documents?limit=30&offset=0&filter[type]=5,13&filter[preset]=DOCUMENTS
-        print("Послан запрос на получение документов.")
         if acceptedAtFrom == None:
             acceptedAtFrom = ''
         if acceptedAtTo == None:
             acceptedAtTo = ''
         link = f"{self.URL_DOCUMENTS_v1_API}?limit={limit}&filter[type]={document_type}&filter[preset]=PAPER,DOCUMENTS"
+
         if offset != 0:
             link += f"&offset={offset}"
 
@@ -618,16 +636,36 @@ class DreamKasApi:
         
         if query is not None:
             link += f"&filter[q]={query}"
+
         i = 0 
+        link = repr(link)[1:-1]
+        log_item(f'get_documents: link: {link}')
         while i < 20:
             try:
-                response = self.session.get(link)
-                break
-            except Exception as e:
-                print(e)
-                print(f"Не удалось скачать документы. Следующая попытка через ", i*(i/2), " секунд")
+                log_item('Get request sent')
+                print('Отправлен запрос на получение документов')
+                response = self.session.get(link, timeout=60)
+                
+                if response.status_code == 200:
+                    print("Документы получены")
+                    return response.json()              
+                # If we reach here, it means the response was not successful
+                log_item(f'Get request failed with status code: {response.status_code}')
+                print(f"Не удалось скачать документы. Следующая попытка через {round((i / 3), 2)} секунд, Код: {response.status_code}")
                 i += 1
-                time.sleep(i*(i/2))
+                time.sleep(i / 3)
+            except Exception as e:
+                print(f"Не удалось скачать документы. Следующая попытка через {round((i / 3), 2)} секунд")
+                log_item('Get request failed')
+                log_item('EXCEPTION BEGIN')
+                log_item('EXCEPTION BEGIN')
+                log_item('EXCEPTION BEGIN')
+                log_item(e)
+                log_item('EXCEPTION END')
+                log_item('EXCEPTION END')
+                log_item('EXCEPTION END')
+                i += 1
+                time.sleep(i / 3)
         if i == 20:
             print("Не удалось скачать документы")
             return -1
@@ -643,7 +681,7 @@ class DreamKasApi:
         i = 1
         while i < 20:
             try:
-                print('Попытка №',i,' получить документ')
+                ## To add to logging: print('Попытка №',i,' получить документ', id_document)
                 i += 1
                 response = self.session.get(f"{self.URL_DOCUMENTS_v1_API}/{id_document}")
                 if response.status_code == 200:
@@ -656,6 +694,10 @@ class DreamKasApi:
                 print(f"Не удалось скачать документ. Следующая попытка через ", i*(i/2), " секунд")
                 time.sleep(i*(i/2))
                 i += 1
+        if i == 20:
+            log_item(f'Get document failed with status code: {response.status_code}')
+            print('Не удалось получить документ после 20 попыток')
+            return False
         return response.json()
 
 

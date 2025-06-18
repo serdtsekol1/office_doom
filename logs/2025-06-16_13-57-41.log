@@ -1,0 +1,28 @@
+2025-06-16 13:57:41,607 - mainapp.logging_utils - INFO - Log file created: 2025-06-16_13-57-41.log
+2025-06-16 13:57:41,608 - mainapp.apps - INFO - Django up
+2025-06-16 13:57:41,666 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-16 13:57:42,511 - mainapp.logging_utils - INFO - [2025-06-16 13:57:42] Updating_invoices, params: True, True, True, 100, 200, 20, None, None, True, True, None, True, True
+2025-06-16 13:57:42,512 - mainapp.logging_utils - INFO - [2025-06-16 13:57:42] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=100&filter[type]=5,13&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 13:57:42,512 - mainapp.logging_utils - INFO - [2025-06-16 13:57:42] Get request sent
+2025-06-16 13:58:10,244 - mainapp.logging_utils - INFO - [2025-06-16 13:58:10] update_invoices: documents external fetched
+2025-06-16 13:58:10,249 - mainapp.logging_utils - INFO - [2025-06-16 13:58:10] update_invoices: draft cleanup done
+2025-06-16 13:58:10,350 - mainapp.logging_utils - INFO - [2025-06-16 13:58:10] update_invoices: invoices to create and update defined
+2025-06-16 13:58:11,540 - mainapp.logging_utils - INFO - [2025-06-16 13:58:11] update_invoices: invoices to create and update prepared
+2025-06-16 13:58:11,907 - mainapp.logging_utils - INFO - [2025-06-16 13:58:11] update_invoices: invoices created and updated
+2025-06-16 13:58:11,907 - mainapp.logging_utils - INFO - [2025-06-16 13:58:11] update_invoices: getting positions
+2025-06-16 13:58:11,908 - mainapp.logging_utils - INFO - [2025-06-16 13:58:11] Updating_invoices. Progress: 0 / 100
+2025-06-16 13:58:16,945 - mainapp.logging_utils - INFO - [2025-06-16 13:58:16] Updating_invoices. Progress: 10 / 100
+2025-06-16 13:58:19,569 - mainapp.logging_utils - INFO - [2025-06-16 13:58:19] Updating_invoices. Progress: 20 / 100
+2025-06-16 13:58:22,988 - mainapp.logging_utils - INFO - [2025-06-16 13:58:22] Updating_invoices. Progress: 30 / 100
+2025-06-16 13:58:30,045 - mainapp.logging_utils - INFO - [2025-06-16 13:58:30] Updating_invoices. Progress: 40 / 100
+2025-06-16 13:58:35,587 - mainapp.logging_utils - INFO - [2025-06-16 13:58:35] Updating_invoices. Progress: 50 / 100
+2025-06-16 13:58:41,969 - mainapp.logging_utils - INFO - [2025-06-16 13:58:41] Updating_invoices. Progress: 60 / 100
+2025-06-16 13:58:45,549 - mainapp.logging_utils - INFO - [2025-06-16 13:58:45] Updating_invoices. Progress: 70 / 100
+2025-06-16 13:58:48,983 - mainapp.logging_utils - INFO - [2025-06-16 13:58:48] Updating_invoices. Progress: 80 / 100
+2025-06-16 13:58:54,232 - mainapp.logging_utils - INFO - [2025-06-16 13:58:54] Updating_invoices. Progress: 90 / 100
+2025-06-16 13:58:56,988 - mainapp.logging_utils - INFO - [2025-06-16 13:58:56] update_invoices: positions to create and update defined
+2025-06-16 13:58:58,210 - mainapp.logging_utils - INFO - [2025-06-16 13:58:58] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=200&filter[type]=11&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 13:58:58,210 - mainapp.logging_utils - INFO - [2025-06-16 13:58:58] Get request sent
+2025-06-16 14:01:41,558 - mainapp.logging_utils - INFO - [2025-06-16 14:01:41] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=20&filter[type]=7&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 14:01:41,558 - mainapp.logging_utils - INFO - [2025-06-16 14:01:41] Get request sent
+2025-06-16 14:02:23,313 - django.utils.autoreload - INFO - Z:\dreamkas_new\mainapp\dremkas_api.py changed, reloading.

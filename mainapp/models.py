@@ -14,7 +14,6 @@ from datetime import timedelta, date
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, current_store_id
 # from mainapp.gmail_invoices import get_gmail_messages
 
-
 class Store(models.Model):
     store_name = models.CharField('store_name', blank=True, null=True, max_length=255, default=None)
     store_id = models.IntegerField('store_id', blank=True, null=True)
@@ -321,7 +320,6 @@ class Document_v3(models.Model):
     # 0 - Draft
     # 1 - Accepted
     # 2 - Deleted
-
     flag_hide = models.BooleanField('Спрятать накладную от показа?', null=True, blank=True, default=False)
     hide_reason = models.CharField('Комментарий \ Причина того что накладная не видна', max_length=255, blank=True, default=None, null=True)
     flag_source_program = models.BooleanField('Created via program?', null=True, blank=True, default=False)
@@ -353,17 +351,27 @@ class Position_pricing_order_v3(models.Model):
     flag_found = models.BooleanField("if product FK is attached to position", blank=True, default=False,null=True)
 
 class Invoice_v3(Document_v3):
+    flag_invalid = models.BooleanField('Что-то не так с накладной',default=False,blank=True,null=True)
+    flag_invalid_reason = models.CharField('Почему накладная не валидна',default='',blank=True,null=True,max_length=255)
+    flag_invalid_fixed = models.BooleanField('Коррекция накладной проведена.',default=False,blank=True,null=True)
+    
     latest_iteration_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     latest_pricing_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     supplier = models.CharField('Поставщик', max_length=255, blank=True, default=None, null=True)
     supplier_fk = models.ForeignKey(Supplier, blank=True, default=None, null=True, on_delete=models.SET_NULL)
     totalSum = models.DecimalField('Сумма', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
     flag_paid = models.BooleanField('Оплата', default=False, blank=True, null=True, )
+    flag_paid_date = models.DateTimeField('Дата оплаты', null=True, blank=True, default=None)
     flag_payment_type = models.BooleanField('Тип накладной - НАЛ \ БЕЗНАЛ', default=False)
     flag_payment_overdue = models.BooleanField('Payment Overdue',default=False,blank=True,null=True)
-    flag_priced = models.BooleanField('Расценка проведена ли?',default=False,blank=True,null=True)
+    flag_priced = models.CharField('Расценка проведена ли?',default='0',blank=True,null=True,max_length=255)
+    # 0 - Не Расценена
+    # 1 - Расценка проведена
+    # 2 - Расценкка проведена некорректно - Несоответсвие позиций накладной и расценки
+    
     profit = models.DecimalField('Прибыль', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
     income = models.DecimalField('Доход', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    auto_priced_unchanged = models.BooleanField('Автоматическая расценка проведена без изменений',default=False,blank=True,null=True)
 class Position_correction_invoice_v3(models.Model):
     correction_invoice_v3_fk = models.ForeignKey("Correction_invoice_v3", blank=True, default=None, null=True, on_delete=models.CASCADE)
     product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.DO_NOTHING)
@@ -379,6 +387,9 @@ class Position_correction_invoice_v3(models.Model):
     position_profit = models.DecimalField('Прибыль', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
     position_income = models.DecimalField('Доход', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
 class Correction_invoice_v3(Document_v3):
+    flag_invalid = models.BooleanField('Что-то не так с Корректировкой',default=False,blank=True,null=True)
+    flag_invalid_reason = models.CharField('Почему Корректировка не валидна',default='',blank=True,null=True,max_length=255)
+    flag_invalid_fixed = models.BooleanField('Коррекция Корректировки проведена.',default=False,blank=True,null=True)
     latest_iteration_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     latest_pricing_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
     parent_document_dreamkas_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
@@ -386,13 +397,18 @@ class Correction_invoice_v3(Document_v3):
     supplier_fk = models.ForeignKey(Supplier, blank=True, default=None, null=True, on_delete=models.SET_NULL)
     totalSum = models.DecimalField('Сумма', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
     flag_paid = models.BooleanField('Оплата', default=False, blank=True, null=True, )
-    flag_payment_type = models.BooleanField('Тип накладной - НАЛ \ БЕЗНАЛ', default=False)
+    flag_payment_type = models.BooleanField('Тип корректировки - НАЛ \ БЕЗНАЛ', default=False)
     flag_payment_overdue = models.BooleanField('Payment Overdue',default=False,blank=True,null=True)
     profit = models.DecimalField('Прибыль', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    auto_priced_unchanged = models.BooleanField('Автоматическая расценка проведена без изменений',default=False,blank=True,null=True)
 
  
 class Pricing_order_v3(Document_v3):
     parent_document_dreamkas_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
+    flag_invalid = models.BooleanField('Что-то не так с расценкой',default=False,blank=True,null=True)
+    flag_invalid_reason = models.CharField('Почему расценка не валидна',default='',blank=True,null=True,max_length=255)
+    flag_invalid_fixed = models.BooleanField('Коррекция расценки проведена.',default=False,blank=True,null=True)
+    auto_priced_unchanged = models.BooleanField('Расценка была создана для накладной, которая была принята без изменений цен',default=False,blank=True,null=True)
 
 class Outcome_order_v3(Document_v3):
     parent_document_dreamkas_id = models.BigIntegerField('id_dreem', blank=True, default=None, null=True)
@@ -406,9 +422,18 @@ class position_outcome_order_v3(models.Model):
     position_amount_removed = models.DecimalField("position_amount_removed", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
     
 
-    
 class Receipt(models.Model):
-    a = 0
+    date = models.DateField('Дата',blank=True,default=None,null=True)
+    device_id = models.CharField('device_id',max_length=255,blank=True,default=None,null=True)
+    device_fk = models.ForeignKey(Device,blank=True,default=None,null=True,on_delete=models.SET_NULL)
+
+class position_receipt(models.Model):
+    receipt_fk = models.ForeignKey(Receipt,blank=True,default=None,null=True,on_delete=models.CASCADE)
+    product_id = models.CharField('product_id',max_length=255,blank=True,default=None,null=True)
+    product_fk = models.ForeignKey(Product,blank=True,default=None,null=True,on_delete=models.SET_NULL)
+    product_name = models.CharField('product_name',max_length=255,blank=True,default=None,null=True)
+    product_price = models.DecimalField('product_price',max_digits=11,decimal_places=2,blank=True,default=None,null=True)
+    product_amount = models.DecimalField('product_amount',max_digits=11,decimal_places=2,blank=True,default=None,null=True)
 
 class Document_internal(models.Model):
     type = models.IntegerField('type',blank=True,null=True,max_length=255,default=None)

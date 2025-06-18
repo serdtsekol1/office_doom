@@ -1,0 +1,22 @@
+2025-06-12 21:25:51,999 - mainapp.logging_utils - INFO - Log file created: 2025-06-12_21-25-51.log
+2025-06-12 21:25:51,999 - mainapp.apps - INFO - Django up
+2025-06-12 21:25:52,056 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-12 21:26:02,178 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:27:29,473 - django.request - ERROR - Internal Server Error: /dreamkas_invoice/83698830/
+Traceback (most recent call last):
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "Z:\dreamkas_new\mainapp\views.py", line 827, in dreamkas_invoice
+    "invoice_status": True if invoice['status'] == "ACCEPTED" else False,
+TypeError: 'bool' object is not subscriptable
+2025-06-12 21:29:24,373 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:29:26,423 - django.utils.autoreload - INFO - Z:\dreamkas_new\mainapp\Dreamkas_documents\funcs.py changed, reloading.
+2025-06-12 21:29:31,043 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:29:47,404 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:29:56,519 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:29:57,625 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:30:17,980 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:30:46,162 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:30:46,944 - django.request - WARNING - Not Found: /favicon.ico

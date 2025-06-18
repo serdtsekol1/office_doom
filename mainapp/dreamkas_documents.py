@@ -7,6 +7,7 @@ from mainapp.models import Invoice, Invoice_v3, Position_invoice_v3, Product, Su
 from decimal import Decimal
 from django.utils import timezone
 from datetime import timedelta, date, datetime
+from mainapp.Dreamkas_documents.funcs import status_to_flag
 
 def delete_long_not_accepted_documents():
     return
@@ -96,7 +97,22 @@ def failsafe_invoices_being_updated():
     global_var.Failsafe_flag = False
 def update_pricing_orders_v2(offset=None,limit=1000):
     documents_external = DREAM_KAS_API.get_documents(limit=limit, offset=offset, document_type=11)
-    
+def global_draft_cleanup():
+    from mainapp.models import Pricing_order_v3
+    from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object
+    documents = Pricing_order_v3.objects.filter(flag_status=0)
+    for document in documents:
+        if document.parent_document_dreamkas_id != None:
+            parent_document = fetch_document_object(document.parent_document_dreamkas_id)
+            if document.issue_date > parent_document.issue_date + timedelta(days=3):
+                DREAM_KAS_API.delete_document(document.dreamkas_id)
+                document.flag_status = 2
+                document.save()
+            if datetime.now().date() >= document.issue_date + timedelta(days=1):
+                DREAM_KAS_API.delete_document(document.dreamkas_id)
+                document.flag_status = 2
+                document.save()
+            
 def draft_cleanup(documents_external):
     deletions = 0
     for document_external in documents_external:
@@ -108,6 +124,7 @@ def draft_cleanup(documents_external):
                 doc_internal.flag_status = 2
                 doc_internal.save()
             deletions = deletions + 1
+
     return deletions
                 
 def generate_file_to_delete_from_rests_and_egais_rests(filename_rests=None,  filename_rests_egais=None):
@@ -270,6 +287,8 @@ def update_invoices_v2(offset=None,limit=1000):
                 django_date = timezone.make_aware(datetime.strptime(document['issueDate'], '%Y-%m-%d')).date()
                 if date.today() > django_date + timedelta(days=supplier.paymenttime):
                     flag_overdue = True
+        # Map status to flag_status using a dictionary lookup
+        flag_status = status_to_flag(invoice_to_create["status"])
         invoice_new = Invoice_v3(
             dreamkas_id=invoice_to_create['id'],
             supplier=invoice_to_create['sourceName'] if 'sourceName' in invoice_to_create else None,
@@ -278,7 +297,7 @@ def update_invoices_v2(offset=None,limit=1000):
             issue_date=invoice_to_create['issueDate'],
             destination=store,
             sum=Decimal(int(invoice_to_create['totalSum']) / 100),
-            flag_status= True if "ACCEPTED" in invoice_to_create["status"] else False,
+            flag_status= flag_status,
             flag_payment_type= True if "[НАЛ]" in invoice_to_create['num'] else False,
             flag_paid=False,
             flag_payment_overdue=flag_overdue,

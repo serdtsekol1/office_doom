@@ -1,17 +1,17 @@
 <div class="pagination">
     <span class="pagination__nav">
         {% if page.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ page.previous_page_number }}">previous</a>
+            <a href="?page=1">&laquo; << |</a>
+            <a href="?page={{ page.previous_page_number }}"><</a>
         {% endif %}
 
         <span class="current">
-            Page {{ page.number }} of {{ page.paginator.num_pages }}.
+            Страница {{ page.number }} Из {{ page.paginator.num_pages }}.
         </span>
         {% if page.has_next %}
-            <a href="?page={{ page.next_page_number }}">next</a>
-            <a href="?page={{ page.paginator.num_pages }}">last &raquo;</a>
+            <a href="?page={{ page.next_page_number }}">> |</a>
+            <a href="?page={{ page.paginator.num_pages }}">>></a>
         {% endif %}
-    <br/> Total items: {{page.paginator.count}}
+    <br/> Всего накладных: {{page.paginator.count}}
     </span>
 </div>

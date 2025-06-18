@@ -1,0 +1,6 @@
+2025-06-17 01:36:20,723 - mainapp.logging_utils - INFO - Log file created: 2025-06-17_01-36-20.log
+2025-06-17 01:36:20,724 - mainapp.apps - INFO - Django up
+2025-06-17 01:36:20,782 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-17 01:36:21,909 - mainapp.logging_utils - INFO - [2025-06-17 01:36:21] Updating_invoices, params: True, True, True, 100, 200, 20, None, None, True, True, None, True, True
+2025-06-17 01:43:40,097 - mainapp.logging_utils - INFO - [2025-06-17 01:43:40] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=100&filter[type]=5,13&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-17 01:43:40,097 - mainapp.logging_utils - INFO - [2025-06-17 01:43:40] Get request sent

@@ -9,18 +9,18 @@ from django.core.files.uploadedfile import UploadedFile
 from dremkas.settings import DIADOC_API, DREAM_KAS_API
 from mainapp.models import DiadocInvoice, Supplier, DiadocPreset
 from django.core.files.storage import default_storage
-from mainapp.logging_utils import log_manager
+from mainapp.logging_utils import log_item
 
 def update_diadoc_invoices_v2(diadoc_id, store_id):
-    log_manager.log_session('info', f'Starting update_diadoc_invoices_v2', {'diadoc_id': diadoc_id, 'store_id': store_id})
+    log_item(f'Starting update_diadoc_invoices_v2 with diadoc_id: {diadoc_id}, store_id: {store_id}')
     try:
         invoices = DIADOC_API.get_documents_v2(diadoc_id)
-        log_manager.log_session('info', f'Retrieved {len(invoices)} invoices from Diadoc')
+        log_item(f'Retrieved {len(invoices)} invoices from Diadoc')
         
         for item in invoices:
             try:
                 store_destination_id = store_id
-                log_manager.log_session('debug', f'Processing invoice', {'invoice_id': item['id'], 'kontragent': item['kontragent']})
+                log_item(f'Processing invoice with id: {item["id"]}, kontragent: {item["kontragent"]}')
                 
                 diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(
                     diadoc_id=item['id'], 
@@ -34,7 +34,7 @@ def update_diadoc_invoices_v2(diadoc_id, store_id):
                         'store_id': store_destination_id,
                     }
                 )
-                log_manager.log_session('info', f'Updated/Created DiadocInvoice', {
+                log_item('info', f'Updated/Created DiadocInvoice', {
                     'invoice_id': diadoc_invoice.diadoc_id,
                     'status': diadoc_invoice_status,
                     'kontragent': diadoc_invoice.kontragent,
@@ -47,12 +47,12 @@ def update_diadoc_invoices_v2(diadoc_id, store_id):
                     with open(f'media/diadoc_files/{item["id"]}.xml', "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
                         data_dict = xmltodict.parse(xmlfileObj.read())
                     valid_presets = get_diadoc_presets_for_file(data_dict)
-                    log_manager.log_session('debug', f'Processed XML and found presets', {
+                    log_item('debug', f'Processed XML and found presets', {
                         'invoice_id': item['id'],
                         'presets_found': len(valid_presets) if valid_presets else 0
                     })
                 except Exception as ex:
-                    log_manager.log_session('error', f'Failed to process XML', {
+                    log_item('error', f'Failed to process XML', {
                         'invoice_id': item['id'],
                         'error': str(ex)
                     })
@@ -64,26 +64,26 @@ def update_diadoc_invoices_v2(diadoc_id, store_id):
                         diadoc_id=item['id'], 
                         defaults={'store_id': store_destination_id}
                     )
-                    log_manager.log_session('info', f'Updated store destination', {
+                    log_item('info', f'Updated store destination', {
                         'invoice_id': item['id'],
                         'new_store_id': store_destination_id
                     })
             except Exception as e:
-                log_manager.log_session('error', f'Error processing invoice', {
+                log_item('error', f'Error processing invoice', {
                     'invoice_id': item['id'],
                     'error': str(e)
                 })
                 continue
     except Exception as e:
-        log_manager.log_session('error', f'Error in update_diadoc_invoices_v2', {'error': str(e)})
+        log_item('error', f'Error in update_diadoc_invoices_v2', {'error': str(e)})
         raise
 
 def get_diadoc_presets_for_file(file):
-    log_manager.log_session('info', 'Starting get_diadoc_presets_for_file')
+    log_item('info', 'Starting get_diadoc_presets_for_file')
     inn = None
     try:
         inn = file["Файл"]["Документ"]["СвСчФакт"]["СвПрод"]["ИдСв"]["СвЮЛУч"]["@ИННЮЛ"]
-        log_manager.log_session('debug', 'Found INN from СвЮЛУч', {'inn': inn})
+        log_item('debug', 'Found INN from СвЮЛУч', {'inn': inn})
     except:
         pass
     try:
@@ -136,7 +136,7 @@ def get_diadoc_presets_for_file(file):
                 continue
         except:
             pass
-    log_manager.log_session('info', 'Completed get_diadoc_presets_for_file', {
+    log_item('info', 'Completed get_diadoc_presets_for_file', {
         'total_matches': len(valid_presets_store_destination)
     })
     return valid_presets_store_destination
@@ -147,7 +147,7 @@ def generate_document_from_preset(document,diadocpreset):
     prefix = diadocpreset
     return
 def download_invoice_from_diadoc(diadoc_document_id):
-    log_manager.log_session('info', 'Starting download_invoice_from_diadoc', {'document_id': diadoc_document_id})
+    log_item('info', 'Starting download_invoice_from_diadoc', {'document_id': diadoc_document_id})
     try:
         file_name = f'media/diadoc_files/{diadoc_document_id}.xml'
         print('1114')
@@ -157,16 +157,16 @@ def download_invoice_from_diadoc(diadoc_document_id):
         print('asd')
         DIADOC_API.download(url=download_link, file_name=file_name)
         print('asd2')
-        log_manager.log_session('info', 'Successfully downloaded invoice', {'file_name': file_name})
+        log_item('info', 'Successfully downloaded invoice', {'file_name': file_name})
     except Exception as e:
-        log_manager.log_session('error', 'Failed to download invoice', {
+        log_item('error', 'Failed to download invoice', {
             'document_id': diadoc_document_id,
             'error': str(e)
         })
         raise
 
 def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
-    log_manager.log_session('info', 'Starting create_invoice_from_diadoc_document_v2', {
+    log_item('info', 'Starting create_invoice_from_diadoc_document_v2', {
         'user_id': diadoc_user_id,
         'document_id': diadoc_document_id
     })
@@ -178,7 +178,7 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
         with open(file_name, "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
             data_dict = xmltodict.parse(xmlfileObj.read())
         valid_presets = get_diadoc_presets_for_file(data_dict)
-        log_manager.log_session('debug', 'Retrieved valid presets', {
+        log_item('debug', 'Retrieved valid presets', {
             'presets_count': len(valid_presets) if valid_presets else 0
         })
         if valid_presets.__len__() == 0:
@@ -253,7 +253,7 @@ def create_invoice_from_diadoc_document_v2(diadoc_user_id, diadoc_document_id):
         print('test_4')
         return 'https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + result['id']
     except Exception as e:
-        log_manager.log_session('error', 'Failed to create invoice', {
+        log_item('error', 'Failed to create invoice', {
             'error': str(e),
             'user_id': diadoc_user_id,
             'document_id': diadoc_document_id

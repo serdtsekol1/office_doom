@@ -1,0 +1,4 @@
+2025-06-12 11:42:20,016 - mainapp.logging_utils - INFO - Log file created: 2025-06-12_11-42-20.log
+2025-06-12 11:42:20,016 - mainapp.apps - INFO - Django up
+2025-06-12 11:42:20,067 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-12 11:46:41,483 - django.utils.autoreload - INFO - Z:\dreamkas_new\mainapp\dremkas_api.py changed, reloading.

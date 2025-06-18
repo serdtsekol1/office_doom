@@ -35,8 +35,12 @@ from simplegmail.query import construct_query
 
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
-from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset, \
-    Device, Document_internal
+import mainapp.Dreamkas_documents
+from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object, fetch_documents_positions
+from mainapp.Reports.invoice_report import invoice_report, invoice_report_range_of_dates
+from mainapp.logging_utils import log_item
+from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Invoice_v3, Pricing_order_v3, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset, \
+    Device, Document_internal, Position_invoice_v3
 from . import dreamkas_documents, dreamkas_to_massaK, diadoc_to_dreamkas, gmail_to_dreamkas, dreamkas_Products
 from .diadoc_to_dreamkas import create_invoice_from_diadoc_document_v2
 from .dreamkas_documents import dreamkas_update_suppliers
@@ -595,12 +599,17 @@ def test(request):
 
 
 @csrf_exempt
-def create_pricing_order(request):
+def create_pricing_order(request, invoice_id=None):
     if request.method == 'POST':
-        DREAM_KAS_API.create_pricing_order(parentId=request.POST.get("parentId"))
+        parentId = request.POST.get("parentId")
+        if parentId is not None:
+            resp = DREAM_KAS_API.create_pricing_order(parentId=request.POST.get("parentId"))
+            webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + resp['id'])
+            return redirect(reverse('invoices'))
+    if invoice_id is not None:
+        resp = DREAM_KAS_API.create_pricing_order(parentId=invoice_id)
+        webbrowser.open_new_tab('https://kabinet.dreamkas.ru/app/#!/documents/card~2F' + resp['id'])
         return redirect(reverse('invoices'))
-
-
 @csrf_exempt
 def invoices_update(request):
     print('test')
@@ -721,6 +730,36 @@ def find_invoice_duplicates(request):
     dreamkas_documents.find_duplicate_invoices()
     return redirect(reverse('invoices'))
 
+def get_invoice_timers(request):
+    from mainapp.global_var import invoices_being_updated, invoices_last_update_at, invoices_next_update_at
+    return JsonResponse({
+        'invoices_being_updated': invoices_being_updated,
+        'invoices_last_update_at': invoices_last_update_at,
+        'invoices_next_update_at': invoices_next_update_at
+    })
+    
+def dreamkas_invoices(request):
+    drafts = Invoice_v3.objects.filter(flag_hide=False, flag_status=0).order_by("-dreamkas_id")
+    invoices = Invoice_v3.objects.filter(flag_hide=False, flag_status=1).order_by("-dreamkas_id")
+
+    updated_invoices = []
+    for draft in drafts:
+        updated_invoices.append(draft)
+    for invoice in invoices:
+        if invoice.latest_iteration_id != invoice.dreamkas_id:
+            try:
+                doc = fetch_document_object(invoice.latest_iteration_id)
+                if doc:
+                    updated_invoices.append(doc)
+            except Exception as e:
+                print(f"Error fetching document for invoice {invoice.id}: {str(e)}")
+                updated_invoices.append(invoice)
+        else:
+            updated_invoices.append(invoice)
+    for invoice in updated_invoices:
+        invoice.pricing_orders = Pricing_order_v3.objects.filter(parent_document_dreamkas_id=invoice.dreamkas_id)
+    page = Paginator(updated_invoices, 100).page(request.GET.get("page", 1))
+    return render(request, 'mainapp/pages/invoices.html', {'invoices': page})
 
 def invoices(request):
     invoices = Invoice.objects.all().filter(hide=False).order_by("-issue_date")
@@ -763,6 +802,15 @@ def invoice_origin_check():
 ##      for each day in concat all positons - get amount of sales of position.
 ##      if sales_total / 90 * profit_per_good > average_profit_per_good - flag it as popular good.
 ##      More scenarios need to be check and done.
+
+def View_document_v3(request,dreamkas_id):
+    if str(invoiceid).startswith('2F'):
+        invoiceid = invoiceid.replace('2F','')
+    if str(invoiceid).startswith('F'):
+        invoiceid = invoiceid.replace('F','')
+    invoiceid = int(invoiceid)
+    document = fetch_document_object(dreamkas_id)
+    
 def dreamkas_invoice(request, invoiceid):
     print(invoiceid)
     if str(invoiceid).startswith('2F'):
@@ -1236,6 +1284,10 @@ def create_documents_from_gmail_message_v2(request):
             return JsonResponse({'success': False, 'errormsg': 'Не найден подходящий шаблон для данной накладной.'})
         return JsonResponse({'success': True, 'links': links})
 
+@csrf_exempt
+def search_invoices(request, search_query):
+    invoices = Invoice_v3.objects.filter(Q(number__icontains=search_query) | Q(supplier__name__icontains=search_query) | Q(total_sum__icontains=search_query))
+    return JsonResponse({'invoices': invoices})
 
 @csrf_exempt
 def create_documents_from_gmail_message(request):
@@ -1316,8 +1368,121 @@ def create_documents_from_gmail_message(request):
             return redirect(reverse('gmail_messages'))
         else:
             print("Что-то пошло не так. НУЖНО ЧИНИТЬ. ЧЕРТ.")
-
-
+@csrf_exempt
+def receipts_report(request, date_from=None, date_to=None):
+    if date_from == None:
+        date_from = datetime.datetime.now().date()
+    if date_to == None:
+        date_to = datetime.datetime.now().date()
+    if date_to == date_from:
+        invoices = invoice_report(date_to)
+@csrf_exempt
+def old_documents_to_new_documents(request):
+    from mainapp.Dreamkas_documents.update_documents import update_document
+    
+    old_invoices = Invoice.objects.all()
+    migrated_count = 0
+    skipped_count = 0
+    updated_count = 0
+    error_count = 0
+    
+    for old_inv in old_invoices:
+        # Check if Invoice_v3 already exists for this dreamkas_id
+        if Invoice_v3.objects.filter(dreamkas_id=old_inv.id_dreem).exists():
+            skipped_count += 1
+            continue
+            
+        # Create new Invoice_v3 from old Invoice to preserve flags
+        new_invoice_data = {
+            'dreamkas_id': old_inv.id_dreem,
+            'supplier': old_inv.supplier,
+            'supplier_fk': old_inv.supplier_fk,
+            'number': old_inv.number,
+            'issue_date': old_inv.issue_date,
+            'totalSum': old_inv.sum,
+            'destination': old_inv.store,
+            'flag_paid': old_inv.paid,
+            'flag_payment_type': old_inv.invoicetype,
+            'flag_payment_overdue': old_inv.overdue,
+            'flag_status': 1 if old_inv.invoice_status else 0,  # 1 = ACCEPTED, 0 = DRAFT
+            'flag_hide': old_inv.hide,
+            'hide_reason': old_inv.hide_comment,
+            'flag_source_program': old_inv.created_via_program,
+            'profit': old_inv.profit,
+            'income': old_inv.income,
+        }
+        
+        # Set acceptedAt to issue_date if invoice is accepted, otherwise None
+        if old_inv.invoice_status:
+            new_invoice_data['acceptedAt'] = old_inv.issue_date
+        
+        # Create the new Invoice_v3
+        try:
+            new_invoice = Invoice_v3.objects.create(**new_invoice_data)
+            migrated_count += 1
+            
+            # Now update the invoice with fresh API data (dreamkas id, yada yada yada)
+            try:
+                update_document(old_inv.id_dreem)
+                updated_count += 1
+            except Exception as e:
+                print(f"Error updating document {old_inv.id_dreem} from API: {e}")
+                error_count += 1
+                
+        except Exception as e:
+            print(f"Error creating invoice_v3 for {old_inv.id_dreem}: {e}")
+            error_count += 1
+            continue
+    
+    return JsonResponse({
+        'status': 'success',
+        'migrated': migrated_count,
+        'skipped': skipped_count,
+        'updated_from_api': updated_count,
+        'errors': error_count,
+        'total_old_invoices': old_invoices.count()
+    })
+@csrf_exempt
+def invoices_report(request, date_from=None, date_to=None):
+    if date_from == None:
+        date_from = str(datetime.datetime.now().date())
+    if date_to == None:
+        date_to = str(datetime.datetime.now().date())
+    if date_to == date_from:
+        invoices = invoice_report(date_to)
+        sum_of_sums = 0
+        sum_of_profit = 0
+        for invoice in invoices:
+            sum_of_sums += invoice.totalSum
+            if invoice.profit is not None:
+                sum_of_profit += invoice.profit
+        
+        # Format date for the datepicker
+        date_from_formatted = datetime.datetime.strptime(date_from, '%Y-%m-%d').date()
+        date_to_formatted = datetime.datetime.strptime(date_to, '%Y-%m-%d').date()
+        
+        return render(request, 'mainapp/pages/invoice_report.html', {
+            'grouped_invoices': None,
+            'invoices': invoices, 
+            'sum_of_sums': sum_of_sums, 
+            'sum_of_profit': sum_of_profit,
+            'date_from_formatted': date_from_formatted,
+            'date_to_formatted': date_to_formatted
+        })
+    if date_from != date_to:
+        invoices = invoice_report_range_of_dates(date_from, date_to)
+        sum_of_sums = 0
+        sum_of_profit = 0
+        date_from_formatted = datetime.datetime.strptime(date_from, '%Y-%m-%d').date()
+        date_to_formatted = datetime.datetime.strptime(date_to, '%Y-%m-%d').date()
+        return render(request, 'mainapp/pages/invoice_report.html', {
+            'grouped_invoices': invoices,
+            'invoices': None, 
+            'sum_of_sums': sum_of_sums, 
+            'sum_of_profit': sum_of_profit,
+            'date_from_formatted': date_from_formatted,
+            'date_to_formatted': date_to_formatted
+        })
 @csrf_exempt
 def show_excel_document(request):
     if request.method == "POST":
@@ -1472,9 +1637,63 @@ def paid_update(request):
         else:
             paid = False
 
-        invoice = Invoice.objects.get(id=invoice_id)
-        invoice.paid = paid
-        invoice.save()
+        # Fetch the document object first
+        document_object = fetch_document_object(invoice_id)
+        if not document_object:
+            return JsonResponse({'success': False, 'error': 'Document not found'})
+        
+        # Import required functions for tree operations
+        from mainapp.Dreamkas_documents.funcs import build_tree_of_documents
+        
+        # Build the document tree to find all related documents
+        document_tree = build_tree_of_documents(document_id=invoice_id)
+        
+        # Helper function to update paid status for a document
+        def update_document_paid_status(doc_id, paid_status):
+            doc_obj = fetch_document_object(doc_id)
+            if doc_obj and hasattr(doc_obj, 'flag_paid'):
+                doc_obj.flag_paid = paid_status
+                doc_obj.flag_paid_date = datetime.datetime.now()
+                doc_obj.save()
+                log_item(f"Updated paid status for document {doc_id} to {paid_status}")
+        
+        # Helper function to recursively update all documents in the tree
+        def update_tree_paid_status(doc_structure, paid_status):
+            # Update current document
+            update_document_paid_status(doc_structure['id'], paid_status)
+            
+            # Update all children
+            for child in doc_structure['children']:
+                update_tree_paid_status(child, paid_status)
+        
+        # If we have a document tree, update all documents in it
+        if document_tree and invoice_id in document_tree:
+            root_doc = document_tree[invoice_id]
+            update_tree_paid_status(root_doc, paid)
+            
+            # Also update parent if this document is a child
+            if hasattr(document_object, 'parent_document_dreamkas_id') and document_object.parent_document_dreamkas_id:
+                parent_doc = fetch_document_object(document_object.parent_document_dreamkas_id)
+                if parent_doc and hasattr(parent_doc, 'flag_paid'):
+                    parent_doc.flag_paid = paid
+                    parent_doc.flag_paid_date = datetime.datetime.now()
+                    parent_doc.save()
+                    print(f"Updated paid status for parent document {document_object.parent_document_dreamkas_id} to {paid}")
+        else:
+            # Fallback to just updating the single document if tree building fails
+            if hasattr(document_object, 'flag_paid'):
+                document_object.flag_paid = paid
+                document_object.flag_paid_date = datetime.datetime.now()
+                document_object.save()
+                
+                # Still try to update parent if it exists
+                if hasattr(document_object, 'parent_document_dreamkas_id') and document_object.parent_document_dreamkas_id:
+                    parent_doc = fetch_document_object(document_object.parent_document_dreamkas_id)
+                    if parent_doc and hasattr(parent_doc, 'flag_paid'):
+                        parent_doc.flag_paid = paid
+                        parent_doc.flag_paid_date = datetime.datetime.now()
+                        parent_doc.save()
+    
     return JsonResponse({'success': True})
 
 

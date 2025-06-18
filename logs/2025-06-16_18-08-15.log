@@ -1,0 +1,4 @@
+2025-06-16 18:08:15,254 - mainapp.logging_utils - INFO - Log file created: 2025-06-16_18-08-15.log
+2025-06-16 18:08:15,255 - mainapp.apps - INFO - Django up
+2025-06-16 18:08:15,307 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-16 18:08:16,116 - mainapp.logging_utils - INFO - [2025-06-16 18:08:16] Updating_invoices, params: True, True, True, 100, 200, 20, None, None, True, True, None, True, True

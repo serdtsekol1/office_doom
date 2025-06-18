@@ -1,0 +1,4 @@
+2025-06-12 00:35:37,599 - mainapp.logging_utils - INFO - Log file created: 2025-06-12_00-35-37.log
+2025-06-12 00:35:37,600 - mainapp.apps - INFO - Django up
+2025-06-12 00:35:37,661 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-12 01:21:07,095 - django.request - WARNING - Not Found: /favicon.ico

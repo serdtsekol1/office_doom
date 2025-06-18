@@ -1,79 +1,107 @@
 {% extends 'wrapper.html' %}
 {% load mainapp_tags %}
 {% block body %}
+    <div class="mb-3">
+        <div>   
+            <div>
+                <span>Последнее обновление: </span>
+            </div>
+            <div>
+                <span id="lastUpdate">{{ invoices_last_update_at }}</span>
+            </div>
+            <div>
+                <span>Следующее обновление через: </span>
+            
+                <span id="countdown"></span>
+            </div>
+        </div>
+    </div>
     {% include "mainapp/parts/pagination.html" with page=invoices %}
-    <form action="{% url "invoices_update" %}" method="post">
-        <button type="submit" class="btn btn-success">Обновить Накладные Дримкас</button>
-    </form>
-
+    
     Поиск по накладным:
     <div>
-        <input id="search" value="" placeholder="search">
+        <input id="search" value="" placeholder="Введите номер, поставщика или сумму накладной.">
     </div>
 
     <ol class="list-group list-group-numbered">
         {% for invoice in invoices %}
-            <div class="search_field" data-search_data_field="{{ invoice.number }} {{ invoice.supplier }} {{ invoice.sum }}">
-
-                <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.paid %} list-group-item-success {% endif %}">
-
-                    <div style="flex-basis: 30%; flex-grow: 1">
-
-                        <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.id_dreem %}">{{ invoice.number }}</a></div>
-                        <div class="text-dark">{{ invoice.supplier }}</div>
-                        <div class="text-dark">{{ invoice.issue_date|date:"d.m.Y" }}</div>
-
-                    </div>
-                    <div style="flex-basis: 100px">
-                        <div>
-                            {% if invoice.invoice_status == False %}
-                                ЧЕРНОВИК
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div style="flex-basis: 100px">
-                        {% if invoice.invoicetype %}
-                            НАЛ
-                        {% endif %}
-                        {% if not invoice.invoicetype %}
-                            БЕЗНАЛ
+        <li class="list-group-item d-flex justify-content-between align-items-center" style="padding: 0;">
+            <a href="/dreamkas_invoice/{{ invoice.dreamkas_id }}" class="col-3" style="text-align: left; padding-left: 10px; text-decoration: none; color: inherit;">
+                <div style="font-size: 16px; font-weight: 500;" class="fw-bold">{{ invoice.number }}</div>
+                <div>{{ invoice.supplier }}</div>
+                <div>{{ invoice.issue_date|date:"d.m.Y" }}</div>
+            </a>
+    
+            <div class="col-4">
+                <a href="/dreamkas_invoice/{{ invoice.dreamkas_id }}" style="text-decoration: none; color: inherit;">
+                    <div>
+                        {% if invoice.flag_status == '0' %}
+                            <span>ЧЕРНОВИК</span>
+                        {% elif invoice.flag_status == '1' %}
+                            <span style="background-color: #d4FAda;">ПРИНЯТО</span>
+                        {% elif invoice.flag_status == '2' %}
+                            <span>УДАЛЕНО</span>
                         {% endif %}
                     </div>
-
-                    <div style="flex-basis: 100px; display: flex;" class="{% if invoice.paid %}text-success{% else %} text-danger {% endif %}">
-                        <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.paid %} checked {% endif %} id="{{ invoice.id }}">
-                    </div>
-                    <div class="">
-                        <form action="{% url "create_pricing_order" %}" method="post">
-                            <input hidden type="text" name="parentId" id="parentId" value="{{ invoice.id_dreem }}">
-                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-hand-holding-dollar"></i></button>
-                        </form>
-                        <button class="btn btn-secondary"><i class="fa-solid fa-file-invoice"></i></button>
-                        <button class="btn btn-info"><i class="fa-solid fa-file-arrow-down"></i></button>
-                    </div>
-                    <div style="flex-basis: 250px; margin-left: 70px; text-align: left;">
-                        {% if invoice.income != 0 and invoice.income != None %}
-                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Сумма : {{ invoice.sum }}</div>
-                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Приход : {{ invoice.income }}</div>
-                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Прибыль : {{ invoice.income|subtract:invoice.sum }}</div>
-
-
-                        {% elif invoice.invoice_status == True and invoice.income == None or invoice.invoice_status == True and invoice.income == 0%}
-                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Сумма : {{ invoice.sum }}</div>
-                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Приход : {{ invoice.income }} Указать вручную.</div>
-                        {% else %}
-                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">Сумма : {{ invoice.sum }}</div>
+                    <div>
+                        {% if invoice.latest_pricing_id and invoice.flag_status == '1' %}
+                            <span style="background-color: #d4FAda;">РАСЦЕНЕНО</span>
+                        {% elif invoice.latest_pricing_id == None and invoice.flag_status == '1' %}
+                            <span style="background-color: #FF9999;">НЕ РАСЦЕНЕНО</span>
                         {% endif %}
                     </div>
-
-                </li>
-
+                </a>
             </div>
+    
+            <div class="col-2">
+                <div style="display: flex; justify-content: space-between;">
+                    <div style="text-align: left;">
+                        <div>Сумма :</div>
+                        {% if invoice.profit != None %}
+                            <div>Приход :</div>
+                            <div>Прибыль :</div>
+                        {% endif %}
+                        {% if invoice.profit == None %}
+                            {%if invoice.pricing_orders.count != 0 %}
+                                {%if invoice.pricing_orders.count == 1 %}
+                                <a href="http://kabinet.dreamkas.ru/app/#!/documents/card~2F{{invoice.pricing_orders.first.dreamkas_id}}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 12px;">
+                                    Перейти к раценке
+                                    </a>
+                                {% endif %}
+                                {% if invoice.pricing_orders.count > 1 %}
+                                <a href="http://kabinet.dreamkas.ru/app/#!/documents/card~2F{{invoice.dreamkas_id}}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 12px;">
+                                    Перейти к накладной
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                        
+                    </div>
+                    <div style="text-align: right;">
+                        <div>{{ invoice.totalSum }}</div>
+                        {% if invoice.profit != None %}
+                            <div>{{ invoice.income }}</div>
+                            <div>{{ invoice.profit }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+    
+            <div class="col-2" style="padding-right: 20px; text-align: right;">
+                <div class="form-check">
+                    <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.flag_paid %} checked {% endif %} id="{{ invoice.id }}">
+                </div>
+            </div>
+    
+            <div class="col-1" style="padding-right: 20px; text-align: right;">
+            </div>
+        </li>
         {% endfor %}
     </ol>
+    
+    
     <script>
         $(".checked_paid").on('change', (e) => {
-
             let id = e.currentTarget.id;
             let paid = 0;
             if (e.currentTarget.checked) {
@@ -82,11 +110,8 @@
 
             $.ajax({
                 type: "POST",
-                url: '/paid_update/',
+                url: "{% url 'paid_update' %}",
                 data: {'id': id, 'paid': paid},
-                {#contentType: false,#}
-                {#processData: false,#}
-                {#async: false,#}
                 success: function (data) {
                     console.log(data)
                 }
@@ -103,5 +128,39 @@
                 console.log(element)
             })
         })
+
+        // Add new countdown functionality
+        function updateCountdown() {
+            $.ajax({
+                url: '{% url "get_invoice_timers" %}',
+                method: 'GET',
+                success: function(response) {
+                    const lastUpdate = new Date(response.invoices_last_update_at);
+                    const nextUpdate = new Date(response.invoices_next_update_at);
+                    const now = new Date();
+                    
+                    if (response.invoices_being_updated) {
+                        $('#countdown').text('Обновление...');
+                        return;
+                    }
+                    
+                    let timeLeft = nextUpdate - now;
+                    
+                    if (timeLeft <= 0) {
+                        // Instead of reloading, just update the timer
+                        $('#lastUpdate').text(response.invoices_last_update_at);
+                        timeLeft = nextUpdate - now; // Recalculate time left
+                    }
+                    
+                    const minutes = Math.floor(timeLeft / 60000);
+                    const seconds = Math.floor((timeLeft % 60000) / 1000);
+                    
+                    $('#countdown').text(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+                }
+            });
+        }
+
+        setInterval(updateCountdown, 20000);
+        updateCountdown(); // Initial call
     </script>
 {% endblock %}

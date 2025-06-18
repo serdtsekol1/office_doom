@@ -1,0 +1,13 @@
+2025-06-16 17:41:00,825 - mainapp.logging_utils - INFO - Log file created: 2025-06-16_17-41-00.log
+2025-06-16 17:41:00,826 - mainapp.apps - INFO - Django up
+2025-06-16 17:41:00,879 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-16 17:41:01,692 - mainapp.logging_utils - INFO - [2025-06-16 17:41:01] Updating_invoices, params: True, True, True, 100, 200, 20, None, None, True, True, None, True, True
+2025-06-16 17:41:01,692 - mainapp.logging_utils - INFO - [2025-06-16 17:41:01] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=100&filter[type]=5,13&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 17:41:01,692 - mainapp.logging_utils - INFO - [2025-06-16 17:41:01] Get request sent
+2025-06-16 17:41:24,229 - mainapp.logging_utils - INFO - [2025-06-16 17:41:24] update_invoices: documents external fetched
+2025-06-16 17:41:24,233 - mainapp.logging_utils - INFO - [2025-06-16 17:41:24] update_invoices: draft cleanup done
+2025-06-16 17:41:24,328 - mainapp.logging_utils - INFO - [2025-06-16 17:41:24] update_invoices: invoices to create and update defined
+2025-06-16 17:41:25,525 - mainapp.logging_utils - INFO - [2025-06-16 17:41:25] update_invoices: invoices to create and update prepared
+2025-06-16 17:41:25,895 - mainapp.logging_utils - INFO - [2025-06-16 17:41:25] update_invoices: invoices created and updated
+2025-06-16 17:41:25,895 - mainapp.logging_utils - INFO - [2025-06-16 17:41:25] update_invoices: getting positions
+2025-06-16 17:41:25,895 - mainapp.logging_utils - INFO - [2025-06-16 17:41:25] Updating_invoices. Progress: 0 / 100

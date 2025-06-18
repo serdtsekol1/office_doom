@@ -45,9 +45,17 @@ class DiadocApi():
         print("Login and Password to self - OK")
         self.login_http()
     def login_check(self):
-        login_check = self.session.get("https://diadoc.kontur.ru/Box/Selection", allow_redirects=False)
-        status_code = login_check.status_code
-        return True if status_code == 200 else False
+        i = 0
+        while i < 20:
+            try:
+                login_check = self.session.get("https://diadoc.kontur.ru/Box/Selection", allow_redirects=False)
+                status_code = login_check.status_code
+                return True if status_code == 200 else False
+            except Exception as e:
+                i += 1
+                sleep((i*i)/(i*2))
+           
+        return False
         #return False if 'AccessDenied' in str(login_check.content) else True
     def login_http(self):
         import undetected_chromedriver as uc

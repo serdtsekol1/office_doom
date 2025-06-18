@@ -1,8 +1,8 @@
 from django.urls import path
-from mainapp.views import get_index_page, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
+from mainapp.views import dreamkas_invoices, get_index_page, get_invoice_timers, invoices_report, search_invoices, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
     update_diadoc_invoices, create_document_from_diadoc, dreamkas_invoice, update_item_group, dreamkas_suppliers, dreamkas_supplier, supplier_paymenttime_update, gmail_messages, update_gmail_messages, \
     inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document, hide_invoice, get_all_gmail_messages, test_page, \
-    generate_goods_report, edit_existing_report, invoice_reports, generate_invoice_report, update_all_products, generate_xlsx_file_for_printer, display_all_goods_for_printer, products, \
+    generate_goods_report, edit_existing_report, invoices_report, generate_invoice_report, update_all_products, generate_xlsx_file_for_printer, display_all_goods_for_printer, products, \
     update_one_product, create_or_change_printer_code_for_product, change_printer_file_location, delete_all_suppliers, update_all_suppliers, set_store_id, update_stores_and_devices, \
     find_invoice_duplicates, delete_broken_suppliers, show_duplicate_diadoc_invoices, create_or_change_short_name_for_product, gmail_presets, update_gmail_preset, create_gmail_preset, stores, \
     update_store, update_diadoc_invoices_v2, invoices_diadoc_v2, diadoc_presets, create_diadoc_preset, update_diadoc_preset, create_document_from_diadoc_v2, create_documents_from_gmail_message_v2, \
@@ -27,7 +27,6 @@ urlpatterns = [
     path('test_page/', test_page, name="test_page"),
     path('good_groups/', good_groups, name="good_groups"),
     path('generate_goods_report/', generate_goods_report, name="generate_goods_report"),
-    path('invoice_reports/', invoice_reports, name="overall_reports"),
     path('generate_invoice_report/', generate_invoice_report, name='generate_invoice_report'),
     path('update_all_goods/', update_all_products, name='update_all_goods'),
     path('display_all_goods_for_printer/', display_all_goods_for_printer, name='display_all_goods_for_printer'),
@@ -42,13 +41,18 @@ urlpatterns = [
 
     ##DREAMKAS INVOICES
     path('invoices/', invoices, name="invoices"),
+    path('dreamkas_invoices/', dreamkas_invoices, name="dreamkas_invoices"),
     path('dreamkas_invoice/<str:invoiceid>/', dreamkas_invoice, name="dreamkas_invoice"),
     path('invoices_update/', invoices_update, name="invoices_update"),
     path('create_pricing_order/', create_pricing_order, name="create_pricing_order"),
+    path('create_pricing_order/<str:invoice_id>/', create_pricing_order, name="create_pricing_order"),
     path('paid_update/', paid_update, name="paid_update"),
     path('find_invoice_duplicates/', find_invoice_duplicates, name="find_invoice_duplicates"),
     path('invoice_delete_position/', invoice_delete_position, name="invoice_delete_position"),
-
+    path('invoices_report/', invoices_report, name="invoice_report_no_date"),
+    path('invoices_report/<str:date_from>/<str:date_to>/', invoices_report, name="invoice_report"),
+    path('search_invoices/<str:search_query>/', search_invoices, name="search_invoices"),
+    
     ##DREAMKAS RELATED
 
     path('good_groups_user_form/', good_groups_user_form, name="good_groups_user_form"),
@@ -102,6 +106,9 @@ urlpatterns = [
     ## INDEX PAGE
     path('hide_invoice/', hide_invoice, name="hide_invoice"),
 
+
+    ##
+    path('get_invoice_timers/', get_invoice_timers, name="get_invoice_timers"),
     ## Debug
     path('debug_update_all_invoices/',debug_update_all_invoices, name="debug_update_all_invoices"),
     path('debug_force_update_all_products/',debug_force_update_all_products, name="debug_force_update_all_products"),

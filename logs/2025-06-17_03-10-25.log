@@ -1,0 +1,21 @@
+2025-06-17 03:10:25,882 - mainapp.logging_utils - INFO - Log file created: 2025-06-17_03-10-25.log
+2025-06-17 03:10:25,882 - mainapp.apps - INFO - Django up
+2025-06-17 03:10:25,934 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-17 03:10:26,754 - mainapp.logging_utils - INFO - [2025-06-17 03:10:26] Updating_invoices, params: True, True, True, 100, 200, 20, None, None, True, True, None, True, True
+2025-06-17 03:10:48,211 - mainapp.logging_utils - INFO - [2025-06-17 03:10:48] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=100&filter[type]=5,13&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-17 03:10:48,212 - mainapp.logging_utils - INFO - [2025-06-17 03:10:48] Get request sent
+2025-06-17 03:10:49,006 - mainapp.logging_utils - INFO - [2025-06-17 03:10:49] update_invoices: documents external fetched
+2025-06-17 03:10:49,010 - mainapp.logging_utils - INFO - [2025-06-17 03:10:49] update_invoices: draft cleanup done
+2025-06-17 03:10:49,103 - mainapp.logging_utils - INFO - [2025-06-17 03:10:49] update_invoices: invoices to create and update defined
+2025-06-17 03:10:50,339 - mainapp.logging_utils - INFO - [2025-06-17 03:10:50] update_invoices: invoices to create and update prepared
+2025-06-17 03:10:50,709 - mainapp.logging_utils - INFO - [2025-06-17 03:10:50] update_invoices: invoices created and updated
+2025-06-17 03:10:50,709 - mainapp.logging_utils - INFO - [2025-06-17 03:10:50] update_invoices: getting positions
+2025-06-17 03:10:50,710 - mainapp.logging_utils - INFO - [2025-06-17 03:10:50] Updating_invoices. Progress: 0 / 100
+2025-06-17 03:10:53,142 - mainapp.logging_utils - INFO - [2025-06-17 03:10:53] Updating_invoices. Progress: 10 / 100
+2025-06-17 03:10:56,184 - mainapp.logging_utils - INFO - [2025-06-17 03:10:56] Updating_invoices. Progress: 20 / 100
+2025-06-17 03:11:06,259 - mainapp.logging_utils - INFO - [2025-06-17 03:11:06] Updating_invoices. Progress: 30 / 100
+2025-06-17 03:11:09,605 - mainapp.logging_utils - INFO - [2025-06-17 03:11:09] Updating_invoices. Progress: 40 / 100
+2025-06-17 03:11:13,145 - mainapp.logging_utils - INFO - [2025-06-17 03:11:13] Updating_invoices. Progress: 50 / 100
+2025-06-17 03:11:21,151 - mainapp.logging_utils - INFO - [2025-06-17 03:11:21] Updating_invoices. Progress: 60 / 100
+2025-06-17 03:11:25,962 - mainapp.logging_utils - INFO - [2025-06-17 03:11:25] Updating_invoices. Progress: 70 / 100
+2025-06-17 03:11:32,700 - mainapp.logging_utils - INFO - [2025-06-17 03:11:32] Updating_invoices. Progress: 80 / 100

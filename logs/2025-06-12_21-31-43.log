@@ -1,0 +1,78 @@
+2025-06-12 21:31:43,650 - mainapp.logging_utils - INFO - Log file created: 2025-06-12_21-31-43.log
+2025-06-12 21:31:43,651 - mainapp.apps - INFO - Django up
+2025-06-12 21:31:43,700 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-12 21:31:55,450 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:32:07,924 - django.request - WARNING - Not Found: /favicon.ico
+2025-06-12 21:34:59,624 - django.request - ERROR - Internal Server Error: /paid_update/
+Traceback (most recent call last):
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "Z:\dreamkas_new\mainapp\views.py", line 1644, in paid_update
+    document_object = fetch_document_object(invoice_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  [Previous line repeated 952 more times]
+RecursionError: maximum recursion depth exceeded
+2025-06-12 21:35:02,277 - django.request - ERROR - Internal Server Error: /paid_update/
+Traceback (most recent call last):
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "Z:\dreamkas_new\mainapp\views.py", line 1644, in paid_update
+    document_object = fetch_document_object(invoice_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  [Previous line repeated 952 more times]
+RecursionError: maximum recursion depth exceeded
+2025-06-12 21:35:14,166 - django.request - ERROR - Internal Server Error: /paid_update/
+Traceback (most recent call last):
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "Z:\dreamkas_new\mainapp\views.py", line 1644, in paid_update
+    document_object = fetch_document_object(invoice_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  [Previous line repeated 952 more times]
+RecursionError: maximum recursion depth exceeded
+2025-06-12 21:35:18,208 - django.request - ERROR - Internal Server Error: /paid_update/
+Traceback (most recent call last):
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "Z:\dreamkas_new\mainapp\views.py", line 1644, in paid_update
+    document_object = fetch_document_object(invoice_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  [Previous line repeated 952 more times]
+RecursionError: maximum recursion depth exceeded
+2025-06-12 21:36:00,412 - django.utils.autoreload - INFO - Z:\dreamkas_new\mainapp\Dreamkas_documents\funcs.py changed, reloading.

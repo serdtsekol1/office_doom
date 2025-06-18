@@ -1,0 +1,33 @@
+2025-06-16 17:20:58,998 - mainapp.logging_utils - INFO - Log file created: 2025-06-16_17-20-58.log
+2025-06-16 17:20:58,998 - mainapp.apps - INFO - Django up
+2025-06-16 17:20:59,051 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-16 17:20:59,833 - mainapp.logging_utils - INFO - [2025-06-16 17:20:59] Updating_invoices, params: True, True, True, 100, 200, 20, None, None, True, True, None, True, True
+2025-06-16 17:20:59,834 - mainapp.logging_utils - INFO - [2025-06-16 17:20:59] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=100&filter[type]=5,13&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 17:20:59,834 - mainapp.logging_utils - INFO - [2025-06-16 17:20:59] Get request sent
+2025-06-16 17:21:00,471 - mainapp.logging_utils - INFO - [2025-06-16 17:21:00] update_invoices: documents external fetched
+2025-06-16 17:21:00,476 - mainapp.logging_utils - INFO - [2025-06-16 17:21:00] update_invoices: draft cleanup done
+2025-06-16 17:21:00,582 - mainapp.logging_utils - INFO - [2025-06-16 17:21:00] update_invoices: invoices to create and update defined
+2025-06-16 17:21:03,372 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-16 17:21:03,739 - mainapp.logging_utils - INFO - [2025-06-16 17:21:03] update_invoices: invoices to create and update prepared
+2025-06-16 17:21:04,120 - mainapp.logging_utils - INFO - [2025-06-16 17:21:04] update_invoices: invoices created and updated
+2025-06-16 17:21:04,120 - mainapp.logging_utils - INFO - [2025-06-16 17:21:04] update_invoices: getting positions
+2025-06-16 17:21:04,120 - mainapp.logging_utils - INFO - [2025-06-16 17:21:04] Updating_invoices. Progress: 0 / 100
+2025-06-16 17:21:08,730 - mainapp.logging_utils - INFO - [2025-06-16 17:21:08] Updating_invoices. Progress: 10 / 100
+2025-06-16 17:21:17,628 - mainapp.logging_utils - INFO - [2025-06-16 17:21:17] Updating_invoices. Progress: 20 / 100
+2025-06-16 17:21:20,480 - mainapp.logging_utils - INFO - [2025-06-16 17:21:20] Updating_invoices. Progress: 30 / 100
+2025-06-16 17:21:23,957 - mainapp.logging_utils - INFO - [2025-06-16 17:21:23] Updating_invoices. Progress: 40 / 100
+2025-06-16 17:21:31,871 - mainapp.logging_utils - INFO - [2025-06-16 17:21:31] Updating_invoices. Progress: 50 / 100
+2025-06-16 17:21:37,374 - mainapp.logging_utils - INFO - [2025-06-16 17:21:37] Updating_invoices. Progress: 60 / 100
+2025-06-16 17:21:43,038 - mainapp.logging_utils - INFO - [2025-06-16 17:21:43] Updating_invoices. Progress: 70 / 100
+2025-06-16 17:21:46,296 - mainapp.logging_utils - INFO - [2025-06-16 17:21:46] Updating_invoices. Progress: 80 / 100
+2025-06-16 17:21:50,278 - mainapp.logging_utils - INFO - [2025-06-16 17:21:50] Updating_invoices. Progress: 90 / 100
+2025-06-16 17:21:55,025 - mainapp.logging_utils - INFO - [2025-06-16 17:21:55] update_invoices: positions to create and update defined
+2025-06-16 17:21:57,419 - mainapp.logging_utils - INFO - [2025-06-16 17:21:57] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=200&filter[type]=11&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 17:21:57,419 - mainapp.logging_utils - INFO - [2025-06-16 17:21:57] Get request sent
+2025-06-16 17:21:58,314 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-16 17:22:20,294 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-16 17:22:20,469 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-16 17:23:36,448 - mainapp.logging_utils - INFO - [2025-06-16 17:23:36] get_documents: link: https://kabinet.dreamkas.ru/api/v1/documents?limit=20&filter[type]=7&filter[preset]=PAPER,DOCUMENTS&offset=None&filter[toAcceptedAt]=&filter[fromAcceptedAt]=
+2025-06-16 17:23:36,448 - mainapp.logging_utils - INFO - [2025-06-16 17:23:36] Get request sent
+2025-06-16 17:28:46,250 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-16 17:28:50,710 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json

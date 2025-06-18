@@ -1,0 +1,140 @@
+{% extends 'wrapper.html' %}
+{% load mainapp_tags %}
+{% block body %}
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <label for="date_from">От:</label>
+        <input type="date" id="date_from" name="date_from" value="{{ date_from_formatted|date:'Y-m-d' }}" min="2023-03-01" max="2041-01-01"/>
+        <label for="date_to">До:</label>
+        <input type="date" id="date_to" name="date_to" value="{{ date_to_formatted|date:'Y-m-d' }}" min="2023-03-01" max="2041-01-01"/>
+    </div>
+    
+    <h2>Отчет по накладным</h2>
+    {% if invoices %}
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Поставщик</th>
+                    <th>Номер</th>
+                    <th>Сумма</th>
+                    <th>Прибыль</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr style="cursor: pointer;" onclick="window.location='{% url 'dreamkas_invoice' invoice.dreamkas_id %}';">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ invoice.supplier }}</td>
+                    <td>{{ invoice.number }}</td>
+                    <td>{{ invoice.totalSum }}</td>
+                    <td>
+                        {% if invoice.profit is None %}
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); window.location='{% url 'create_pricing_order' invoice.dreamkas_id %}';" style="cursor: pointer;">Создать Расценку</button>
+                        {% else %}
+                            {{ invoice.profit }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="3"><strong>Итого:</strong></td>
+                    <td><strong>{{ sum_of_sums }}</strong></td>
+                    <td><strong>{{ sum_of_profit }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    {% endif %}
+    {% if grouped_invoices %}
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th style="width: 20%">Дата</th>
+                    <th style="width: 10%">Количество</th>
+                    <th style="width: 50%">Примечания</th>
+                    <th style="width: 10%">Сумма</th>
+                    <th style="width: 10%">Прибыль</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice_group in grouped_invoices %}
+                    <tr class="accordion-toggle" {%if invoice_group.flag_unpriced_invoices %}style="background-color: #FF9999;"{%endif%} data-toggle="collapse" data-target="#collapse{{ forloop.counter }}" style="cursor: pointer;">
+                        <td>{{ invoice_group.date }}</td>
+                        <td>{{ invoice_group.count }}</td>
+                        <td>
+                            {%if invoice_group.flag_unpriced_invoices %}<div>Есть нерасцененные накладные</div>{%endif%}
+                        </td>
+                        <td>{{ invoice_group.total_sum }}</td>
+                        <td>{{ invoice_group.total_profit }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="p-0">
+                            <div id="collapse{{ forloop.counter }}" class="collapse">
+                                <div class="p-3">
+                                    <table class="table table-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>№</th>
+                                                <th>Поставщик</th>
+                                                <th>Номер</th>
+                                                <th>Сумма</th>
+                                                <th>Прибыль</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for invoice in invoice_group.invoices %}
+                                            <tr style="cursor: pointer;" onclick="window.location='{% url 'dreamkas_invoice' invoice.dreamkas_id %}';">
+                                                <td>{{ forloop.counter }}</td>
+                                                <td>{{ invoice.supplier }}</td>
+                                                <td>{{ invoice.number }}</td>
+                                                <td>{{ invoice.totalSum }}</td>
+                                                <td>
+                                                    {% if invoice.profit is None %}
+                                                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); window.location='{% url 'create_pricing_order' invoice.dreamkas_id %}';" style="cursor: pointer;">Создать Расценку</button>
+                                                    {% else %}
+                                                        {{ invoice.profit }}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+
+<style>
+    .accordion-toggle:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+
+<script>
+    document.getElementById('date_from').addEventListener('change', function(e) {
+        const dateFrom = e.target.value;
+        const dateTo = document.getElementById('date_to').value;
+        if (dateFrom && dateTo) {
+            window.location.href = `/invoices_report/${dateFrom}/${dateTo}/`;
+        }
+    });
+
+    document.getElementById('date_to').addEventListener('change', function(e) {
+        const dateTo = e.target.value;
+        const dateFrom = document.getElementById('date_from').value;
+        if (dateFrom && dateTo) {   
+            window.location.href = `/invoices_report/${dateFrom}/${dateTo}/`;
+        }
+    });
+</script>
+
+{% endblock %}
+
+    
+

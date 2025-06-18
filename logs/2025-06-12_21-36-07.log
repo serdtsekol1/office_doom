@@ -1,0 +1,68 @@
+2025-06-12 21:36:07,299 - mainapp.logging_utils - INFO - Log file created: 2025-06-12_21-36-07.log
+2025-06-12 21:36:07,299 - mainapp.apps - INFO - Django up
+2025-06-12 21:36:07,351 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-12 21:37:57,000 - django.request - ERROR - Internal Server Error: /dreamkas_invoices/
+Traceback (most recent call last):
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "Z:\dreamkas_new\mainapp\views.py", line 765, in dreamkas_invoices
+    return render(request, 'mainapp/pages/invoices.html', {'invoices': page})
+  File "z:\dreamkas_new\venv\lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\backends\django.py", line 61, in render
+    return self.template.render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 1000, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 1000, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\defaulttags.py", line 242, in render
+    nodelist.append(node.render_annotated(context))
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\base.py", line 961, in render_annotated
+    return self.render(context)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\template\defaulttags.py", line 479, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\urls\resolvers.py", line 851, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'dreamkas_invoice' with arguments '('',)' not found. 1 pattern(s) tried: ['dreamkas_invoice/(?P<invoiceid>[^/]+)/\\Z']
+2025-06-12 21:46:39,411 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 21:56:55,229 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 21:57:04,016 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 21:57:06,481 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 21:57:06,755 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 21:58:25,579 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 21:59:50,277 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 21:59:51,068 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 22:00:59,735 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 22:51:06,356 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 22:51:12,104 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json
+2025-06-12 22:51:13,773 - django.request - WARNING - Not Found: /.well-known/appspecific/com.chrome.devtools.json

@@ -1,0 +1,26 @@
+2025-06-16 18:40:43,920 - mainapp.logging_utils - INFO - Log file created: 2025-06-16_18-40-43.log
+2025-06-16 18:40:43,921 - mainapp.apps - INFO - Django up
+2025-06-16 18:40:43,968 - django.utils.autoreload - INFO - Watching for file changes with StatReloader
+2025-06-16 18:40:44,853 - mainapp.logging_utils - INFO - [2025-06-16 18:40:44] Updating_invoices, params: True, True, True, 100, 200, 20, None, None, True, True, None, True, True
+2025-06-16 18:41:39,635 - django.request - ERROR - Internal Server Error: /paid_update/
+Traceback (most recent call last):
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "z:\dreamkas_new\venv\lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "Z:\dreamkas_new\mainapp\views.py", line 1647, in paid_update
+    document_object = fetch_document_object(invoice_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  File "Z:\dreamkas_new\mainapp\views.py", line 740, in fetch_document_object
+    document = fetch_document_object(dreamkas_id)
+  [Previous line repeated 950 more times]
+  File "Z:\dreamkas_new\mainapp\views.py", line 739, in fetch_document_object
+    def fetch_document_object(dreamkas_id):
+  File "_pydevd_bundle\\pydevd_cython.pyx", line 1697, in _pydevd_bundle.pydevd_cython.SafeCallWrapper.__call__
+RecursionError: maximum recursion depth exceeded while calling a Python object
+2025-06-16 18:42:24,244 - django.utils.autoreload - INFO - Z:\dreamkas_new\mainapp\views.py changed, reloading.
