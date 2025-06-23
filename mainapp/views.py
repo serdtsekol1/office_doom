@@ -1424,9 +1424,9 @@ def old_documents_to_new_documents(request, number=None):
         # Update progress
         processed += 1
         if processed % 100 == 0:
-            print(f"Processed {processed}/{max_process} documents")
+            print(f"Processed {processed}/{min_process} documents")
             
-    return JsonResponse({'success': True, 'message': f'Successfully processed {processed} documents out of {max_process} requested'})
+    return JsonResponse({'success': True, 'message': f'Successfully processed {processed} documents out of {min_process} requested'})
 @csrf_exempt
 def invoices_report(request, date_from=None, date_to=None):
     if date_from == None:
