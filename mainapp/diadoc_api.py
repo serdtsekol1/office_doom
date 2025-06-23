@@ -228,10 +228,11 @@ class DiadocApi():
                     raise
         try:
             with open(file_name, "wb") as file:
-                response = self.session.get(url, timeout=4, allow_redirects=True)
+                url_old = url
+                url_new = url.split('ru/')[0] + "ru/webapi/" + url.split('ru/')[1]
+                response = self.session.get(url_new, timeout=4, allow_redirects=True)
                 if "File or directory not" in str(response.text):
-                    url = url.split('ru/')[0] + "ru/webapi/" + url.split('ru/')[1]
-                    response = self.session.get(url, timeout=4, allow_redirects=True)
+                    response = self.session.get(url_old, timeout=4, allow_redirects=True)
                 print(response.status_code, url)
                 file.write(response.content)
         except Exception as ex:

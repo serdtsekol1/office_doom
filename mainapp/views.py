@@ -868,7 +868,7 @@ def dreamkas_suppliers(request):
     suppliers = Supplier.objects.all()
     return render(request, 'mainapp/pages/suppliers.html', {'suppliers': suppliers})  #
 
-
+@csrf_exempt
 def dreamkas_supplier(request, supplier_data):
     store = Store.objects.get(store_id=request.session.get('store_id'))
     if supplier_data.isdigit():
@@ -879,10 +879,22 @@ def dreamkas_supplier(request, supplier_data):
     for supplier_name_obj in supplier.supplier_name_set.all():
         supplier_names.append(supplier_name_obj.name)
     #dreamkas_invoices = Invoice.objects.filter(hide=False, store=store).order_by("-issue_date")
-    unpaid_invoices = Invoice.objects.filter(hide=False, store=store, paid=False).order_by("-issue_date")
-    paid_invoices = Invoice.objects.filter(hide=False, store=store, paid=True).order_by("-issue_date")
-    dreamkas_invoices = list(unpaid_invoices) + list(paid_invoices)
-    return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices, 'supplier_names': supplier_names})
+    unpaid_invoices = Invoice_v3.objects.filter(flag_hide=False, destination=store, flag_paid=False,supplier_fk=supplier).order_by("-issue_date")
+    for invoice in unpaid_invoices:
+        if invoice.latest_pricing_id != invoice.dreamkas_id:
+            invoice = fetch_document_object(invoice.latest_iteration_id)
+        if invoice.supplier_fk.paymenttime:
+            if invoice.issue_date + datetime.timedelta(days=invoice.supplier_fk.paymenttime) < datetime.datetime.now().date():
+                invoice.flag_payment_overdue = True
+                invoice.save()
+    paid_invoices = Invoice_v3.objects.filter(flag_hide=False, destination=store, flag_paid=True,supplier_fk=supplier).order_by("-issue_date")
+    for invoice in paid_invoices:
+        if invoice.latest_pricing_id != invoice.dreamkas_id:
+            invoice = fetch_document_object(invoice.latest_iteration_id)
+    dreamkas_invoices_1 = list(unpaid_invoices) + list(paid_invoices)
+    dreamkas_invoices_2 = Invoice_v3.objects.filter(flag_hide=False, destination=store, supplier_fk=supplier).order_by("-issue_date")
+    
+    return render(request, 'mainapp/pages/dreamkas_supplier.html', {'supplier': supplier, 'dreamkas_invoices': dreamkas_invoices_1, 'supplier_names': supplier_names, 'dreamkas_invoices_alternative': dreamkas_invoices_2})
 
 
 @csrf_exempt
@@ -1379,69 +1391,31 @@ def receipts_report(request, date_from=None, date_to=None):
 @csrf_exempt
 def old_documents_to_new_documents(request):
     from mainapp.Dreamkas_documents.update_documents import update_document
+    from mainapp.models import Invoice, Invoice_v3
     
-    old_invoices = Invoice.objects.all()
-    migrated_count = 0
-    skipped_count = 0
-    updated_count = 0
-    error_count = 0
+    # Get all Invoice objects
+    invoices = Invoice.objects.all()
     
-    for old_inv in old_invoices:
-        # Check if Invoice_v3 already exists for this dreamkas_id
-        if Invoice_v3.objects.filter(dreamkas_id=old_inv.id_dreem).exists():
-            skipped_count += 1
-            continue
-            
-        # Create new Invoice_v3 from old Invoice to preserve flags
-        new_invoice_data = {
-            'dreamkas_id': old_inv.id_dreem,
-            'supplier': old_inv.supplier,
-            'supplier_fk': old_inv.supplier_fk,
-            'number': old_inv.number,
-            'issue_date': old_inv.issue_date,
-            'totalSum': old_inv.sum,
-            'destination': old_inv.store,
-            'flag_paid': old_inv.paid,
-            'flag_payment_type': old_inv.invoicetype,
-            'flag_payment_overdue': old_inv.overdue,
-            'flag_status': 1 if old_inv.invoice_status else 0,  # 1 = ACCEPTED, 0 = DRAFT
-            'flag_hide': old_inv.hide,
-            'hide_reason': old_inv.hide_comment,
-            'flag_source_program': old_inv.created_via_program,
-            'profit': old_inv.profit,
-            'income': old_inv.income,
-        }
+    # Counter for tracking progress
+    total = invoices.count()
+    processed = 0
+    
+    for invoice in invoices:
+        # Update document using update_document function
+        update_document(invoice.id_dreem)
         
-        # Set acceptedAt to issue_date if invoice is accepted, otherwise None
-        if old_inv.invoice_status:
-            new_invoice_data['acceptedAt'] = old_inv.issue_date
-        
-        # Create the new Invoice_v3
-        try:
-            new_invoice = Invoice_v3.objects.create(**new_invoice_data)
-            migrated_count += 1
+        # Find corresponding Invoice_v3 and update flag_paid
+        invoice_v3 = Invoice_v3.objects.filter(dreamkas_id=invoice.id_dreem).first()
+        if invoice_v3:
+            invoice_v3.flag_paid = invoice.paid
+            invoice_v3.save()
             
-            # Now update the invoice with fresh API data (dreamkas id, yada yada yada)
-            try:
-                update_document(old_inv.id_dreem)
-                updated_count += 1
-            except Exception as e:
-                print(f"Error updating document {old_inv.id_dreem} from API: {e}")
-                error_count += 1
-                
-        except Exception as e:
-            print(f"Error creating invoice_v3 for {old_inv.id_dreem}: {e}")
-            error_count += 1
-            continue
-    
-    return JsonResponse({
-        'status': 'success',
-        'migrated': migrated_count,
-        'skipped': skipped_count,
-        'updated_from_api': updated_count,
-        'errors': error_count,
-        'total_old_invoices': old_invoices.count()
-    })
+        # Update progress
+        processed += 1
+        if processed % 100 == 0:
+            print(f"Processed {processed}/{total} documents")
+            
+    return JsonResponse({'success': True, 'message': f'Successfully processed {processed} documents'})
 @csrf_exempt
 def invoices_report(request, date_from=None, date_to=None):
     if date_from == None:
@@ -1629,71 +1603,21 @@ def read_file():
 @csrf_exempt
 def paid_update(request):
     invoice_id = request.POST.get('id', None)
-    paid = int(request.POST.get('paid', 0))
-    print(request.POST)
-    if invoice_id:
-        if paid == 1:
-            paid = True
+    dreamkas_id = Invoice_v3.objects.filter(id=invoice_id).first().dreamkas_id
+    from mainapp.Dreamkas_documents.funcs import fetch_all_ids_of_tree
+    doc_tree = fetch_all_ids_of_tree(document_id=dreamkas_id)
+    if doc_tree.__len__() > 0:
+        initial_paid = fetch_document_object(doc_tree[0]).flag_paid
+        if initial_paid == False:
+            new_paid = True
         else:
-            paid = False
-
-        # Fetch the document object first
-        document_object = fetch_document_object(invoice_id)
-        if not document_object:
-            return JsonResponse({'success': False, 'error': 'Document not found'})
-        
-        # Import required functions for tree operations
-        from mainapp.Dreamkas_documents.funcs import build_tree_of_documents
-        
-        # Build the document tree to find all related documents
-        document_tree = build_tree_of_documents(document_id=invoice_id)
-        
-        # Helper function to update paid status for a document
-        def update_document_paid_status(doc_id, paid_status):
-            doc_obj = fetch_document_object(doc_id)
-            if doc_obj and hasattr(doc_obj, 'flag_paid'):
-                doc_obj.flag_paid = paid_status
-                doc_obj.flag_paid_date = datetime.datetime.now()
-                doc_obj.save()
-                log_item(f"Updated paid status for document {doc_id} to {paid_status}")
-        
-        # Helper function to recursively update all documents in the tree
-        def update_tree_paid_status(doc_structure, paid_status):
-            # Update current document
-            update_document_paid_status(doc_structure['id'], paid_status)
-            
-            # Update all children
-            for child in doc_structure['children']:
-                update_tree_paid_status(child, paid_status)
-        
-        # If we have a document tree, update all documents in it
-        if document_tree and invoice_id in document_tree:
-            root_doc = document_tree[invoice_id]
-            update_tree_paid_status(root_doc, paid)
-            
-            # Also update parent if this document is a child
-            if hasattr(document_object, 'parent_document_dreamkas_id') and document_object.parent_document_dreamkas_id:
-                parent_doc = fetch_document_object(document_object.parent_document_dreamkas_id)
-                if parent_doc and hasattr(parent_doc, 'flag_paid'):
-                    parent_doc.flag_paid = paid
-                    parent_doc.flag_paid_date = datetime.datetime.now()
-                    parent_doc.save()
-                    print(f"Updated paid status for parent document {document_object.parent_document_dreamkas_id} to {paid}")
-        else:
-            # Fallback to just updating the single document if tree building fails
-            if hasattr(document_object, 'flag_paid'):
-                document_object.flag_paid = paid
-                document_object.flag_paid_date = datetime.datetime.now()
-                document_object.save()
-                
-                # Still try to update parent if it exists
-                if hasattr(document_object, 'parent_document_dreamkas_id') and document_object.parent_document_dreamkas_id:
-                    parent_doc = fetch_document_object(document_object.parent_document_dreamkas_id)
-                    if parent_doc and hasattr(parent_doc, 'flag_paid'):
-                        parent_doc.flag_paid = paid
-                        parent_doc.flag_paid_date = datetime.datetime.now()
-                        parent_doc.save()
-    
+            new_paid = False
+        for id in doc_tree:
+            doc = fetch_document_object(id)
+            if doc.__class__.__name__ == "Invoice_v3" or doc.__class__.__name__ == "Correction_invoice_v3":
+                doc.flag_paid = new_paid
+                doc.flag_paid_date = datetime.datetime.now()
+                doc.save()
     return JsonResponse({'success': True})
 
 

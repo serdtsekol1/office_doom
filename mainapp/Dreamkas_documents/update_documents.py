@@ -55,6 +55,8 @@ def update_document(dreamkas_id):
     document = DREAM_KAS_API.get_document(dreamkas_id)
     if document is False:
         document = fetch_document_object(dreamkas_id)
+        if document is None:
+            return
         document.flag_status = 2
         document.save()
         return
@@ -134,6 +136,8 @@ def update_documents(
                 res_status,res_info = create_blank_pricing_if_not_priced_for_long(document.dreamkas_id)
         if to_calculate_profit == True:
             for id in id_list_inv:
+                if str(id) == "87062856":
+                    print("DEBUG")
                 if Invoice_v3.objects.filter(dreamkas_id=id).first().flag_status == 0:
                     continue
                 if Invoice_v3.objects.filter(dreamkas_id=id).first().flag_invalid is True:
@@ -148,6 +152,8 @@ def update_documents(
             queryset2 =  Invoice_v3.objects.filter(profit=None,flag_status=1,flag_hide=False, flag_invalid=False)
             unpriced_invoices = queryset1.union(queryset2)
             for invoice in unpriced_invoices:
+                if invoice.dreamkas_id == "87062856":
+                    print("DEBUG")
                 update_invoice(invoice.dreamkas_id)
                 if invoice.latest_pricing_id is None:
                     res_status,res_info = create_blank_pricing_if_not_priced_for_long(invoice.dreamkas_id)

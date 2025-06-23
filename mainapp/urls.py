@@ -1,5 +1,5 @@
 from django.urls import path
-from mainapp.views import dreamkas_invoices, get_index_page, get_invoice_timers, invoices_report, search_invoices, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
+from mainapp.views import dreamkas_invoices, get_index_page, get_invoice_timers,  old_documents_to_new_documents, search_invoices, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
     update_diadoc_invoices, create_document_from_diadoc, dreamkas_invoice, update_item_group, dreamkas_suppliers, dreamkas_supplier, supplier_paymenttime_update, gmail_messages, update_gmail_messages, \
     inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document, hide_invoice, get_all_gmail_messages, test_page, \
     generate_goods_report, edit_existing_report, invoices_report, generate_invoice_report, update_all_products, generate_xlsx_file_for_printer, display_all_goods_for_printer, products, \
@@ -110,6 +110,7 @@ urlpatterns = [
     ##
     path('get_invoice_timers/', get_invoice_timers, name="get_invoice_timers"),
     ## Debug
+    path('old_documents_to_new_documents/', old_documents_to_new_documents, name="old_documents_to_new_documents"),
     path('debug_update_all_invoices/',debug_update_all_invoices, name="debug_update_all_invoices"),
     path('debug_force_update_all_products/',debug_force_update_all_products, name="debug_force_update_all_products"),
     path('debug/', debug, name="debug"),

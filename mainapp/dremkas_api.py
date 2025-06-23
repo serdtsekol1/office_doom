@@ -433,17 +433,19 @@ class DreamKasApi:
         data = {"products": [], "useMrp": True}
         for item in positions:
             data["products"].append({"id": item['productId']})
-        original_positios = self.session.post("https://kabinet.dreamkas.ru/api/v2/products/find", json=data).json()
+        original_positions = self.session.post("https://kabinet.dreamkas.ru/api/v2/products/find", json=data).json()
         for pos in positions:
             print(pos['name'], pos['amount'])
-            
-        for pos in original_positios:
+        for pos in original_positions:
+            if pos == None:
+                return -2
+        for pos in original_positions:
             for stock in pos['stock']:
                 if stock[0] == target_store_id:
                     print(pos['name'], stock[1])
         for pos in positions:
             found = False
-            for pos_2 in original_positios:
+            for pos_2 in original_positions:
                 if found == True:
                     continue
                 if pos['productId'] == pos_2['id']:
@@ -457,7 +459,7 @@ class DreamKasApi:
         if leave_prices == True:
             new_position_list = []
             all_prices = {}
-            for pos in original_positios:
+            for pos in original_positions:
                 if pos['prices'] is not None:
                     if str(target_store_id) not in str(pos['prices']):
                         return -1
@@ -482,7 +484,7 @@ class DreamKasApi:
             positions = new_position_list                    
             # for pos in positions:
             #     found = False
-            #     for original_pos in original_positios:
+            #     for original_pos in original_positions:
             #         if found == True:
             #             break
             #         if original_pos['id'] == pos['productId']:

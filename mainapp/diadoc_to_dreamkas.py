@@ -58,7 +58,7 @@ def update_diadoc_invoices_v2(diadoc_id, store_id):
                     })
                     continue
                 
-                if valid_presets is not False and valid_presets.__len__() is not 0:
+                if valid_presets is not False and valid_presets.__len__() != 0:
                     store_destination_id = valid_presets[0].store_destination_fk.store_id
                     diadoc_invoice, diadoc_invoice_status = DiadocInvoice.objects.update_or_create(
                         diadoc_id=item['id'], 

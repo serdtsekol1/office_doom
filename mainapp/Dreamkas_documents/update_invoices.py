@@ -140,7 +140,7 @@ def update_invoice(dreamkas_id,document_external=None):
         print("Sum is too long!")
         print("unable to update invoice", dreamkas_id, document['num'])
         return False, None
-        
+    
     invoice_object.totalSum = totalSum
     invoice_object.supplier = document['sourceLegalEntity']['name'] if 'sourceLegalEntity' in document else None
     invoice_object.supplier_fk = supplier

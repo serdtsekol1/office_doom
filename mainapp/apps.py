@@ -25,40 +25,38 @@ def periodicTask():
     from mainapp.models import Correction_invoice_v3,Invoice_v3,Pricing_order_v3,Position_pricing_order_v3,Position_invoice_v3,Position_correction_invoice_v3
     from mainapp.Dreamkas_documents.funcs import find_latest_document_iteration
     from mainapp.dreamkas_documents import global_draft_cleanup
-    
+    time.sleep(1)
     # Initial update    
-    print('test')
-    update_documents(invoices=True,pricing_orders=True,invoice_limit=100,pricing_order_limit=200,correction_invoices=True,correction_invoice_limit=20)
-    global_var.invoices_last_update_at = datetime.datetime.now()
-    global_var.save_persistent_vars()
-    print("test")
-    i = 0
-    while True:
-        i = i + 1
-        time.sleep(60)
-        # Regular update
-        if (global_var.global_document_update_at is None or
-            global_var.global_document_update_at.date() > datetime.datetime.now().date()
-            ):
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=1000,pricing_order_limit=1000,correction_invoices=True,correction_invoice_limit=200)
-            global_draft_cleanup()
-            global_var.global_document_update_at = datetime.datetime.now().date()
-            global_var.invoices_last_update_at = datetime.datetime.now()
-            global_var.save_persistent_vars()
-        else:
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=10,pricing_order_limit=10,correction_invoices=True,correction_invoice_limit=5)
-            update_documents(invoices=False,pricing_orders=True,invoice_limit=10,pricing_order_limit=10,correction_invoices=False,acceptedAtFrom=str(datetime.datetime.now().date()))
-            global_draft_cleanup()
-            global_var.invoices_last_update_at = datetime.datetime.now()
-            global_var.save_persistent_vars()
+    #update_documents(invoices=True,pricing_orders=True,invoice_limit=100,pricing_order_limit=200,correction_invoices=True,correction_invoice_limit=20)
+    #global_var.invoices_last_update_at = datetime.datetime.now()
+    #global_var.save_persistent_vars()
+    # i = 0
+    # while True:
+    #     i = i + 1
+    #     time.sleep(60)
+    #     # Regular update
+    #     if (global_var.global_document_update_at is None or
+    #         global_var.global_document_update_at.date() > datetime.datetime.now().date()
+    #         ):
+    #         update_documents(invoices=True,pricing_orders=True,invoice_limit=1000,pricing_order_limit=1000,correction_invoices=True,correction_invoice_limit=200)
+    #         global_draft_cleanup()
+    #         global_var.global_document_update_at = datetime.datetime.now().date()
+    #         global_var.invoices_last_update_at = datetime.datetime.now()
+    #         global_var.save_persistent_vars()
+    #     else:
+    #         update_documents(invoices=True,pricing_orders=True,invoice_limit=10,pricing_order_limit=10,correction_invoices=True,correction_invoice_limit=5)
+    #         update_documents(invoices=False,pricing_orders=True,invoice_limit=10,pricing_order_limit=10,correction_invoices=False,acceptedAtFrom=str(datetime.datetime.now().date()))
+    #         global_draft_cleanup()
+    #         global_var.invoices_last_update_at = datetime.datetime.now()
+    #         global_var.save_persistent_vars()
 
-        if i > 60:
-            time.sleep(45)
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=150,pricing_order_limit=300,correction_invoices=True,correction_invoice_limit=5)
-            global_draft_cleanup()
-            global_var.invoices_last_update_at = datetime.datetime.now()
-            global_var.save_persistent_vars()
-            i = 0
+    #     if i > 60:
+    #         time.sleep(45)
+    #         update_documents(invoices=True,pricing_orders=True,invoice_limit=150,pricing_order_limit=300,correction_invoices=True,correction_invoice_limit=5)
+    #         global_draft_cleanup()
+    #         global_var.invoices_last_update_at = datetime.datetime.now()
+    #         global_var.save_persistent_vars()
+    #         i = 0
 
 
 class MainappConfig(AppConfig):

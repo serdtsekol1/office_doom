@@ -38,14 +38,14 @@ def get_logger(name=None):
     """
     return logging.getLogger(name or __name__)
 
-def log_item(value):
+def log_item(*values):
     """
-    Accept any value, convert it to string and log it with current timestamp.
+    Accept any amount of values, convert them to strings and log as combined string with current timestamp.
     Format: [YYYY-MM-DD HH:MM:SS] Log message
     Uses existing logging configuration from create_log_file().
     """
-    # Convert any value to string
-    message = str(value)
+    # Convert all values to strings and join them with spaces
+    message = " ".join(str(value) for value in values)
     
     # Get current timestamp
     current_time = datetime.now()

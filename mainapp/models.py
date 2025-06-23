@@ -316,6 +316,7 @@ class Document_v3(models.Model):
     number = models.CharField('Номер', max_length=255, blank=True, default=None, null=True)
     issue_date = models.DateField('Дата Создания', blank=True, default=None, null=True)
     acceptedAt = models.DateField('Дата Принятия', blank=True, default=None, null=True)
+    acceptedAt_modified = models.DateField('Дата принятия, измененная вручную.', blank=True, default=None, null=True)
     flag_status = models.CharField('DRAFT|ACCEPTED|DELETED', null=True, blank=True, default=False, max_length=25)
     # 0 - Draft
     # 1 - Accepted
@@ -501,88 +502,6 @@ class Invoice(models.Model):
             return -5
         else:
             return income
-
-        # http_invoice = DREAM_KAS_API.get_document(invoice_object.id_dreem)
-        # products_count = http_invoice['positions'].__len__()
-        #
-        # if http_invoice['children'] == []:
-        #     return calculated_invoice_income
-        # for child_document in http_invoice['children']:
-        #     if child_document['type'] == 'PRICING_ORDER':
-        #         pricing_order_doc = DREAM_KAS_API.get_document(child_document['id'])
-        #
-        #         if pricing_order_doc['status'] != 'DRAFT' and pricing_order_doc['id'] > id_checker:
-        #             priced_products_count = 0
-        #             for product_invoice in http_invoice['positions']:
-        #                 for product_pricing_order in pricing_order_doc['positions']:
-        #                     if product_invoice['productId'] == product_pricing_order['productId']:
-        #                         priced_products_count =+1
-        #                         invoice_income = invoice_income + float(product_invoice['amount']) / 1000 * float(product_pricing_order['price']) / 100
-        #             if priced_products_count == products_count:
-        #                 calculated_invoice_income = invoice_income
-        #             else:
-        #                 print('Товары накладной и расценки не совпадают.')
-        #                 print()
-
-        # return calculated_invoice_income
-
-        # try:
-        #     debug_code = "get http invoice"
-        #     http_invoice = DREAM_KAS_API.get_document(invoice_object.id_dreem)
-        #     debug_code = "get invoice children"
-        #     if http_invoice['children'] == []:
-        #         return 0
-        #
-        #     for children_document in http_invoice['children']:
-        #         invoice_income = 0
-        #         if children_document['type'] == 'PRICING_ORDER':
-        #             pricing_order_document = DREAM_KAS_API.get_document(children_document['id'])
-        #             if pricing_order_document['status'] == 'DRAFT':
-        #                 continue
-        #         else:
-        #             continue
-        #         debug_code = "count profit"
-        #         goods_that_need_to_be_priced_amount = http_invoice['positions'].__len__()
-        #         total_priced_goods = 0
-        #         for good in http_invoice['positions']:
-        #             for priced_good in pricing_order_document['positions']:
-        #                 if good['productId'] == priced_good['productId']:
-        #                     total_priced_goods = total_priced_goods + 1
-        #                     invoice_income = invoice_income + float(good['amount']) / 1000 * float(priced_good['price']) / 100
-        #
-        #         if total_priced_goods != goods_that_need_to_be_priced_amount:
-        #             invoice_income = -505
-        #
-        #         if calculated_invoice_income != 0 and invoice_income > 0:  # IF calc WAS done and this iteration is success - Check
-        #             if children_document['id'] > id_checker:  # if this is latest pricing document.
-        #                 calculated_invoice_income = invoice_income  # if yes - set calc to this iteration profit
-        #                 id_checker = children_document['id']
-        #
-        #                 #if goods_that_need_to_be_priced_amount :
-        #                 #    print('Некорректное кол-во товаров в расценке и в накладной. ID Накладной - ', invoice_object.id_dreem)
-        #         if calculated_invoice_income == 0 and invoice_income > 0:  # IF calc wasn't done and this iteration calc is success
-        #             calculated_invoice_income = invoice_income
-        #             id_checker = children_document['id']
-        #         if calculated_invoice_income < 0:
-        #             calculated_invoice_income = invoice_income
-        #             print("ERROR INVOICE. INVOICE PRICING STATUS", invoice_income)
-        #             print('Invoice info:')
-        #             print('Invoice number: ', invoice_object.number)
-        #             print('Invoice id_dreem:', invoice_object.id_dreem)
-        #             print('Invoice supplier:', invoice_object.supplier)
-        #             print('Invoice sum:', invoice_object.sum)
-        #             print("Please Look into that invoice and create a proper pricing invoice.")
-        #     return calculated_invoice_income
-        #
-        # except Exception as Ex:
-        #     print("ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR")
-        #     print("error after this action:")
-        #     print(debug_code)
-        #     print("Exception:")
-        #     print(Ex)
-        #     print("ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR")
-        #     return -505
-
     @staticmethod
     def find_latest_iteration(list_of_dicts):
         linked_documents = []

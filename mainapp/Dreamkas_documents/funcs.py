@@ -130,6 +130,30 @@ def fetch_children_of_document(document_id=None, document_object=None, document=
     outcome_children = Outcome_order_v3.objects.filter(parent_document_dreamkas_id=document_id)
     return correction_children,pricing_children,outcome_children
 
+def fetch_all_ids_of_tree(document_id=None, document_object=None, document=None):
+    if document_object is not None:
+        document_id = document_object.id_dreem
+    if document is not None:
+        document_id = document['id']
+    if document_id is None:
+        return []
+    document_tree = build_tree_of_documents(document_id)
+    if not document_tree:
+        return []
+    all_ids = []
+    def collect_ids(doc_structure):
+        if doc_structure is None:
+            return
+        all_ids.append(doc_structure['id'])
+        for child in doc_structure['children']:
+            collect_ids(child)
+    
+    # Always start from the root of the tree (first key in document_tree)
+    root_doc_id = list(document_tree.keys())[0]
+    root_doc = document_tree[root_doc_id]
+    collect_ids(root_doc)
+    return all_ids
+
 def build_tree_of_documents(document_id=None, document_object=None, document=None):
     # Initialize dictionary to store the document tree
     document_tree = {}

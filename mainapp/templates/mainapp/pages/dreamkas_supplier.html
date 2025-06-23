@@ -1,10 +1,34 @@
 {% extends 'wrapper.html' %}
-
 {% block body %}
+    <style>
+        .form-switch .form-check-input {
+            width: 3em;
+            height: 1.5em;
+        }
+        .form-switch .form-check-input:checked {
+            background-color: #198754;
+            border-color: #198754;
+        }
+        .badge {
+            font-size: 0.75em;
+        }
+        .text-muted {
+            font-size: 0.875em;
+        }
+    </style>
+
+    <!-- Invoice display mode toggle switch -->
+    <div class="mb-3">
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="invoiceDisplayToggle">
+            <label class="custom-control-label" for="invoiceDisplayToggle">Неоплаченные сверху</label>
+        </div>
+    </div>
+
     <ol class="list-group list-group-numbered">
         <div style="flex-basis: 50%; flex-grow: 1">
             <div style="font-size: 20px; font-weight: 500;" class="fw-bold">  {{ supplier.supplier_name_set.first.name }}</div>
-            <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }}</div>
+            <div style="font-size: 18px;" class="text-dark">ИНН: {{ supplier.inn }} {{supplier.paymenttime}}</div>
             <div class="Paymentlimit row">
                 <div style="font-size: 18px;" class="text-dark col-12">
                     Срок оплаты:
@@ -24,45 +48,118 @@
             </div>
             </a>
         </div>
-        {% for invoice in dreamkas_invoices %}
-            {% if invoice.supplier in supplier_names %}
-                <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.paid %} list-group-item-success {% endif %} {% if invoice.overdue_ %} list-group-item-danger {% endif %}">
-                    <div style="flex-basis: 50%; flex-grow: 1;" class="">
-                        <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.id_dreem %}">{{ invoice.number }}</a></div>
-                        <div class="text-dark">{{ invoice.supplier }}</div>
-                        <div class="text-dark">{{ invoice.issue_date|date:"d.m.Y" }}</div>
+        
+        <!-- Контейнер для звичайних рахунків -->
+        <div id="regular-invoices">
+            {% for invoice in dreamkas_invoices %}
+                {% if invoice.supplier in supplier_names %}
+                    <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.flag_paid %} list-group-item-success {% endif %} {% if invoice.flag_payment_overdue %} list-group-item-danger {% endif %}">
+                        <div style="flex-basis: 50%; flex-grow: 1;" class="">
+                            <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.dreamkas_id %}">{{ invoice.number }}</a></div>
+                            <div class="text-dark">{{ invoice.supplier }}</div>
+                            <div class="text-dark">{{ invoice.issue_date|date:"d.m.Y" }}</div>
 
-                    </div>
-                    <div style="flex-basis: 100px; display:flex">
+                        </div>
+                        <div style="flex-basis: 100px; display:flex">
 
-                        {% if invoice.date_to_pay and not invoice.overdue %}
-                            {{ invoice.date_to_pay }}
+                            {% if invoice.date_to_pay and not invoice.flag_payment_overdue %}
+                                {{ invoice.date_to_pay }}
+                            {% endif %}
+
+
+                        </div>
+                        {% if invoice.flag_payment_overdue and not invoice.flag_paid %}
+                            {#ПРОСРОЧЕНА ОПЛАТА  #} {# СНЯТЬ КОММЕНТАРИЙ КОГДА ПОФИКСИТСЯ! #}
                         {% endif %}
+                        <div style="flex-basis: 100px; display:flex">
+                        </div>
+                        <div style="flex-basis: 100px; display: flex;" class="{% if invoice.flag_paid %}text-success{% else %} text-danger {% endif %}">
+                            <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.flag_paid %} checked {% endif %} id="{{ invoice.id }}">
+                        </div>
+                        <div>{%if invoice.flag_paid %}Дата оплаты: {{ invoice.flag_paid_date|date:"d.m.Y" }}{% endif %}</div>
 
 
-                    </div>
-                    {% if invoice.overdue and not invoice.paid %}
-                        {#ПРОСРОЧЕНА ОПЛАТА  #} {# СНЯТЬ КОММЕНТАРИЙ КОГДА ПОФИКСИТСЯ! #}
-                    {% endif %}
-                    <div style="flex-basis: 100px; display:flex">
-                    </div>
-                    <div style="flex-basis: 100px; display: flex;" class="{% if invoice.paid %}text-success{% else %} text-danger {% endif %}">
-                        <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.paid %} checked {% endif %} id="{{ invoice.id }}">
-                    </div>
+                        <div class="">
+                        </div>
+                        <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
+                        </div>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div id="alternative-invoices" style="display: none;">
+            {% for invoice in dreamkas_invoices_alternative %}
+                {% if invoice.supplier in supplier_names %}
+                    <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.flag_paid %} list-group-item-success {% endif %} {% if invoice.flag_payment_overdue %} list-group-item-danger {% endif %}">
+                        <div style="flex-basis: 50%; flex-grow: 1;" class="">
+                            <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.dreamkas_id %}">{{ invoice.number }}</a></div>
+                            <div class="text-dark">{{ invoice.supplier }}</div>
+                            <div class="text-dark">{{ invoice.issue_date|date:"d.m.Y" }}</div>
+
+                        </div>
+                        <div style="flex-basis: 100px; display:flex">
+
+                            {% if invoice.date_to_pay and not invoice.flag_payment_overdue %}
+                                {{ invoice.date_to_pay }}
+                            {% endif %}
 
 
-                    <div class="">
-                    </div>
-                    <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
-                        <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
-                    </div>
-                </li>
-            {% endif %}
-        {% endfor %}
+                        </div>
+                        {% if invoice.flag_payment_overdue and not invoice.flag_paid %}
+                            {#ПРОСРОЧЕНА ОПЛАТА  #} {# СНЯТЬ КОММЕНТАРИЙ КОГДА ПОФИКСИТСЯ! #}
+                        {% endif %}
+                        <div style="flex-basis: 100px; display:flex">
+                        </div>
+                        <div style="flex-basis: 100px; display: flex;" class="{% if invoice.flag_paid %}text-success{% else %} text-danger {% endif %}">
+                            <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.flag_paid %} checked {% endif %} id="{{ invoice.id }}">
+                        </div>
+                        <div>{%if invoice.flag_paid %}Дата оплаты: {{ invoice.date_paid|date:"d.m.Y" }}{% endif %}</div>
+
+
+                        <div class="">
+                        </div>
+                        <div style="flex-basis: 150px; margin-left: 70px; text-align: left;">
+                            <div style="font-size: 16px; font-weight: 700;" class="text-accent-1">{{ invoice.sum }}</div>
+                        </div>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </div>
 
 
     </ol>
     <script>
+        // Toggle switch for changing invoice display mode
+        $("#invoiceDisplayToggle").on('change', function() {
+            if (this.checked) {
+                $("#regular-invoices").fadeOut(300, function() {
+                    $("#alternative-invoices").fadeIn(300);
+                });
+                localStorage.setItem('invoiceDisplayMode', 'alternative');
+            } else {
+                $("#alternative-invoices").fadeOut(300, function() {
+                    $("#regular-invoices").fadeIn(300);
+                });
+                localStorage.setItem('invoiceDisplayMode', 'regular');
+            }
+        });
+
+        // Restore toggle state on page load
+        $(document).ready(function() {
+            const savedMode = localStorage.getItem('invoiceDisplayMode');
+            if (savedMode === 'alternative') {
+                $("#invoiceDisplayToggle").prop('checked', true);
+                $("#regular-invoices").hide();
+                $("#alternative-invoices").show();
+            } else {
+                $("#invoiceDisplayToggle").prop('checked', false);
+                $("#regular-invoices").show();
+                $("#alternative-invoices").hide();
+            }
+        });
+
         $(".checked_paid").on('change', (e) => {
 
             let id = e.currentTarget.id;
@@ -108,7 +205,6 @@
                     console.log(data)
                     if (data.success === true) {
                         const element = document.getElementById("Error_1");
-                        element.innerHTML = "Works";
                         $(e.currentTarget).removeAttr("style")
                     } else {
                         const element = document.getElementById("Error_1");
