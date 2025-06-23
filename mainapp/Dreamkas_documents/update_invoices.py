@@ -105,7 +105,7 @@ def update_invoice(dreamkas_id,document_external=None):
             document = dreamkas_id
     if document is False:
         document_internal = fetch_document_object(dreamkas_id)
-        document_internal.status = 2
+        document_internal.flag_status = 2
         document_internal.save()
         return False
     invoice_object = Invoice_v3.objects.filter(dreamkas_id=dreamkas_id)
@@ -118,8 +118,15 @@ def update_invoice(dreamkas_id,document_external=None):
         
     supplier = None
     store = None
+    flag_invalid = False
+    flag_invalid_reason = None
     if 'sourceLegalEntity' in document:
-        supplier = fetch_or_create_supplier(document['sourceLegalEntity']['name'])
+        if 'name' not in document['sourceLegalEntity']:
+            flag_invalid = True
+            flag_invalid_reason = 'Поставщик не найден'
+            supplier = None
+        else:
+            supplier = fetch_or_create_supplier(document['sourceLegalEntity']['name'])
     if "targetStoreId" in document:
         store = fetch_or_create_store(document['targetStoreId'])
         
@@ -142,7 +149,7 @@ def update_invoice(dreamkas_id,document_external=None):
         return False, None
     
     invoice_object.totalSum = totalSum
-    invoice_object.supplier = document['sourceLegalEntity']['name'] if 'sourceLegalEntity' in document else None
+    invoice_object.supplier = document['sourceLegalEntity']['name'] if 'sourceLegalEntity' in document and 'name' in document['sourceLegalEntity'] else None
     invoice_object.supplier_fk = supplier
     invoice_object.flag_payment_overdue = flag_payment_overdue
     invoice_object.flag_payment_type = True if "[НАЛ]" in document['num'] else False
@@ -151,6 +158,9 @@ def update_invoice(dreamkas_id,document_external=None):
     invoice_object.destination = store
     invoice_object.acceptedAt = acceptedAt
     invoice_object.flag_status = status_to_flag(document['status'])
+    invoice_object.flag_invalid = flag_invalid
+    if flag_invalid is True:
+        invoice_object.flag_invalid_reason = flag_invalid_reason
 
     if create:
         invoice_object.flag_paid = False
