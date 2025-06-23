@@ -13,7 +13,7 @@ def debug_remove_printer_code_from_long_not_accepted_products():
         for device in store.store_devices:
             list_of_devices.append(device)
     print(list_of_devices)
-    date_from = dt.datetime.now() - dt.timedelta(days=90)
+    date_from = dt.datetime.now() - dt.timedelta(days=120)
     date_now = dt.datetime.now() - dt.timedelta(days=1)
     date_from_year, date_from_month, date_from_day = date_from.year, date_from.month, date_from.day
     date_to_year, date_to_month, date_to_day = date_now.year, date_now.month, date_now.day
@@ -36,10 +36,10 @@ def debug_remove_printer_code_from_long_not_accepted_products():
         import datetime
         httpres = DREAM_KAS_API.get_product_history(product.id_out)
         httpres2 = DREAM_KAS_API.get_product_v2(product.id_out)
-        if (datetime.datetime.now() - datetime.datetime.strptime(httpres2['updatedAt'], "%Y-%m-%dT%H:%M:%S.%fZ")).days > 90:
+        if (datetime.datetime.now() - datetime.datetime.strptime(httpres2['updatedAt'], "%Y-%m-%dT%H:%M:%S.%fZ")).days > 150:
 
             try:
-                if (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days > 90:
+                if (datetime.datetime.now() - datetime.datetime.strptime(httpres.json()[0]['document']['acceptedAt'], '%Y-%m-%d')).days > 150:
                     if product.id_out not in unique_ids:
                         print('deleting', product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode)
                         list_of_deleted_products.append([product.name, product.barcodes_set.filter(barcode__startswith=999999999).first().barcode[9:12]])

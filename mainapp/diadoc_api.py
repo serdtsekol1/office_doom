@@ -187,6 +187,7 @@ class DiadocApi():
                     except Exception as e:
                         print("diadoc_api get_documents Exception [000]" + str(e))
         if list_elements_with_document.__len__() == 0:
+
             page_list_documents = self.session.get(f"https://diadoc.kontur.ru/webapi/boxes/{diadoc_id}/documents?category=IncomingOrProxyOrTemplate&action=Filter").json()
             for element_with_document in page_list_documents['documentsByMessage']:
                 a = element_with_document['participants']['sender']['box']['shortName']
@@ -209,7 +210,6 @@ class DiadocApi():
                         })
                     except Exception as e:
                         print("diadoc_api get_documents Exception [000]" + str(e))
-
         return self.LIST_DOCUMENTS
     def download(self, url, file_name):
         if not os.path.exists(os.path.dirname(file_name)):
@@ -220,10 +220,11 @@ class DiadocApi():
                     raise
         try:
             with open(file_name, "wb") as file:
+                url_old_version = url
+                url = url.split('ru/')[0] + "ru/webapi/" + url.split('ru/')[1]
                 response = self.session.get(url, timeout=4, allow_redirects=True)
-                if "File or directory not" in str(response.text):
-                    url = url.split('ru/')[0] + "ru/webapi/" + url.split('ru/')[1]
-                    response = self.session.get(url, timeout=4, allow_redirects=True)
+                if "File or directory not" in str(response.text) or response.status_code == 404:
+                    response = self.session.get(url_old_version, timeout=4, allow_redirects=True)
                 print(response.status_code, url)
                 file.write(response.content)
         except Exception as ex:
