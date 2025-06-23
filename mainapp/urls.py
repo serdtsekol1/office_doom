@@ -111,6 +111,7 @@ urlpatterns = [
     path('get_invoice_timers/', get_invoice_timers, name="get_invoice_timers"),
     ## Debug
     path('old_documents_to_new_documents/', old_documents_to_new_documents, name="old_documents_to_new_documents"),
+    path('old_documents_to_new_documents/<int:number>', old_documents_to_new_documents, name="old_documents_to_new_documents"),
     path('debug_update_all_invoices/',debug_update_all_invoices, name="debug_update_all_invoices"),
     path('debug_force_update_all_products/',debug_force_update_all_products, name="debug_force_update_all_products"),
     path('debug/', debug, name="debug"),

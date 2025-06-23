@@ -1389,7 +1389,7 @@ def receipts_report(request, date_from=None, date_to=None):
     if date_to == date_from:
         invoices = invoice_report(date_to)
 @csrf_exempt
-def old_documents_to_new_documents(request):
+def old_documents_to_new_documents(request, number=None):
     from mainapp.Dreamkas_documents.update_documents import update_document
     from mainapp.models import Invoice, Invoice_v3
     
@@ -1400,7 +1400,18 @@ def old_documents_to_new_documents(request):
     total = invoices.count()
     processed = 0
     
+    # Convert number to int if provided, otherwise set to total
+    if number is not None:
+        max_process = int(number)
+    else:
+        max_process = total
+    
     for invoice in invoices:
+        # Check if we've reached the limit
+        if processed >= max_process:
+            processed += 1
+            break
+            
         # Update document using update_document function
         update_document(invoice.id_dreem)
         
@@ -1413,9 +1424,9 @@ def old_documents_to_new_documents(request):
         # Update progress
         processed += 1
         if processed % 100 == 0:
-            print(f"Processed {processed}/{total} documents")
+            print(f"Processed {processed}/{max_process} documents")
             
-    return JsonResponse({'success': True, 'message': f'Successfully processed {processed} documents'})
+    return JsonResponse({'success': True, 'message': f'Successfully processed {processed} documents out of {max_process} requested'})
 @csrf_exempt
 def invoices_report(request, date_from=None, date_to=None):
     if date_from == None:
