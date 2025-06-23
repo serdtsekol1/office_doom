@@ -1402,13 +1402,13 @@ def old_documents_to_new_documents(request, number=None):
     
     # Convert number to int if provided, otherwise set to total
     if number is not None:
-        max_process = int(number)
+        min_process = int(number)
     else:
-        max_process = total
+        min_process = 0
     
     for invoice in invoices:
         # Check if we've reached the limit
-        if processed >= max_process:
+        if processed <= min_process:
             processed += 1
             break
             
