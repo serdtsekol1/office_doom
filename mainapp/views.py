@@ -1410,7 +1410,7 @@ def old_documents_to_new_documents(request, number=None):
         # Check if we've reached the limit
         if processed <= min_process:
             processed += 1
-            break
+            continue
             
         # Update document using update_document function
         update_document(invoice.id_dreem)
