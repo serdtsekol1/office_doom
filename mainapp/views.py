@@ -36,7 +36,7 @@ from simplegmail.query import construct_query
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
 import mainapp.Dreamkas_documents
-from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object, fetch_document_object_bulk, fetch_documents_positions
+from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object, fetch_document_object_bulk, fetch_documents_positions, fetch_latest_iterations_for_documents
 from mainapp.Reports.invoice_report import invoice_report, invoice_report_range_of_dates
 from mainapp.logging_utils import log_item
 from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Invoice_v3, Pricing_order_v3, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset, \
@@ -908,21 +908,10 @@ def dreamkas_supplier(request, supplier_data):
                 invoice.save()
     print ('datetime 4 : ', datetime.datetime.now() - timestart_now)
     paid_invoices = Invoice_v3.objects.filter(flag_hide=False, destination=store, flag_paid=True,supplier_fk=supplier).order_by("-issue_date")
-    latest_iteration_ids = []
-    for invoice in paid_invoices:
-        if invoice.latest_pricing_id != invoice.dreamkas_id:
-            latest_iteration_ids.append(invoice.latest_iteration_id)
-    document_map = {}
-    invoices, pricing, correction_invoices, outcome_orders = fetch_document_object_bulk(latest_iteration_ids)
-    for document in (invoices, pricing, correction_invoices, outcome_orders):
-        for item in document:
-            document_map[item.dreamkas_id] = item
-    for i in range(len(paid_invoices)):
-        invoice = paid_invoices[i]
-        if invoice.latest_pricing_id != invoice.dreamkas_id:
-            latest_document = document_map.get(invoice.latest_iteration_id)
-            if latest_document:
-                paid_invoices[i] = latest_document
+    doc_map = {}
+    for document in paid_invoices:
+        doc_map.append(document.dreamkas_id)
+    paid_invoices = fetch_latest_iterations_for_documents(doc_map)
     print ('datetime 5 : ', datetime.datetime.now() - timestart_now)
     dreamkas_invoices_1 = list(unpaid_invoices) + list(paid_invoices)
     dreamkas_invoices_2 = Invoice_v3.objects.filter(flag_hide=False, destination=store, supplier_fk=supplier).order_by("-issue_date")
