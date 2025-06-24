@@ -53,9 +53,6 @@
         <div id="regular-invoices">
             {% for invoice in dreamkas_invoices %}
                 {% if invoice.supplier in supplier_names %}
-                flag paid: {{invoice.flag_paid}}
-                flag payment overdue: {{invoice.flag_payment_overdue}}
-                
                     <li class="list-group-item d-flex justify-content-end align-items-center {% if invoice.flag_paid %} list-group-item-success {% endif %} {% if invoice.flag_payment_overdue %} list-group-item-danger {% endif %}">
                         <div style="flex-basis: 50%; flex-grow: 1;" class="">
                             <div style="font-size: 16px; font-weight: 500;" class="fw-bold"><a href="{% url "dreamkas_invoice" invoiceid=invoice.dreamkas_id %}">{{ invoice.number }}</a></div>

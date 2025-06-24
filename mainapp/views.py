@@ -1657,6 +1657,8 @@ def paid_update(request):
             if doc.__class__.__name__ == "Invoice_v3" or doc.__class__.__name__ == "Correction_invoice_v3":
                 doc.flag_paid = new_paid
                 doc.flag_paid_date = datetime.datetime.now()
+                if doc.flag_payment_overdue == True:
+                    doc.flag_payment_overdue = False
                 doc.save()
     return JsonResponse({'success': True})
 
