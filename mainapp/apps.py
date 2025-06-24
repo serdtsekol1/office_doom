@@ -44,8 +44,8 @@ def periodicTask():
             global_var.invoices_last_update_at = datetime.datetime.now()
             global_var.save_persistent_vars()
         else:
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=10,pricing_order_limit=10,correction_invoices=True,correction_invoice_limit=5)
-            update_documents(invoices=False,pricing_orders=True,invoice_limit=10,pricing_order_limit=10,correction_invoices=False,acceptedAtFrom=str(datetime.datetime.now().date()))
+            update_documents(invoices=True,pricing_orders=True,invoice_limit=3,pricing_order_limit=6,correction_invoices=True,correction_invoice_limit=6)
+            update_documents(invoices=False,pricing_orders=True,pricing_order_limit=3,correction_invoices=False,acceptedAtFrom=str(datetime.datetime.now().date()))
             global_draft_cleanup()
             global_var.invoices_last_update_at = datetime.datetime.now()
             global_var.save_persistent_vars()
