@@ -128,11 +128,14 @@ def update_documents(
                             query=res_info['num']
                             )
                     res_status,res_info = create_blank_pricing_if_not_priced_for_long(id)
+            counter = 0
             for document in Invoice_v3.objects.filter(
                 flag_status=1,
                 latest_pricing_id=None,
                 acceptedAt__lte=datetime.now() - timedelta(days=1),
                 flag_invalid=False):
+                counter = counter + 1
+                print(counter)
                 res_status,res_info = create_blank_pricing_if_not_priced_for_long(document.dreamkas_id)
         if to_calculate_profit == True:
             for id in id_list_inv:

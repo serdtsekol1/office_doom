@@ -732,13 +732,21 @@ def find_invoice_duplicates(request):
 
 def get_invoice_timers(request):
     from mainapp.global_var import invoices_being_updated, invoices_last_update_at, invoices_next_update_at
+    
+    # Форматування дати в потрібному форматі
+    def format_datetime(dt):
+        if dt is None:
+            return None
+        return dt.strftime("%d.%m.%Y, %H:%M:%S")
+    
     return JsonResponse({
         'invoices_being_updated': invoices_being_updated,
-        'invoices_last_update_at': invoices_last_update_at,
-        'invoices_next_update_at': invoices_next_update_at
+        'invoices_last_update_at': format_datetime(invoices_last_update_at),
+        'invoices_next_update_at': format_datetime(invoices_next_update_at)
     })
     
 def dreamkas_invoices(request):
+    from mainapp.global_var import invoices_last_update_at
     drafts = Invoice_v3.objects.filter(flag_hide=False, flag_status=0).order_by("-dreamkas_id")
     invoices = Invoice_v3.objects.filter(flag_hide=False, flag_status=1).order_by("-dreamkas_id")
 
@@ -759,12 +767,19 @@ def dreamkas_invoices(request):
     for invoice in updated_invoices:
         invoice.pricing_orders = Pricing_order_v3.objects.filter(parent_document_dreamkas_id=invoice.dreamkas_id)
     page = Paginator(updated_invoices, 100).page(request.GET.get("page", 1))
-    return render(request, 'mainapp/pages/invoices.html', {'invoices': page})
+    return render(request, 'mainapp/pages/invoices.html', {
+        'invoices': page,
+        'invoices_last_update_at': invoices_last_update_at
+    })
 
 def invoices(request):
+    from mainapp.global_var import invoices_last_update_at
     invoices = Invoice.objects.all().filter(hide=False).order_by("-issue_date")
     page = Paginator(invoices, 200).page(request.GET.get("page", 1))
-    return render(request, 'mainapp/pages/invoices.html', {'invoices': page})
+    return render(request, 'mainapp/pages/invoices.html', {
+        'invoices': page,
+        'invoices_last_update_at': invoices_last_update_at
+    })
 
 
 @csrf_exempt

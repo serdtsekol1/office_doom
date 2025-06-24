@@ -1,161 +1,94 @@
 {% extends 'wrapper.html' %}
 {% load mainapp_tags %}
 {% block body %}
-    <div class="mb-3">
-        <div>   
-            <div>
-                <span>Последнее обновление: </span>
+    <style>
+        .update-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .update-info small {
+            color: #6c757d;
+            font-size: 0.875em;
+        }
+        .update-info div {
+            font-weight: 500;
+            margin-top: 2px;
+        }
+    </style>
+
+    <div class="mb-3 d-flex justify-content-between align-items-start">
+        <div>
+            <!-- Ліва частина залишається порожньою, оскільки пошук тепер в компоненті -->
+        </div>
+        
+        <div class="text-end update-info">
+            <!-- Права частина - інформація про оновлення -->
+            <div class="mb-2">
+                <small class="text-muted">Последнее обновление:</small>
+                <div><span id="lastUpdate">{{ invoices_last_update_at|date:"d.m.Y, H:i:s" }}</span></div>
             </div>
             <div>
-                <span id="lastUpdate">{{ invoices_last_update_at }}</span>
-            </div>
-            <div>
-                <span>Следующее обновление через: </span>
-            
-                <span id="countdown"></span>
+                <small class="text-muted">Следующее обновление через:</small>
+                <div><span id="countdown"></span></div>
             </div>
         </div>
     </div>
-    {% include "mainapp/parts/pagination.html" with page=invoices %}
-    
-    Поиск по накладным:
-    <div>
-        <input id="search" value="" placeholder="Введите номер, поставщика или сумму накладной.">
-    </div>
 
-    <ol class="list-group list-group-numbered">
-        {% for invoice in invoices %}
-        <li class="list-group-item d-flex justify-content-between align-items-center" style="padding: 0;">
-            <a href="/dreamkas_invoice/{{ invoice.dreamkas_id }}" class="col-3" style="text-align: left; padding-left: 10px; text-decoration: none; color: inherit;">
-                <div style="font-size: 16px; font-weight: 500;" class="fw-bold">{{ invoice.number }}</div>
-                <div>{{ invoice.supplier }}</div>
-                <div>{{ invoice.issue_date|date:"d.m.Y" }}</div>
-            </a>
-    
-            <div class="col-4">
-                <a href="/dreamkas_invoice/{{ invoice.dreamkas_id }}" style="text-decoration: none; color: inherit;">
-                    <div>
-                        {% if invoice.flag_status == '0' %}
-                            <span>ЧЕРНОВИК</span>
-                        {% elif invoice.flag_status == '1' %}
-                            <span style="background-color: #d4FAda;">ПРИНЯТО</span>
-                        {% elif invoice.flag_status == '2' %}
-                            <span>УДАЛЕНО</span>
-                        {% endif %}
-                    </div>
-                    <div>
-                        {% if invoice.latest_pricing_id and invoice.flag_status == '1' %}
-                            <span style="background-color: #d4FAda;">РАСЦЕНЕНО</span>
-                        {% elif invoice.latest_pricing_id == None and invoice.flag_status == '1' %}
-                            <span style="background-color: #FF9999;">НЕ РАСЦЕНЕНО</span>
-                        {% endif %}
-                    </div>
-                </a>
-            </div>
-    
-            <div class="col-2">
-                <div style="display: flex; justify-content: space-between;">
-                    <div style="text-align: left;">
-                        <div>Сумма :</div>
-                        {% if invoice.profit != None %}
-                            <div>Приход :</div>
-                            <div>Прибыль :</div>
-                        {% endif %}
-                        {% if invoice.profit == None %}
-                            {%if invoice.pricing_orders.count != 0 %}
-                                {%if invoice.pricing_orders.count == 1 %}
-                                <a href="http://kabinet.dreamkas.ru/app/#!/documents/card~2F{{invoice.pricing_orders.first.dreamkas_id}}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 12px;">
-                                    Перейти к раценке
-                                    </a>
-                                {% endif %}
-                                {% if invoice.pricing_orders.count > 1 %}
-                                <a href="http://kabinet.dreamkas.ru/app/#!/documents/card~2F{{invoice.dreamkas_id}}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 12px;">
-                                    Перейти к накладной
-                                    </a>
-                                {% endif %}
-                            {% endif %}
-                        {% endif %}
-                        
-                    </div>
-                    <div style="text-align: right;">
-                        <div>{{ invoice.totalSum }}</div>
-                        {% if invoice.profit != None %}
-                            <div>{{ invoice.income }}</div>
-                            <div>{{ invoice.profit }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-    
-            <div class="col-2" style="padding-right: 20px; text-align: right;">
-                <div class="form-check">
-                    <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.flag_paid %} checked {% endif %} id="{{ invoice.id }}">
-                </div>
-            </div>
-    
-            <div class="col-1" style="padding-right: 20px; text-align: right;">
-            </div>
-        </li>
-        {% endfor %}
-    </ol>
-    
-    
+    {% include "mainapp/parts/dreamkas_invoices_display.html" %}
+
     <script>
-        $(".checked_paid").on('change', (e) => {
-            let id = e.currentTarget.id;
-            let paid = 0;
-            if (e.currentTarget.checked) {
-                paid = 1
-            }
-
-            $.ajax({
-                type: "POST",
-                url: "{% url 'paid_update' %}",
-                data: {'id': id, 'paid': paid},
-                success: function (data) {
-                    console.log(data)
-                }
-            });
-        })
-        $("#search").on('input', (e) => {
-            console.log(e.currentTarget.value)
-            $(".search_field").each((key, element) => {
-                if (element.dataset.search_data_field.toLowerCase().search(e.currentTarget.value.toLowerCase()) === -1) {
-                    $(element).hide()
-                } else {
-                    $(element).show()
-                }
-                console.log(element)
-            })
-        })
-
         // Add new countdown functionality
         function updateCountdown() {
             $.ajax({
                 url: '{% url "get_invoice_timers" %}',
                 method: 'GET',
                 success: function(response) {
-                    const lastUpdate = new Date(response.invoices_last_update_at);
-                    const nextUpdate = new Date(response.invoices_next_update_at);
-                    const now = new Date();
-                    
                     if (response.invoices_being_updated) {
-                        $('#countdown').text('Обновление...');
+                        if ($('#countdown').length) {
+                            $('#countdown').text('Обновление...');
+                        }
                         return;
                     }
                     
-                    let timeLeft = nextUpdate - now;
-                    
-                    if (timeLeft <= 0) {
-                        // Instead of reloading, just update the timer
+                    // Оновлюємо відображення останнього оновлення
+                    if (response.invoices_last_update_at && $('#lastUpdate').length) {
                         $('#lastUpdate').text(response.invoices_last_update_at);
-                        timeLeft = nextUpdate - now; // Recalculate time left
                     }
                     
-                    const minutes = Math.floor(timeLeft / 60000);
-                    const seconds = Math.floor((timeLeft % 60000) / 1000);
-                    
-                    $('#countdown').text(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+                    // Обчислюємо час до наступного оновлення
+                    if (response.invoices_next_update_at && $('#countdown').length) {
+                        try {
+                            // Конвертуємо формат дати з "dd.mm.yyyy, hh:mm:ss" в ISO формат
+                            const dateStr = response.invoices_next_update_at;
+                            const match = dateStr.match(/(\d{2})\.(\d{2})\.(\d{4}), (\d{2}):(\d{2}):(\d{2})/);
+                            if (match) {
+                                const [, day, month, year, hour, minute, second] = match;
+                                const isoDate = `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+                                const nextUpdate = new Date(isoDate);
+                                const now = new Date();
+                                let timeLeft = nextUpdate - now;
+                                
+                                if (timeLeft <= 0) {
+                                    $('#countdown').text('Обновление...');
+                                } else {
+                                    const minutes = Math.floor(timeLeft / 60000);
+                                    const seconds = Math.floor((timeLeft % 60000) / 1000);
+                                    $('#countdown').text(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error parsing date:', error);
+                            $('#countdown').text('Ошибка');
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching timer data:', error);
+                    if ($('#countdown').length) {
+                        $('#countdown').text('Ошибка');
+                    }
                 }
             });
         }

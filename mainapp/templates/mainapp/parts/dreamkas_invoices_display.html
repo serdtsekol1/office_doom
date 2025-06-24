@@ -1,0 +1,138 @@
+{% load mainapp_tags %}
+
+<style>
+    .update-info {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #dee2e6;
+    }
+    .update-info small {
+        color: #6c757d;
+        font-size: 0.875em;
+    }
+    .update-info div {
+        font-weight: 500;
+        margin-top: 2px;
+    }
+</style>
+
+<div class="mb-3 d-flex justify-content-between align-items-start">
+    <div>
+        <!-- Ліва частина - пошук -->
+        <div>
+            <label for="search">Поиск по накладным:</label>
+            <input id="search" value="" placeholder="Введите номер, поставщика или сумму накладной." class="form-control">
+        </div>
+    </div>
+</div>
+
+{% include "mainapp/parts/pagination.html" with page=invoices %}
+
+<ol class="list-group list-group-numbered">
+    {% for invoice in invoices %}
+    <li class="list-group-item d-flex justify-content-between align-items-center search_field" data-search_data_field="{{ invoice.number }} {{ invoice.supplier }} {{ invoice.totalSum }}" style="padding: 0;">
+        <a href="/dreamkas_invoice/{{ invoice.dreamkas_id }}" class="col-3" style="text-align: left; padding-left: 10px; text-decoration: none; color: inherit;">
+            <div style="font-size: 16px; font-weight: 500;" class="fw-bold">{{ invoice.number }}</div>
+            <div>{{ invoice.supplier }}</div>
+            <div>{{ invoice.issue_date|date:"d.m.Y" }}</div>
+        </a>
+
+        <div class="col-4">
+            <a href="/dreamkas_invoice/{{ invoice.dreamkas_id }}" style="text-decoration: none; color: inherit;">
+                <div>
+                    {% if invoice.flag_status == '0' %}
+                        <span>ЧЕРНОВИК</span>
+                    {% elif invoice.flag_status == '1' %}
+                        <span style="background-color: #d4FAda;">ПРИНЯТО</span>
+                    {% elif invoice.flag_status == '2' %}
+                        <span>УДАЛЕНО</span>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if invoice.latest_pricing_id and invoice.flag_status == '1' %}
+                        <span style="background-color: #d4FAda;">РАСЦЕНЕНО</span>
+                    {% elif invoice.latest_pricing_id == None and invoice.flag_status == '1' %}
+                        <span style="background-color: #FF9999;">НЕ РАСЦЕНЕНО</span>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
+
+        <div class="col-2">
+            <div style="display: flex; justify-content: space-between;">
+                <div style="text-align: left;">
+                    
+                    <div>Сумма :{{invoice}}</div>
+                    {% if invoice.profit != None %}
+                        <div>Приход :</div>
+                        <div>Прибыль :</div>
+                    {% endif %}
+                    {% if invoice.profit == None %}
+                        {%if invoice.pricing_orders.count != 0 %}
+                            {%if invoice.pricing_orders.count == 1 %}
+                            <a href="http://kabinet.dreamkas.ru/app/#!/documents/card~2F{{invoice.pricing_orders.first.dreamkas_id}}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 12px;">
+                                Перейти к раценке
+                                </a>
+                            {% endif %}
+                            {% if invoice.pricing_orders.count > 1 %}
+                            <a href="http://kabinet.dreamkas.ru/app/#!/documents/card~2F{{invoice.dreamkas_id}}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 12px;">
+                                Перейти к накладной
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    
+                </div>
+                <div style="text-align: right;">
+                    <div>{{ invoice.totalSum }}</div>
+                    {% if invoice.profit != None %}
+                        <div>{{ invoice.income }}</div>
+                        <div>{{ invoice.profit }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-2" style="padding-right: 20px; text-align: right;">
+            <div class="form-check">
+                <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.flag_paid %} checked {% endif %} id="{{ invoice.id }}">
+            </div>
+        </div>
+
+        <div class="col-1" style="padding-right: 20px; text-align: right;">
+        </div>
+    </li>
+    {% endfor %}
+</ol>
+
+<script>
+    $(".checked_paid").on('change', (e) => {
+        let id = e.currentTarget.id;
+        let paid = 0;
+        if (e.currentTarget.checked) {
+            paid = 1
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'paid_update' %}",
+            data: {'id': id, 'paid': paid},
+            success: function (data) {
+                console.log(data)
+            }
+        });
+    })
+    
+    $("#search").on('input', (e) => {
+        console.log(e.currentTarget.value)
+        $(".search_field").each((key, element) => {
+            if (element.dataset.search_data_field.toLowerCase().search(e.currentTarget.value.toLowerCase()) === -1) {
+                $(element).hide()
+            } else {
+                $(element).show()
+            }
+            console.log(element)
+        })
+    })
+</script> 
