@@ -32,7 +32,15 @@
             if (target.classList && Array.from(target.classList).some((className) => className.startsWith('js_'))) {
                 const store_id = target.dataset.store_id; // Access the data attribute
                 const obj_to_change = target.id;
-                const what_change_to = target.value;
+                if (target.type == 'checkbox') 
+                {
+                    what_change_to = target.checked;
+                }
+                else
+                {
+                    what_change_to = target.value;
+                }
+                console.log(what_change_to)
 
 
                 // Perform your AJAX request here

@@ -46,6 +46,11 @@ def define_if_document_is_invalid(document):
             return
         if document.flag_invalid_fixed is True:
             return
+        if document.destination.flag_invalid is True:
+            document.flag_invalid = True
+            document.flag_invalid_reason = 'Некорректный \ невалидный магазин. Возможно магазин был удален или не существует.'
+            document.save()
+            return
         if (
             (document.number == None)
             or (document.acceptedAt == None)

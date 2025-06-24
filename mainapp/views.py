@@ -1227,6 +1227,10 @@ def update_store(request):
     what_to_change_to = request.POST.get('what_change_to')
     if what_to_change_to == '':
         what_to_change_to = None
+    if what_to_change_to == 'true':
+        what_to_change_to = True
+    if what_to_change_to == 'false':
+        what_to_change_to = False
     setattr(store, request.POST.get('obj_to_change'), what_to_change_to)
     store.save()
     return JsonResponse({'success': True})
@@ -1242,6 +1246,8 @@ def stores(request):
                        'stores': stores})
     if request.method == 'POST':
         store = Store.objects.filter(id=request.POST.get("store_id")).first()
+        if store is None:
+            store = Store.objects.first()  # Fallback to first store if not found
         stores = Store.objects.all()
         store_contents = render_to_string('mainapp/parts/store_display.html', {'store': store,
                                                                                'stores': stores})

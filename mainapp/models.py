@@ -19,6 +19,7 @@ class Store(models.Model):
     store_id = models.IntegerField('store_id', blank=True, null=True)
     diadoc_id = models.TextField('diadoc_id', blank=True, null=True, default=None)
     gmail_client_secret = models.CharField('gmail_client_secret', blank=True, null=True, max_length=255, default=None)
+    flag_invalid = models.BooleanField('flag_invalid',blank=True,default=False,null=True)
     @property
     def store_devices(self):
         devices = Device.objects.filter(store_id=self.store_id)

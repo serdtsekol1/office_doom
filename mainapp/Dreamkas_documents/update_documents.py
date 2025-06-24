@@ -155,6 +155,8 @@ def update_documents(
             queryset2 =  Invoice_v3.objects.filter(profit=None,flag_status=1,flag_hide=False, flag_invalid=False)
             unpriced_invoices = queryset1.union(queryset2)
             for invoice in unpriced_invoices:
+                define_if_document_is_invalid(invoice.dreamkas_id)
+            for invoice in unpriced_invoices:
                 if invoice.dreamkas_id == "87062856":
                     print("DEBUG")
                 update_invoice(invoice.dreamkas_id)
