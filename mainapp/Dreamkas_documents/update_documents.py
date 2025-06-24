@@ -87,8 +87,8 @@ def update_documents(
         from mainapp.Dreamkas_documents.funcs import calculate_profit
         from mainapp.models import Correction_invoice_v3,Invoice_v3
         if to_check_for_fixed_documents == True:
-            invalid_invoices = Invoice_v3.objects.filter(flag_invalid=True,flag_hide=False,issue_date__lte = datetime.now() - timedelta(days=90)).values('dreamkas_id')
-            invalid_correction_invoices = Correction_invoice_v3.objects.filter(flag_invalid=True,flag_hide=False,issue_date__lte = datetime.now() - timedelta(days=90)).values('dreamkas_id')
+            invalid_invoices = Invoice_v3.objects.filter(flag_invalid=True,flag_hide=False,issue_date__gte = datetime.now() - timedelta(days=90)).values('dreamkas_id')
+            invalid_correction_invoices = Correction_invoice_v3.objects.filter(flag_invalid=True,flag_hide=False,issue_date__gte = datetime.now() - timedelta(days=90)).values('dreamkas_id')
             documents = invalid_invoices.union(invalid_correction_invoices)
             for document in documents:
                 update_document(document['dreamkas_id'])
@@ -149,8 +149,8 @@ def update_documents(
             for id in id_list_correction:
                 res_status,res_info = calculate_profit(id)
         if to_fetch_unpriced_invoices == True:
-            queryset1 =  Invoice_v3.objects.filter(latest_pricing_id=None,flag_status=1,flag_hide=False, flag_invalid=False,issue_date__lte = datetime.now() - timedelta(days=90))
-            queryset2 =  Invoice_v3.objects.filter(profit=None,flag_status=1,flag_hide=False, flag_invalid=False,issue_date__lte = datetime.now() - timedelta(days=90))
+            queryset1 =  Invoice_v3.objects.filter(latest_pricing_id=None,flag_status=1,flag_hide=False, flag_invalid=False,issue_date__gte = datetime.now() - timedelta(days=90))
+            queryset2 =  Invoice_v3.objects.filter(profit=None,flag_status=1,flag_hide=False, flag_invalid=False,issue_date__gte = datetime.now() - timedelta(days=90))
             unpriced_invoices = queryset1.union(queryset2)
             for invoice in unpriced_invoices:
                 define_if_document_is_invalid(invoice.dreamkas_id)
@@ -159,8 +159,8 @@ def update_documents(
                 if invoice.latest_pricing_id is None:
                     res_status,res_info = create_blank_pricing_if_not_priced_for_long(invoice.dreamkas_id)
                 calculate_profit(invoice.dreamkas_id)
-            queryset1 =  Invoice_v3.objects.filter(latest_pricing_id=None,flag_status=1,flag_hide=False, flag_invalid=False,issue_date__lte = datetime.now() - timedelta(days=90))
-            queryset2 =  Invoice_v3.objects.filter(profit=None,flag_status=1,flag_hide=False, flag_invalid=False,issue_date__lte = datetime.now() - timedelta(days=90))
+            queryset1 =  Invoice_v3.objects.filter(latest_pricing_id=None,flag_status=1,flag_hide=False, flag_invalid=False,issue_date__gte = datetime.now() - timedelta(days=90))
+            queryset2 =  Invoice_v3.objects.filter(profit=None,flag_status=1,flag_hide=False, flag_invalid=False,issue_date__gte = datetime.now() - timedelta(days=90))
             unpriced_invoices = queryset1.union(queryset2)
             for invoice in unpriced_invoices:
                 log_item(f'Unable to price invoice: https://kabinet.dreamkas.ru/app/#!/documents/card~2F{invoice.dreamkas_id}')
