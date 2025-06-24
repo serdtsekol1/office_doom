@@ -76,7 +76,7 @@
                         <div style="flex-basis: 100px; display: flex;" class="{% if invoice.flag_paid %}text-success{% else %} text-danger {% endif %}">
                             <input style="cursor: pointer; width: 40px; height: 40px;" class="checked_paid" type="checkbox" {% if invoice.flag_paid %} checked {% endif %} id="{{ invoice.id }}">
                         </div>
-                        <div>{%if invoice.flag_paid %}Дата оплаты: {{ invoice.flag_paid_date|date:"d.m.Y" }}{% endif %}</div>
+                        <div>{%if invoice.flag_paid and invoice.flag_paid_date %}Дата оплаты: {{ invoice.flag_paid_date|date:"d.m.Y" }}{% endif %}</div>
 
 
                         <div class="">
