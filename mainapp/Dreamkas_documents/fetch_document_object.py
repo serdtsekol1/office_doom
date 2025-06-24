@@ -3,36 +3,36 @@ def fetch_latest_iterations_for_documents(dreamkas_ids):
     Fetch the latest iteration for each document in the list of dreamkas_ids
     If the document is not found in the latest iteration, return the initial document
     Args:
-        dreamkas_ids (list): List of dreamkas_ids
+        dreamkas_ids (list): List of dreamkas_ids or QuerySet of objects.
     Returns:
         list: List of documents
     """
-    initial_documents = fetch_document_object_bulk(dreamkas_ids)
-    latest_iteration_ids = []
+    if str(type(dreamkas_ids)) != "<class 'django.db.models.query.QuerySet'>": 
+        initial_documents = fetch_document_object_bulk(dreamkas_ids)
+    else:
+        initial_documents = dreamkas_ids
+    final_list = []
     for document in initial_documents:
-        if document.latest_pricing_id != document.dreamkas_id:
-            latest_iteration_ids.append(document.latest_iteration_id)
-    document_map = {}
-    invoices, pricing, correction_invoices, outcome_orders = fetch_document_object_bulk(latest_iteration_ids)
-    for document in (invoices, pricing, correction_invoices, outcome_orders):
-        for item in document:
-            document_map[item.dreamkas_id] = item
-    for i in range(len(initial_documents)):
-        document = initial_documents[i]
-        if document.latest_pricing_id != document.dreamkas_id:
-            latest_document = document_map.get(document.latest_iteration_id)
-            if latest_document:
-                initial_documents[i] = latest_document
-    return initial_documents
+        if document.latest_iteration_id != document.dreamkas_id:
+            final_list.append(document.latest_iteration_id)
+        else:
+            final_list.append(document.dreamkas_id)
+    final_list = fetch_document_object_bulk(final_list)
+    return final_list
     
 
-def fetch_document_object_bulk(dreamkas_ids):
+def fetch_document_object_bulk(dreamkas_ids):    
     from mainapp.models import Invoice_v3, Pricing_order_v3, Correction_invoice_v3, Outcome_order_v3
-    invoices = Invoice_v3.objects.filter(dreamkas_id__in=dreamkas_ids)
-    pricing = Pricing_order_v3.objects.filter(dreamkas_id__in=dreamkas_ids)
-    correction_invoices = Correction_invoice_v3.objects.filter(dreamkas_id__in=dreamkas_ids)
-    outcome_orders = Outcome_order_v3.objects.filter(dreamkas_id__in=dreamkas_ids)
-    return invoices, pricing, correction_invoices, outcome_orders
+    models = [Invoice_v3, Pricing_order_v3, Correction_invoice_v3, Outcome_order_v3]
+    result_dict = {}
+    for model in models:
+        for obj in model.objects.filter(dreamkas_id__in=dreamkas_ids):
+            result_dict[obj.dreamkas_id] = obj
+    final_result = []
+    for dreamkas_id in dreamkas_ids:
+        if dreamkas_id in result_dict:
+            final_result.append(result_dict[dreamkas_id])
+    return final_result
     
 
 def fetch_document_object(dreamkas_id):

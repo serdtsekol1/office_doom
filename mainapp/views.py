@@ -908,10 +908,11 @@ def dreamkas_supplier(request, supplier_data):
                 invoice.save()
     print ('datetime 4 : ', datetime.datetime.now() - timestart_now)
     paid_invoices = Invoice_v3.objects.filter(flag_hide=False, destination=store, flag_paid=True,supplier_fk=supplier).order_by("-issue_date")
-    doc_map = {}
+    doc_map = []
     for document in paid_invoices:
         doc_map.append(document.dreamkas_id)
-    paid_invoices = fetch_latest_iterations_for_documents(doc_map)
+    paid_invoices = fetch_latest_iterations_for_documents(paid_invoices)
+
     print ('datetime 5 : ', datetime.datetime.now() - timestart_now)
     dreamkas_invoices_1 = list(unpaid_invoices) + list(paid_invoices)
     dreamkas_invoices_2 = Invoice_v3.objects.filter(flag_hide=False, destination=store, supplier_fk=supplier).order_by("-issue_date")

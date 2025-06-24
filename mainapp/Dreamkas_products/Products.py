@@ -35,7 +35,7 @@ def update_products_from_pricing_order(dreamkas_id):
 def update_product(product_id):
     product_data = DREAM_KAS_API.get_product(product_id)
     if 'status' in product_data and product_data['status'] == 404:
-        product = Product.objects.filter(id_out=product_id).first()
+        product = Product.objects.filter(id_out=product_id)
         if product.__len__() == 0:
             return
         if product.__len__() == 1:
