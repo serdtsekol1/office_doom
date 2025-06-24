@@ -1,6 +1,8 @@
 from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object
 from mainapp.Dreamkas_products.Products import update_product
 from mainapp.models import Product
+
+
 def status_to_flag(status):
     """
     Convert status string to flag_status numeric value
