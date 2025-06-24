@@ -1,11 +1,6 @@
 from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object
 from mainapp.Dreamkas_products.Products import update_product
 from mainapp.models import Product
-def define_if_document_is_invalid(document_id):
-    a()
-    
-    def a():
-        return
 def status_to_flag(status):
     """
     Convert status string to flag_status numeric value

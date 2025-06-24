@@ -885,16 +885,20 @@ def dreamkas_suppliers(request):
 
 @csrf_exempt
 def dreamkas_supplier(request, supplier_data):
+    timestart_now = datetime.datetime.now()
     store = Store.objects.get(store_id=request.session.get('store_id'))
     if supplier_data.isdigit():
         supplier = Supplier.objects.get(inn=supplier_data)
     else:
         supplier = Supplier_name.objects.get(name=supplier_data).supplier_fk
     supplier_names = []
+    print ('datetime 1 : ', datetime.datetime.now() - timestart_now)
     for supplier_name_obj in supplier.supplier_name_set.all():
         supplier_names.append(supplier_name_obj.name)
+    print ('datetime 2 : ', datetime.datetime.now() - timestart_now)
     #dreamkas_invoices = Invoice.objects.filter(hide=False, store=store).order_by("-issue_date")
     unpaid_invoices = Invoice_v3.objects.filter(flag_hide=False, destination=store, flag_paid=False,supplier_fk=supplier).order_by("-issue_date")
+    print ('datetime 3 : ', datetime.datetime.now() - timestart_now)
     for invoice in unpaid_invoices:
         if invoice.latest_pricing_id != invoice.dreamkas_id:
             invoice = fetch_document_object(invoice.latest_iteration_id)
@@ -902,10 +906,12 @@ def dreamkas_supplier(request, supplier_data):
             if invoice.issue_date + datetime.timedelta(days=invoice.supplier_fk.paymenttime) < datetime.datetime.now().date():
                 invoice.flag_payment_overdue = True
                 invoice.save()
+    print ('datetime 4 : ', datetime.datetime.now() - timestart_now)
     paid_invoices = Invoice_v3.objects.filter(flag_hide=False, destination=store, flag_paid=True,supplier_fk=supplier).order_by("-issue_date")
     for invoice in paid_invoices:
         if invoice.latest_pricing_id != invoice.dreamkas_id:
             invoice = fetch_document_object(invoice.latest_iteration_id)
+    print ('datetime 5 : ', datetime.datetime.now() - timestart_now)
     dreamkas_invoices_1 = list(unpaid_invoices) + list(paid_invoices)
     dreamkas_invoices_2 = Invoice_v3.objects.filter(flag_hide=False, destination=store, supplier_fk=supplier).order_by("-issue_date")
     
