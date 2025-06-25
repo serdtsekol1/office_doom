@@ -265,12 +265,14 @@ def search_product_thorough(prefix, product_name, product_code, product_amount, 
                 productcode = prefix + tempproductcode
         except:
             pass
-        multiplier = None
-        if found_product:
-            try:
-                 multiplier = Barcodes.objects.filter(barcode=productcode).first().multiplier
-            except:
-                pass
+    multiplier = None
+    if found_product:
+        try:
+            multiplier = Barcodes.objects.filter(barcode=productcode).first().multiplier
+        except:
+            pass
+    if multiplier is None:
+        multiplier = 1
                 
     new_position = {
         "name": None if found_product else productcode,
@@ -351,7 +353,10 @@ def create_document_from_excel(excel_attachment, msg_sender):
             continue
 
         resulting_goods_list = []
+        i = 0
         for product in products_list:
+            i = i + 1
+            print(i)
             resulting_good = search_product_thorough(
                 prefix=preset.supplier_prefix,
                 product_name=product["product_name"],
