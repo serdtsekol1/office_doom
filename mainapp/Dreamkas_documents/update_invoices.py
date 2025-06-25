@@ -14,7 +14,8 @@ from mainapp.models import Invoice_v3, Position_invoice_v3, Product
 
 def define_if_invalid_document_was_fixed(initial_document):
     initial_document = fetch_document_object(initial_document)
-    latest_document = fetch_document_object(initial_document.latest_iteration_id)
+    if initial_document.latest_iteration_id != None:
+        latest_document = fetch_document_object(initial_document.latest_iteration_id)
     if initial_document.flag_invalid is True:
         if initial_document.latest_iteration_id != initial_document.dreamkas_id:
             latest_document = fetch_document_object(initial_document.latest_iteration_id)

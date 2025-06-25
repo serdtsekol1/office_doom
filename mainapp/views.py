@@ -1297,6 +1297,18 @@ def devices(request):
     #     gmail_preset_prev = PresetGmail.objects.filter(id__lt=gmail_preset.id).first()
     #     return render(request,'mainapp/pages/gmail_presets.html',{'gmail_preset': gmail_preset, 'gmail_preset_next':gmail_preset_next, 'gmail_preset_prev':gmail_preset_prev, 'gmail_presets' : gmail_presets})
 
+@csrf_exempt
+def product_codes_for_massaK(request):
+    occupied_codes = []
+    for barcode in Barcodes.objects.filter(barcode__startswith="99999999"):
+        occupied_codes.append(barcode.barcode[9:12])
+    unoccupied_codes = []
+    for i in range(0,999):
+        if str(i).zfill(3) not in occupied_codes:
+            unoccupied_codes.append(str(i).zfill(3))
+    return render(request, 'mainapp/pages/product_codes_for_massaK.html', {'unoccupied_codes': unoccupied_codes})
+
+            
 
 @csrf_exempt
 def create_documents_from_gmail_message_v2(request):

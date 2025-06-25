@@ -27,3 +27,4 @@ mainapp/static/style.css
 !**/migrations/__init__.py
 .qodo
 logs/
+database.sql

@@ -1,0 +1,10 @@
+{% extends "wrapper.html" %}
+{% load mainapp_tags %}
+{% block body %}
+Доступные коды:
+{% for code in unoccupied_codes %}
+<div>
+    {{ code }}
+</div>
+{% endfor %}
+{% endblock %}
