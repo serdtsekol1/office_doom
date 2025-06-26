@@ -27,7 +27,7 @@ def periodicTask():
     from mainapp.dreamkas_documents import global_draft_cleanup
     # Initial update    
     # update_documents(invoices=False,pricing_orders=False,correction_invoices=False,blanks=False,to_check_for_fixed_documents=False,find_latest_iterations=False)
-    update_documents(invoices=True,pricing_orders=True,invoice_limit=25,pricing_order_limit=50,correction_invoices=True,correction_invoice_limit=5)
+    update_documents(invoices=True,pricing_orders=True,invoice_limit=25,pricing_order_limit=50,correction_invoices=True,correction_invoice_limit=5,to_fetch_unpriced_invoices=False,blanks=False)
     global_var.invoices_last_update_at = datetime.datetime.now()
     global_var.save_persistent_vars()
     i = 0
@@ -38,21 +38,21 @@ def periodicTask():
         if (global_var.global_document_update_at is None or
             global_var.global_document_update_at.date() > datetime.datetime.now().date()
             ):
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=1000,pricing_order_limit=1000,correction_invoices=True,correction_invoice_limit=200)
+            update_documents(invoices=True,pricing_orders=True,invoice_limit=1000,pricing_order_limit=1000,correction_invoices=True,correction_invoice_limit=200,to_fetch_unpriced_invoices=False,blanks=False)
             global_draft_cleanup()
             global_var.global_document_update_at = datetime.datetime.now().date()
             global_var.invoices_last_update_at = datetime.datetime.now()
             global_var.save_persistent_vars()
         else:
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=3,pricing_order_limit=6,correction_invoices=True,correction_invoice_limit=6)
-            update_documents(invoices=False,pricing_orders=True,pricing_order_limit=3,correction_invoices=False,acceptedAtFrom=str(datetime.datetime.now().date()))
+            update_documents(invoices=True,pricing_orders=True,invoice_limit=3,pricing_order_limit=6,correction_invoices=True,correction_invoice_limit=6,to_fetch_unpriced_invoices=False,blanks=False)
+            update_documents(invoices=False,pricing_orders=True,pricing_order_limit=3,correction_invoices=False,acceptedAtFrom=str(datetime.datetime.now().date()),to_fetch_unpriced_invoices=False,blanks=False)
             global_draft_cleanup()
             global_var.invoices_last_update_at = datetime.datetime.now()
             global_var.save_persistent_vars()
 
         if i > 60:
             time.sleep(45)
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=150,pricing_order_limit=300,correction_invoices=True,correction_invoice_limit=5)
+            update_documents(invoices=True,pricing_orders=True,invoice_limit=150,pricing_order_limit=300,correction_invoices=True,correction_invoice_limit=5,to_fetch_unpriced_invoices=False,blanks=False)
             global_draft_cleanup()
             global_var.invoices_last_update_at = datetime.datetime.now()
             global_var.save_persistent_vars()
