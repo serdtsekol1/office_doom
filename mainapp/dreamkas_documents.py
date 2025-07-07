@@ -563,12 +563,13 @@ def delete_duplicate_invoice_objects():
     from django.db.models import F
 
     # First, we group the objects by barcode and count the number of occurrences
-    invoice_counts = Invoice.objects.values('id_dreem').annotate(count=Count('id_dreem'))
+    invoice_counts = Invoice_v3.objects.values('dreamkas_id').annotate(count=Count('dreamkas_id'))
 
     # Next, we filter to get only the barcodes that have multiple occurrences
     duplicate_invoices = invoice_counts.filter(count__gt=1)
+    print(duplicate_invoices.__len__())
 
     # Now, for each duplicate barcode, we find the object with the biggest id and delete it
     for invoice_count in duplicate_invoices:
-        max_id = Invoice.objects.filter(id_dreem=invoice_count['id_dreem']).aggregate(max_id=Max('id'))['max_id']
-        Invoice.objects.filter(id=max_id).delete()
+        max_id = Invoice_v3.objects.filter(dreamkas_id=invoice_count['dreamkas_id']).aggregate(max_id=Max('id'))['max_id']
+        Invoice_v3.objects.filter(id=max_id).delete()

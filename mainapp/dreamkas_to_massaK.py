@@ -65,6 +65,7 @@ def create_excel_document_for_massaK(store_id):
     data = [['1','2','3','4','5','6','7','8']] # Needed for Massa K program could recognize the stuff.
     #Non logical shenenigans cause fuck it.
     barcodes = Barcodes.objects.filter(barcode__startswith='999999999').order_by('barcode')
+    processed_barcodes = set()
     for barcode in barcodes:
         printer_code = barcode.barcode[9:12]
         data_to_append = []
@@ -126,6 +127,7 @@ def create_excel_document_for_massaK(store_id):
             new_data_to_append[6] = ''
             new_data_to_append[7] = '1' + new_data_to_append[7]
             data.append(new_data_to_append)
+        processed_barcodes.add(barcode.barcode)
     df = pd.DataFrame(data)
     df.to_excel('Файл_для_принтера.xlsx', index=False, header=False)
 def create_or_change_short_name_for_product(id_out,name):
@@ -179,23 +181,23 @@ def create_or_change_massak_codes_for_product(id_out,code):
     if code == '':
         product_external = DREAM_KAS_API.get_product_v2(id_out)
         for barcode in product_external['barcodes']:
-            if str(barcode).startswith('999999999') and str(barcode).__len__() == 13:
+            if str(barcode).startswith('99999999') and str(barcode).__len__() == 13:
                 Delete_barcode_for_product(id_out, barcode)
         for vendorCode in product_external['vendorCodes']:
-            if str(vendorCode).startswith('2999') and str(vendorCode).__len__() == 7:
+            if str(vendorCode).startswith('299') and str(vendorCode).__len__() == 7:
                 Delete_barcode_for_product(id_out, vendorCode)
         return True, code
-    if code.__len__() > 3 or code.isdigit() is False:
+    if code.__len__() > 4 or code.isdigit() is False:
         return None, code
-    code = str(code).zfill(3)
+    code = str(code).zfill(4)
     product_external = DREAM_KAS_API.get_product_v2(id_out)
     if 'status' in product_external:
         return None, code
     for barcode in product_external['barcodes']:
-        if str(barcode).startswith('999999999') and str(barcode).__len__() == 13:
+        if str(barcode).startswith('99999999') and str(barcode).__len__() == 13:
             Delete_barcode_for_product(id_out,barcode)
     for vendorCode in product_external['vendorCodes']:
-        if str(vendorCode).startswith('2999') and str(vendorCode).__len__() == 7:
+        if str(vendorCode).startswith('299') and str(vendorCode).__len__() == 7:
             Delete_barcode_for_product(id_out,vendorCode)
 
     # unit 796 - countable, do 1 barcode
@@ -227,18 +229,30 @@ def check_code_massaK(barcode):
     try:
         int(barcode)
     except:
-        return False
+        return 0
     if str(barcode).startswith('999999999') or str(barcode).startswith('2999'):
-        return True
+        return 2
+    if str(barcode).startswith('99999999') or str(barcode).startswith('299'):
+        return 1
     return False
 def create_massak_code(code,mode):
     # 0 - barcode
     # 1 - vendorecode, Weighted product
     if mode == 0:
-        return(turn_number_to_ean_13(f'999999999{code}'))
+        return(turn_number_to_ean_13(f'99999999{code}'))
     if mode == 1:
-        return(f'2999{code}')
+        return(f'299{code}')
     raise ValueError
+def get_massak_code_from_code_new(code):
+    if code.isdigit() is False:
+        return None
+    if code.__len__() != 13 and code.__len__() != 7:
+        return None
+    if code.__len__() == 13:
+        return str(code)[8:12]
+    if code.__len__() == 7:
+        return str(code)[3:7]
+    return
 def get_massak_code_from_code(code):
     if code.isdigit() is False:
         return None
@@ -249,10 +263,10 @@ def get_massak_code_from_code(code):
     if code.__len__() == 7:
         return str(code)[4:7]
     return
-
 def get_all_products_with_old_code_for_massa_k():
     barcodes = Barcodes.objects.filter(barcode__startswith='999999999').order_by('barcode')
     data = []
+    processed_barcodes = set() 
     for barcode in barcodes:
         data_to_append = []
         print(barcode)
@@ -260,6 +274,18 @@ def get_all_products_with_old_code_for_massa_k():
         data_to_append.append(barcode.product_fk.name)
         data_to_append.append(barcode.barcode[9:12])
         data.append(data_to_append)
+        processed_barcodes.add(barcode.barcode)
+
+    barcodes = Barcodes.objects.filter(barcode__startswith='99999999').order_by('barcode')
+    for barcode in barcodes:
+        if barcode.barcode in processed_barcodes:
+            continue 
+        data_to_append = []
+        print(barcode)
+        data_to_append.append(barcode.product_fk.id_out)
+        data_to_append.append(barcode.product_fk.name)
+        data_to_append.append(barcode.barcode[8:12])
+        data.append(data_to_append)
     df = pd.DataFrame(data)
-    df.to_excel("Z:\Файл_для_принтера.xlsx", index=False, header=False)
+    df.to_excel("Z:\\Файл_для_принтера.xlsx", index=False, header=False)
     return

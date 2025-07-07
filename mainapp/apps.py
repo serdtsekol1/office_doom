@@ -31,32 +31,32 @@ def periodicTask():
     global_var.invoices_last_update_at = datetime.datetime.now()
     global_var.save_persistent_vars()
     i = 0
-    while True:
-        i = i + 1
-        time.sleep(60)
-        # Regular update
-        if (global_var.global_document_update_at is None or
-            global_var.global_document_update_at.date() > datetime.datetime.now().date()
-            ):
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=1000,pricing_order_limit=1000,correction_invoices=True,correction_invoice_limit=200,to_fetch_unpriced_invoices=False,blanks=False)
-            global_draft_cleanup()
-            global_var.global_document_update_at = datetime.datetime.now().date()
-            global_var.invoices_last_update_at = datetime.datetime.now()
-            global_var.save_persistent_vars()
-        else:
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=3,pricing_order_limit=6,correction_invoices=True,correction_invoice_limit=6,to_fetch_unpriced_invoices=False,blanks=False)
-            update_documents(invoices=False,pricing_orders=True,pricing_order_limit=3,correction_invoices=False,acceptedAtFrom=str(datetime.datetime.now().date()),to_fetch_unpriced_invoices=False,blanks=False)
-            global_draft_cleanup()
-            global_var.invoices_last_update_at = datetime.datetime.now()
-            global_var.save_persistent_vars()
-
+    global_var.invoices_num = 10
+    global_var.pricing_num = 20
+    global_var.correction_invoices_num = 5
+    while True:            
         if i > 60:
-            time.sleep(45)
-            update_documents(invoices=True,pricing_orders=True,invoice_limit=150,pricing_order_limit=300,correction_invoices=True,correction_invoice_limit=5,to_fetch_unpriced_invoices=False,blanks=False)
-            global_draft_cleanup()
-            global_var.invoices_last_update_at = datetime.datetime.now()
-            global_var.save_persistent_vars()
+            global_var.invoices_num = 50  
+            global_var.pricing_num = 100
+            global_var.correction_invoices_num = 10
             i = 0
+            time.sleep(60)
+        else:
+            global_var.invoices_num = 10
+            global_var.pricing_num = 20
+            global_var.correction_invoices_num = 5
+            i = i + 1
+            time.sleep(60)
+        global_var.invoices_being_updated = True
+        try:
+            update_documents(invoices=True,pricing_orders=True,invoice_limit=global_var.invoices_num,pricing_order_limit=global_var.pricing_num,correction_invoices=True,correction_invoice_limit=global_var.correction_invoices_num,to_fetch_unpriced_invoices=False,blanks=False)
+            global_draft_cleanup()
+        except:
+            pass
+        global_var.invoices_being_updated = False
+        global_var.invoices_last_update_at = datetime.datetime.now()
+        global_var.invoices_next_update_at = datetime.datetime.now() + datetime.timedelta(seconds=60)
+        global_var.save_persistent_vars()
 
 
 class MainappConfig(AppConfig):

@@ -731,7 +731,7 @@ def find_invoice_duplicates(request):
     return redirect(reverse('invoices'))
 
 def get_invoice_timers(request):
-    from mainapp.global_var import invoices_being_updated, invoices_last_update_at, invoices_next_update_at
+    from mainapp.global_var import invoices_being_updated, invoices_last_update_at, invoices_next_update_at, invoices_num, pricing_num, correction_invoices_num
     
     # Форматування дати в потрібному форматі
     def format_datetime(dt):
@@ -742,9 +742,25 @@ def get_invoice_timers(request):
     return JsonResponse({
         'invoices_being_updated': invoices_being_updated,
         'invoices_last_update_at': format_datetime(invoices_last_update_at),
-        'invoices_next_update_at': format_datetime(invoices_next_update_at)
+        'invoices_next_update_at': format_datetime(invoices_next_update_at),
+        'invoices_num': invoices_num,
+        'pricing_num': pricing_num,
+        'correction_invoices_num': correction_invoices_num
     })
-    
+@csrf_exempt
+def set_invoice_update_amount(request):
+    if request.method == 'POST':
+        from mainapp import global_var
+        invoices_num = request.POST.get('invoices_num')
+        pricing_num = request.POST.get('pricing_num')
+        correction_invoices_num = request.POST.get('correction_invoices_num')
+        global_var.invoices_num = int(invoices_num)
+        global_var.pricing_num = int(pricing_num)
+        global_var.correction_invoices_num = int(correction_invoices_num)
+        global_var.save_persistent_vars()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Only POST method allowed'})
+
 def dreamkas_invoices(request):
     from mainapp.global_var import invoices_last_update_at
     drafts = Invoice_v3.objects.filter(flag_hide=False, flag_status=0).order_by("-dreamkas_id")

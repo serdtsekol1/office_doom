@@ -9,7 +9,7 @@ from mainapp.views import dreamkas_invoices, get_index_page, get_invoice_timers,
     delete_all_stores, delete_gmail_messages, update_supplier_prefix, delete_diadoc_invoices, debug, debug_update_all_invoices, debug_concat_rests_2, concat_list_of_rests, \
     delete_duplicate_barcode_objects, delete_duplicate_invoice_objects, delete_duplicate_and_invalid_product_objects, debug_remove_deuplicate_diadoc_invoice_objects, debug_force_update_all_products, \
     invoice_delete_position, create_or_change_expiry_duration_for_product, create_or_change_contents_for_product, debug_remove_printer_code_from_long_not_accepted_products, debug_redo_all_codes_back, \
-    create_new_document, pricing_documents
+    create_new_document, pricing_documents, set_invoice_update_amount
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -109,6 +109,7 @@ urlpatterns = [
 
     ##
     path('get_invoice_timers/', get_invoice_timers, name="get_invoice_timers"),
+    path('set_invoice_update_amount/', set_invoice_update_amount, name="set_invoice_update_amount"),
     ## Debug
     path('old_documents_to_new_documents/', old_documents_to_new_documents, name="old_documents_to_new_documents"),
     path('old_documents_to_new_documents/<int:number>', old_documents_to_new_documents, name="old_documents_to_new_documents"),

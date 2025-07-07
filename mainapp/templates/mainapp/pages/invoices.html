@@ -7,24 +7,97 @@
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #dee2e6;
+            position: absolute;
+            top: -5px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 200px;
         }
-        .update-info small {
+        .settings-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            position: absolute;
+            top: -5px;
+            right: 240px;
+            z-index: 1000;
+            min-width: 600px;
+        }
+        .settings-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .settings-field {
+            display: flex;
+            flex-direction: column;
+            min-width: 120px;
+        }
+        .settings-field label {
+            font-size: 0.75em;
+            margin-bottom: 2px;
+            color: #6c757d;
+        }
+        .settings-field input {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            width: 80px;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+        }
+        .settings-button {
+            margin-left: auto;
+        }
+        .update-info small,
+        .settings-info small {
             color: #6c757d;
             font-size: 0.875em;
         }
-        .update-info div {
+        .update-info div,
+        .settings-info div {
             font-weight: 500;
             margin-top: 2px;
         }
+        .content-wrapper {
+            position: relative;
+        }
+        .form-control-sm {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .form-label {
+            margin-bottom: 0.25rem;
+        }
+        .border-top {
+            border-top: 1px solid #dee2e6 !important;
+        }
     </style>
 
-    <div class="mb-3 d-flex justify-content-between align-items-start">
-        <div>
-            <!-- Ліва частина залишається порожньою, оскільки пошук тепер в компоненті -->
+    <div class="content-wrapper">
+        <!-- Налаштування кількості документів (зліва) -->
+        <div class="settings-info">
+            <div class="settings-row">
+                <div class="settings-field">
+                    <label for="invoices_num">Количество накладных:</label>
+                    <input type="number" id="invoices_num" value="10">
+                </div>
+                <div class="settings-field">
+                    <label for="pricing_num">Количество Расценок:</label>
+                    <input type="number" id="pricing_num" value="20">
+                </div>
+                <div class="settings-field">
+                    <label for="correction_invoices_num">Количество корректировок:</label>
+                    <input type="number" id="correction_invoices_num" value="5">
+                </div>
+                <div class="settings-button">
+                    <button type="button" id="saveSettings" class="btn btn-primary btn-sm">Сохранить</button>
+                </div>
+            </div>
         </div>
         
+        <!-- Інформація про оновлення (справа) -->
         <div class="text-end update-info">
-            <!-- Права частина - інформація про оновлення -->
             <div class="mb-2">
                 <small class="text-muted">Последнее обновление:</small>
                 <div><span id="lastUpdate">{{ invoices_last_update_at|date:"d.m.Y, H:i:s" }}</span></div>
@@ -35,8 +108,9 @@
             </div>
         </div>
     </div>
-
-    {% include "mainapp/parts/dreamkas_invoices_display.html" %}
+    <div>
+        {% include "mainapp/parts/dreamkas_invoices_display.html" %}
+    </div>
 
     <script>
         // Add new countdown functionality
@@ -45,43 +119,16 @@
                 url: '{% url "get_invoice_timers" %}',
                 method: 'GET',
                 success: function(response) {
-                    if (response.invoices_being_updated) {
-                        if ($('#countdown').length) {
-                            $('#countdown').text('Обновление...');
-                        }
-                        return;
+                    console.log(response.invoices_being_updated)
+                    if (response.invoices_being_updated == true) {
+                        $('#countdown').text('Обновление...');
+                    } else {
+                        $('#countdown').text(response.invoices_next_update_at);
                     }
                     
                     // Оновлюємо відображення останнього оновлення
                     if (response.invoices_last_update_at && $('#lastUpdate').length) {
                         $('#lastUpdate').text(response.invoices_last_update_at);
-                    }
-                    
-                    // Обчислюємо час до наступного оновлення
-                    if (response.invoices_next_update_at && $('#countdown').length) {
-                        try {
-                            // Конвертуємо формат дати з "dd.mm.yyyy, hh:mm:ss" в ISO формат
-                            const dateStr = response.invoices_next_update_at;
-                            const match = dateStr.match(/(\d{2})\.(\d{2})\.(\d{4}), (\d{2}):(\d{2}):(\d{2})/);
-                            if (match) {
-                                const [, day, month, year, hour, minute, second] = match;
-                                const isoDate = `${year}-${month}-${day}T${hour}:${minute}:${second}`;
-                                const nextUpdate = new Date(isoDate);
-                                const now = new Date();
-                                let timeLeft = nextUpdate - now;
-                                
-                                if (timeLeft <= 0) {
-                                    $('#countdown').text('Обновление...');
-                                } else {
-                                    const minutes = Math.floor(timeLeft / 60000);
-                                    const seconds = Math.floor((timeLeft % 60000) / 1000);
-                                    $('#countdown').text(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Error parsing date:', error);
-                            $('#countdown').text('Ошибка');
-                        }
                     }
                 },
                 error: function(xhr, status, error) {
@@ -95,5 +142,59 @@
 
         setInterval(updateCountdown, 20000);
         updateCountdown(); // Initial call
+        
+        // Завантаження поточних значень налаштувань
+        function loadSettings() {
+            $.ajax({
+                url: '{% url "get_invoice_timers" %}',
+                method: 'GET',
+                success: function(response) {
+                    if (response.invoices_num) {
+                        $('#invoices_num').val(response.invoices_num);
+                    }
+                    if (response.pricing_num) {
+                        $('#pricing_num').val(response.pricing_num);
+                    }
+                    if (response.correction_invoices_num) {
+                        $('#correction_invoices_num').val(response.correction_invoices_num);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading settings:', error);
+                }
+            });
+        }
+        
+        // Обробка збереження налаштувань
+        $('#saveSettings').click(function() {
+            const invoices_num = $('#invoices_num').val();
+            const pricing_num = $('#pricing_num').val();
+            const correction_invoices_num = $('#correction_invoices_num').val();
+            
+            $.ajax({
+                url: '{% url "set_invoice_update_amount" %}',
+                method: 'POST',
+                data: {
+                    invoices_num: invoices_num,
+                    pricing_num: pricing_num,
+                    correction_invoices_num: correction_invoices_num,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Настройки успешно сохранены!');
+                    } else {
+                        alert('Ошибка при сохранении настроек: ' + (response.error || 'Неизвестная ошибка'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error saving settings:', error);
+                    alert('Ошибка при сохранении настроек');
+                }
+            });
+        });
+        
+        // Завантажуємо налаштування при завантаженні сторінки
+        loadSettings();
     </script>
 {% endblock %}
