@@ -48,6 +48,16 @@ def periodicTask():
             i = i + 1
             time.sleep(60)
         global_var.invoices_being_updated = True
+        if global_var.new_invoices_num is not None:
+            global_var.invoices_num = global_var.new_invoices_num
+            global_var.new_invoices_num = None
+        if global_var.new_pricing_num is not None:
+            global_var.pricing_num = global_var.new_pricing_num
+            global_var.new_pricing_num = None
+        if global_var.new_correction_invoices_num is not None:
+            global_var.correction_invoices_num = global_var.new_correction_invoices_num
+            global_var.new_correction_invoices_num = None
+            
         try:
             update_documents(invoices=True,pricing_orders=True,invoice_limit=global_var.invoices_num,pricing_order_limit=global_var.pricing_num,correction_invoices=True,correction_invoice_limit=global_var.correction_invoices_num,to_fetch_unpriced_invoices=False,blanks=False)
             global_draft_cleanup()

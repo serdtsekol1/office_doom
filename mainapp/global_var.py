@@ -6,6 +6,9 @@ from datetime import datetime
 invoices_num = 10
 pricing_num = 20
 correction_invoices_num = 5
+new_invoices_num = None
+new_pricing_num = None
+new_correction_invoices_num = None
 Failsafe_flag = False
 invoices_being_updated = False
 invoices_last_update_at = None
