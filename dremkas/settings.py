@@ -313,6 +313,12 @@ DIADOC_API = None
 DIADOC_LOGIN = os.environ.get('DIADOC_LOGIN')
 DIADOC_PASSWORD = os.environ.get('DIADOC_PASSWORD')
 DIADOC_ID = os.environ.get('DIADOC_ID')
+
+if not os.path.exists('persistent_vars.json'):
+    # Create the file and write an empty dictionary to it
+    with open('persistent_vars.json', 'w') as file:
+        json.dump({}, file)  # Initialize with an empty JSON object
+
 if os.environ.get('RUN_MAIN', None) == 'true':
     for i in range(10):
         try:
