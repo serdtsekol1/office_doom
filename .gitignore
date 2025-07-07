@@ -6,6 +6,7 @@ media/*
 *.scssc
 .env
 .tox/
+persistent_vars.json
 gmail_token.json
 client_secret.json
 _pycache_
