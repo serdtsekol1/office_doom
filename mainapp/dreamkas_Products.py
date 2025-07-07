@@ -324,11 +324,22 @@ def Products_update(debug=0):
     id_out_set = set(product['id_out'] for product in products_list)
     products_to_delete = Product.objects.exclude(id_out__in=id_out_set)
     i = 0
+    from django.db import connection  
+    def has_dependent_records(product_id):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM mainapp_position_invoice_v3 WHERE product_fk_id = %s", [product_id])
+            count = cursor.fetchone()[0]
+        return count > 0
+
+
     for product in products_to_delete:
         resp = DREAM_KAS_API.get_product(product.id_out)
         if 'status' in resp:
             if resp['status'] == int(404):
-                product.delete()
+                if not has_dependent_records(product.id):
+                    product.delete()
+                else:
+                    print(f"{product.id_out} NEEDS TO BE DELETED - CANNOT")
                 i = i + 1
         else:
             print(product.id_out, "is in delete list but exists")
