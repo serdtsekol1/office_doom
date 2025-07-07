@@ -27,13 +27,7 @@ def periodicTask():
     from mainapp.dreamkas_documents import global_draft_cleanup
     # Initial update    
     # update_documents(invoices=False,pricing_orders=False,correction_invoices=False,blanks=False,to_check_for_fixed_documents=False,find_latest_iterations=False)
-    update_documents(invoices=True,pricing_orders=True,invoice_limit=25,pricing_order_limit=50,correction_invoices=True,correction_invoice_limit=5,to_fetch_unpriced_invoices=False,blanks=False)
-    global_var.invoices_last_update_at = datetime.datetime.now()
-    global_var.save_persistent_vars()
     i = 0
-    global_var.invoices_num = 10
-    global_var.pricing_num = 20
-    global_var.correction_invoices_num = 5
     while True:            
         if i > 60:
             global_var.invoices_num = 50  
