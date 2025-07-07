@@ -84,44 +84,10 @@ class DiadocApi():
 
         for cookie in cookies:
             self.session.cookies.set(cookie['name'], cookie['value'])
-        # ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+        
         page_list_documents = self.session.get(f"https://diadoc.kontur.ru/{self.USER_BOX_ID}/Folder/Inbox")
         list_elements_with_document = page_list_documents.html.find("#letterList > li")
         print(list_elements_with_document)
-        # Close the browser
-        # driver.quit()
-
-
-        #
-        # get_forgy = self.session.get("https://auth.kontur.ru/", verify=False, proxies=self.proxies, allow_redirects=True, )
-        # # run js  script
-        # script = """"""
-        # cockies = get_forgy.html.render(reload=True, keep_page=True, script=script, wait=3, sleep=4)
-        #
-        # print(cockies)
-        # ngtoken = get_forgy.cookies.get('ngtoken')
-        # # self.session.cookies.set('ngtoken', ngtoken)
-        # get_forgy = self.session.get("https://auth.kontur.ru/", headers={'Referer': 'https://auth.kontur.ru/'}, verify=False, proxies=self.proxies)
-        # print(get_forgy)
-        # authpage = self.session.get(self.LOGIN_URL, verify=False, proxies=self.proxies)
-        #
-        # self.session.headers.update({
-        #     'X-CSRF-Token': authpage.cookies.get('AntiForgery'),
-        #     'Referer': self.LOGIN_URL
-        # })
-        # self.session.headers.pop('Upgrade-Insecure-Requests')
-        #
-        # diadoc = self.session.post(
-        #     "https://auth.kontur.ru/api/authentication/password/auth-by-password?customize=diadoc",
-        #     allow_redirects=True,
-        #     json=
-        #     {
-        #         "Login": self.LOGIN, "Password": self.PASSWORD, "Remember": True
-        #     }
-        # )
-        # print(diadoc)
-
-
 dotenv.load_dotenv(override=True)
 DIADOC_LOGIN = os.environ.get('DIADOC_LOGIN')
 DIADOC_PASSWORD = os.environ.get('DIADOC_PASSWORD')

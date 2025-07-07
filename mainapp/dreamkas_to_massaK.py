@@ -178,26 +178,35 @@ def debug_redo_all_codes_back():
 def create_or_change_massak_codes_for_product(id_out,code):
     # zfill(3) :5 = 005, 55 = 055, 555 = 555
     # zfill(4) :5 = 0005, 55 = 0055, 555 = 0555
+    zfillnum = 4
+    if code.__len__() == 3:
+        zfillnum = 3
+    barcode_prefix = '99999999'
+    if code.__len__() == 3:
+        barcode_prefix = '999999999'
+    barcode_short_prefix = '299'
+    if code.__len__() == 3:
+        barcode_short_prefix = '2999'
     if code == '':
         product_external = DREAM_KAS_API.get_product_v2(id_out)
         for barcode in product_external['barcodes']:
-            if str(barcode).startswith('99999999') and str(barcode).__len__() == 13:
+            if str(barcode).startswith(barcode_prefix) and str(barcode).__len__() == 13:
                 Delete_barcode_for_product(id_out, barcode)
         for vendorCode in product_external['vendorCodes']:
-            if str(vendorCode).startswith('299') and str(vendorCode).__len__() == 7:
+            if str(vendorCode).startswith(barcode_short_prefix) and str(vendorCode).__len__() == 7:
                 Delete_barcode_for_product(id_out, vendorCode)
         return True, code
     if code.__len__() > 4 or code.isdigit() is False:
         return None, code
-    code = str(code).zfill(4)
+    code = str(code).zfill(zfillnum)
     product_external = DREAM_KAS_API.get_product_v2(id_out)
     if 'status' in product_external:
         return None, code
     for barcode in product_external['barcodes']:
-        if str(barcode).startswith('99999999') and str(barcode).__len__() == 13:
+        if str(barcode).startswith(barcode_prefix) and str(barcode).__len__() == 13:
             Delete_barcode_for_product(id_out,barcode)
     for vendorCode in product_external['vendorCodes']:
-        if str(vendorCode).startswith('299') and str(vendorCode).__len__() == 7:
+        if str(vendorCode).startswith(barcode_short_prefix) and str(vendorCode).__len__() == 7:
             Delete_barcode_for_product(id_out,vendorCode)
 
     # unit 796 - countable, do 1 barcode
@@ -238,10 +247,17 @@ def check_code_massaK(barcode):
 def create_massak_code(code,mode):
     # 0 - barcode
     # 1 - vendorecode, Weighted product
+    if code.__len__() == 3:
+        barcode_prefix = '999999999'
+        barcode_short_prefix = '2999'
+    else:
+        barcode_prefix = '99999999'
+        barcode_short_prefix = '299'
+    
     if mode == 0:
-        return(turn_number_to_ean_13(f'99999999{code}'))
+        return(turn_number_to_ean_13(f'{barcode_prefix}{code}'))
     if mode == 1:
-        return(f'299{code}')
+        return(f'{barcode_short_prefix}{code}')
     raise ValueError
 def get_massak_code_from_code_new(code):
     if code.isdigit() is False:

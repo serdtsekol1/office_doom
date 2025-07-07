@@ -1,7 +1,7 @@
 from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object
 from mainapp.Dreamkas_products.Products import update_product
 from mainapp.models import Product
-
+from mainapp.logging_utils import log_item
 
 def status_to_flag(status):
     """
@@ -36,7 +36,7 @@ def calculate_profit(document_id=None, document_object=None, document=None,flag_
     if latest_iteration is None:
         print("Latest iteration not found for id: ",document_id)
         return False,False
-    print(latest_iteration)
+    log_item(latest_iteration)
     if latest_iteration['latest_pricing'] is None:
         return False,False
     invoice = fetch_document_object(initial_invoice.latest_iteration_id)

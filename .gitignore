@@ -7,6 +7,7 @@ media/*
 .env
 .tox/
 persistent_vars.json
+Файл_для_принтера.xlsx
 gmail_token.json
 client_secret.json
 _pycache_
