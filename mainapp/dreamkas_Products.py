@@ -336,10 +336,11 @@ def Products_update(debug=0):
         resp = DREAM_KAS_API.get_product(product.id_out)
         if 'status' in resp:
             if resp['status'] == int(404):
-                if not has_dependent_records(product.id):
+                try:
                     product.delete()
-                else:
-                    print(f"{product.id_out} NEEDS TO BE DELETED - CANNOT")
+                except Exception as Ex:
+                    print('cannot delete', product.id)
+                    print(Ex)
                 i = i + 1
         else:
             print(product.id_out, "is in delete list but exists")

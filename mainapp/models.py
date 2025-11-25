@@ -330,7 +330,7 @@ class Document_v3(models.Model):
         abstract = True
 class Position_invoice_v3(models.Model):
     invoice_v3_fk = models.ForeignKey("Invoice_v3", blank=True, default=None, null=True, on_delete=models.CASCADE)
-    product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.DO_NOTHING)
+    product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.SET_NULL)
     position_name = models.CharField('name', blank=True, null=True, max_length=255, default=None)
     position_num = models.IntegerField('number', blank=True, default=None, null=True)
     position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
@@ -347,7 +347,7 @@ class Position_pricing_order_v3(models.Model):
     position_num = models.IntegerField('number', blank=True, default=None, null=True)
     position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
     position_name = models.CharField('name', blank=True, null=True, max_length=255, default=None)
-    product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.DO_NOTHING)
+    product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.SET_NULL )
     position_price_old = models.DecimalField("price_old", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
     position_price_new = models.DecimalField("price_new", blank=True, null=True, default=None, max_digits=11, decimal_places=2)
     flag_found = models.BooleanField("if product FK is attached to position", blank=True, default=False,null=True)
@@ -376,7 +376,7 @@ class Invoice_v3(Document_v3):
     auto_priced_unchanged = models.BooleanField('Автоматическая расценка проведена без изменений',default=False,blank=True,null=True)
 class Position_correction_invoice_v3(models.Model):
     correction_invoice_v3_fk = models.ForeignKey("Correction_invoice_v3", blank=True, default=None, null=True, on_delete=models.CASCADE)
-    product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.DO_NOTHING)
+    product_fk = models.ForeignKey("Product", blank=True, default=None, null=True, on_delete=models.SET_NULL)
     position_name = models.CharField('name', blank=True, null=True, max_length=255, default=None)
     position_num = models.IntegerField('number', blank=True, default=None, null=True)
     position_id = models.CharField("Position_id", blank=True, null=True, max_length=255, default=None)
@@ -863,7 +863,9 @@ class PresetGmail(models.Model):
     document_store_information = models.TextField('product_store_information', blank=True, default=None, null=True)
     document_store_information_row = models.IntegerField('product_store_information_row', blank=True, default=None, null=True)
     document_store_information_col = models.IntegerField('product_store_information_col', blank=True, default=None, null=True)
-
+    # Special
+    flag_document_is_fucked = models.BooleanField('document_is_fucked', blank=True, default=False, null=True)
+    execute_line = models.TextField('document_unfucking', blank=True, default=None, null=True)
 
 class DailyInvoiceReport(models.Model):
     date = models.DateField('Date Of Report', blank=True, default=None, null=True)

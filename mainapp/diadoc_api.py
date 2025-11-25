@@ -101,10 +101,8 @@ class DiadocApi():
             password_field = driver.find_element(By.CSS_SELECTOR, "*[type='password']")
             password_field.send_keys(self.PASSWORD)
             print("Password Field Send - OK")
-            # Find element with data-tid="Button__root"
-            login_button = driver.find_element(By.XPATH, "//*[contains(@data-tid, 'Button__root')]")
-            login_button.click()
-            print("Login Button Click - OK")
+            from selenium.webdriver.common.keys import Keys
+            password_field.send_keys(Keys.ENTER)
             sleep(3)
             # Fetch cookies
             cookies = driver.get_cookies()
@@ -167,7 +165,29 @@ class DiadocApi():
                         'status': status,
                     })
                 except Exception as e:
+                    print('error begin')
+                    print('error begin')
+                    print('error begin')
+                    print('error begin')
+                    print('error begin')
+                    print('error begin')
+                    print('error begin')
+                    print('error begin')
+                    print('error begin')
+
                     print("diadoc_api get_documents Exception [000]" + str(e))
+
+                    print('error end')
+                    print('error end')
+                    print('error end')
+                    print('error end')
+                    print('error end')
+                    print('error end')
+                    print('error end')
+                    print('error end')
+                    print('error end')
+                    print('error end')
+
         return self.LIST_DOCUMENTS
     def get_documents_v2(self,diadoc_id,debug = 0):
         self.LIST_DOCUMENTS = []

@@ -329,11 +329,31 @@
 </div>
 <div class="d-flex justify-content-start align-items-center">
     <div style="flex-basis: 300px">
-        Адрес доставки столбец:
+        Адрес доставки Столбец:
     </div>
     <div style="flex-basis: 200px">
         <input class="js_document_store_information_col" style="width: 100%" id="document_store_information_col" data-preset_id="{{ gmail_preset.id }}"
                value="{% if gmail_preset.document_store_information_col %}{{ gmail_preset.document_store_information_col }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Document is FUCKED:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_flag_document_is_fucked" style="width: 100%" id="flag_document_is_fucked" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.flag_document_is_fucked %}{{ gmail_preset.flag_document_is_fucked }}{% endif %}"
+               placeholder="">
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Exec Line if Document is FUCKED:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_execute_line" style="width: 100%" id="execute_line" data-preset_id="{{ gmail_preset.id }}"
+               value="{% if gmail_preset.execute_line %}{{ gmail_preset.execute_line }}{% endif %}"
                placeholder="">
     </div>
 </div>

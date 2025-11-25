@@ -89,6 +89,9 @@ def get_prerequisites_for_a_document(pandas_document, preset):
             preset.supplier_unique_information_col
         ].replace('  ', ' '):
             print('Шаблон', preset.preset_name, 'Уникальная информация поставщика - НЕ ОК')
+            print(preset.supplier_unique_information.replace('  ', ' '),' - ИЩЕМ')
+            print(' В ', pandas_document.iloc[preset.supplier_unique_information_row,
+            preset.supplier_unique_information_col].replace('  ', ' '))
             return False
         # +         Get Store Destination
         step = "Получение Магазина в документе"
@@ -190,27 +193,43 @@ def get_products_from_a_document(pandas_document, preset):
             met_conditions = 0
             step = 'get product name'
             if preset.product_name_col is not None:
+                print("name:",str(pandas_document.iloc[i, preset.product_name_col]))
+                print("At", i, preset.product_name_col)
                 product_name = str(pandas_document.iloc[i, preset.product_name_col])
                 met_conditions = met_conditions + 1
             step = 'get product code'
             if preset.product_code_col is not None:
+                print("code:",str(pandas_document.iloc[i, preset.product_code_col]))
+                print("At", i, preset.product_code_col)
                 product_code = str(pandas_document.iloc[i, preset.product_code_col])
                 met_conditions = met_conditions + 1
-            step = 'get product amount'
+            step = 'get product type'
             if preset.product_amount_type_col is not None:
+                print("type:",str(pandas_document.iloc[i, preset.product_amount_type_col]))
+                print("At", i, preset.product_amount_type_col)
                 if str(pandas_document.iloc[i, preset.product_amount_type_col]) in amount_type:
                     met_conditions = met_conditions + 1
             step = 'get product nds'
             if preset.product_nds_col is not None:
+                print("nds:",str(pandas_document.iloc[i, preset.product_nds_col]))
+                print("At", i, preset.product_nds_col)
                 if str(pandas_document.iloc[i, preset.product_nds_col]) in nds:
                     met_conditions = met_conditions + 1
             step = 'get product amount'
+            print("amount:", str(pandas_document.iloc[i, preset.product_amount_col]))
+            print("At", i, preset.product_amount_col)
             product_amount = float(pandas_document.iloc[i, preset.product_amount_col])
             met_conditions = met_conditions + 1
             step = 'get product sum'
             import re
             product_sum = float(re.sub(r'[^\d,\.]', '', str(pandas_document.iloc[i, preset.product_sum_col])).replace(',', '.'))
             met_conditions = met_conditions + 1
+            print("getting_flag_status")
+            print(preset.flag_document_is_fucked)
+            if preset.flag_document_is_fucked == True:
+                print('executing UNFUCKUP script')
+                exec(preset.execute_line)
+                print(product_code)
             if met_conditions == conditions:
                 good = {
                     "product_name": product_name,
