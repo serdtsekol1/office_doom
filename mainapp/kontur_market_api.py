@@ -124,18 +124,9 @@ def kontur_update_products(product_id=None):
                     barcodes_to_update.append(kontur_barcode_obj)
     kontur_barcode.objects.bulk_create(barcodes_to_create)
     kontur_barcode.objects.bulk_update(barcodes_to_update, ['kontur_product_fk'])
-    print('products')
-    print('products')
-    print('products')
-    print('products')
-    print('products')  
-    print(products)
-    print('products')
-    print('products')
-    print('products')
-    print('products')
-    print('products')      
     print('Barcodes updated')
+    if product_id is None:
+        return True
     barcodes_internal = kontur_barcode.objects.all()
     for barcode in barcodes_internal:
         if barcode.barcode not in barcodes_external:
