@@ -24,7 +24,7 @@ def periodicTask():
     while True:
         try:
             kontur_update_products()
-            if counter % 24 == 0 and counter > 1:
+            if counter % 24 == 0:
                 kontur_get_suppliers()
                 kontur_get_invoices()
             else:
