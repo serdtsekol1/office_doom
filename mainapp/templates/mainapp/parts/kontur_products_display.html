@@ -25,9 +25,22 @@
         <div style="flex-basis: 10%">
             <div>Код для весов:</div>
             {% get_kontur_printer_code_from_barcode product.kontur_barcode_set.all as printer_code %}
-            <input class="js_printed_code" style="width: 100%" data-id_out="{{ product.product_id }}" id="printer_code"
-                   value="{% if printer_code.printer_code %}{{ printer_code.printer_code }}{% endif %}"
-                   placeholder="">
+            <div class="printer-code-cell" data-product-id="{{ product.product_id }}">
+                {% if printer_code.printer_code %}
+                    {{ printer_code.printer_code }}
+                {% else %}
+                    <button type="button" class="btn btn-sm btn-primary generate-code-btn" style="font-size: 12px; padding: 2px 8px;">
+                        Сформировать код для весов
+                    </button>
+                    <div class="code-form-container" style="display: none;">
+                        <input type="text" class="form-control form-control-sm range-input" placeholder="Range 1" style="margin-bottom: 2px; font-size: 11px;">
+                        <input type="text" class="form-control form-control-sm range-input" placeholder="Range 2" style="margin-bottom: 2px; font-size: 11px;">
+                        <button type="button" class="btn btn-sm btn-success submit-code-btn" style="font-size: 11px; padding: 2px 6px; width: 100%;">
+                            Сформировать
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
         </div>
         <div style="flex-basis: 15%">
             <div>Название для весов:</div>

@@ -67,7 +67,6 @@
 </div>
 <script>
     $(document).ready(function() {
-        // Обробка кліку на кнопку "Сформировать код для весов"
         $(document).on('click', '.generate-code-btn', function() {
             var $btn = $(this);
             var $container = $btn.siblings('.code-form-container');
@@ -75,7 +74,6 @@
             $container.show();
         });
 
-        // Обробка кліку на кнопку "Сформировать"
         $(document).on('click', '.submit-code-btn', function() {
             var $btn = $(this);
             var $cell = $btn.closest('.printer-code-cell');
@@ -101,15 +99,14 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        // Перезавантажуємо сторінку після успішного створення коду
                         location.reload();
                     } else {
-                        alert('Помилка при створенні коду');
+                        alert('Ошибка при создании кода');
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('Error:', error);
-                    alert('Помилка при відправці запиту');
+                    alert('Ошибка при отправке запроса');
                 }
             });
         });

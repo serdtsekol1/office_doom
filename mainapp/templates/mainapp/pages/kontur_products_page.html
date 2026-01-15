@@ -56,25 +56,49 @@
             search_product(e.currentTarget.value)
         })
 
-        const create_or_change_barcodes_from_printer_code = debounce((element, printer_code, id_out) => {
+        $(document).on('click', '.generate-code-btn', function() {
+            var $btn = $(this);
+            var $container = $btn.siblings('.code-form-container');
+            $btn.hide();
+            $container.show();
+        });
+
+        $(document).on('click', '.submit-code-btn', function() {
+            var $btn = $(this);
+            var $cell = $btn.closest('.printer-code-cell');
+            var productId = $cell.data('product-id');
+            var $inputs = $cell.find('.range-input');
+            var range1 = $inputs.eq(0).val();
+            var range2 = $inputs.eq(1).val();
+
+            if (!productId) {
+                alert('Помилка: не знайдено product_id');
+                return;
+            }
+
+            // Відправляємо AJAX запит
             $.ajax({
-                type: "POST",
-                url: '{% url "create_or_change_printer_code_for_product" %}',
-                data: {'printer_code': printer_code, 'id_out': id_out},
-                success: function (data) {
-                    $(".js_error").remove()
-                    console.log(data)
-                    if (data.success) {
-                        $(element).after(`<div class="js_error">${data.message}</div>`)
+                url: '{% url "form_massa_k_barcode_for_kontur" %}',
+                method: 'POST',
+                data: {
+                    'product_id': productId,
+                    'range_1': range1,
+                    'range_2': range2,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
                     } else {
-                        $(element).after(`<div class="js_error">${data.message}</div>`)
+                        alert('Ошибка при создании кода');
                     }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    alert('Ошибка при отправке запроса');
                 }
             });
-        }, 750)
-        $("body").on('input', ".js_printed_code", (e) => {
-            create_or_change_barcodes_from_printer_code(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
-        })
+        });
 
         $("body").on('input', ".js_short_name", (e) => {
             create_or_change_short_name(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
