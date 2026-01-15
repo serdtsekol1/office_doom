@@ -124,13 +124,27 @@ def get_first_name_for_supplier(supplier_id):
         supplier = Supplier.objects.filter(inn=supplier_id).first()
     return supplier.supplier_name_set.first().name if supplier.supplier_name_set.first() else supplier.inn
 
+@register.simple_tag
+def get_kontur_printer_code_from_barcode(barcodes):
+    try:
+        for barcode in barcodes:
+            if str(barcode.barcode).startswith('28999999'):
+                return {'barcode_id': barcode.id, 'printer_code': barcode.barcode[8:12]}  
+    except:
+        pass
+    try:
+        if str(barcodes).startswith('28999999'):
+            return {'printer_code': barcodes[8:12]}
+    except:
+        pass
+    return {'barcode_id': None, 'printer_code': None}
 
 @register.simple_tag
 def get_printer_code_from_barcode(barcodes):
     try:
         for barcode in barcodes:
             if str(barcode.barcode).startswith('999999999'):
-                return {'barcode_id': barcode.id, 'printer_code': barcode.barcode[9:12]}
+                return {'barcode_id': barcode.id, 'printer_code': barcode.barcode[9:12]}  
     except:
         pass
     try:

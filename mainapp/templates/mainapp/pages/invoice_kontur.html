@@ -1,0 +1,118 @@
+{% extends 'wrapper.html' %}
+{% load mainapp_tags %}
+{% block body %}
+<div style="font-size: 18px">
+<div style="margin-bottom: 15px;">
+    <a href="https://market.kontur.ru/b5e5e815-6c18-4168-8957-83887becb83a/7929038d-116d-4916-9cc2-7e9cbf1d1d34/a9eeff1a-f8a5-4751-8487-a796d7a7d3b8#/documents/wayBills/in/{{ invoice.invoice_id }}/store" target="_blank" style="font-size: 32px; text-decoration: none; color: #007bff;">
+        Накладная {{ invoice.invoice_number }}
+    </a>
+</div>
+<div class="row border bg-dark text-light">
+    <div style="flex:8px"></div>
+    <div style="flex:2px"></div>
+    <div style="flex:12px">№</div>
+    <div style="flex:1%"></div>
+    <div style="flex:35%">Товар</div>
+    <div style="flex:5px"></div>
+    <div style="flex:100px">Код для весов</div>
+    <div style="flex:8%" class="text-center">Количество</div>
+    <div style="flex:8%" class="text-center">Цена</div>
+    <div style="flex:8%" class="text-center">Сумма</div>
+    <div style="flex:8%"></div>
+</div>
+{% for position in invoice_positions %}
+    <div class="row border bg-white align-items-center invoice-item">
+        <div style="flex:8px"></div>
+        <div style="flex:2px"></div>
+        <div style="flex:12px;" class="text-center">{{ position.product_number }}</div>
+        <div style="flex:1%"></div>
+        <div style="flex:35%" class="text-left">{{ position.product_name }}</div>
+        <div style="flex:5px"></div>
+        <div style="flex:100px" class="printer-code-cell" data-product-id="{{ position.product_id }}">
+            {% if position.printer_code %}
+                {{ position.printer_code }}
+            {% else %}
+                <button type="button" class="btn btn-sm btn-primary generate-code-btn" style="font-size: 12px; padding: 2px 8px;">
+                    Сформировать код для весов
+                </button>
+                <div class="code-form-container" style="display: none;">
+                    <input type="text" class="form-control form-control-sm range-input" placeholder="Range 1" style="margin-bottom: 2px; font-size: 11px;">
+                    <input type="text" class="form-control form-control-sm range-input" placeholder="Range 2" style="margin-bottom: 2px; font-size: 11px;">
+                    <button type="button" class="btn btn-sm btn-success submit-code-btn" style="font-size: 11px; padding: 2px 6px; width: 100%;">
+                        Сформировать
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        <div style="flex:8%" class="text-center">{{ position.product_amount }}</div>
+        <div style="flex:8%" class="text-center">{{ position.position_price }}</div>
+        <div style="flex:8%" class="text-center">{{ position.position_sum }}</div>
+        <div style="flex:8%"></div>
+    </div>
+{% endfor %}
+<div class="row border bg-dark text-light">
+    <div style="flex:8px"></div>
+    <div style="flex:2px"></div>
+    <div style="flex:12px"></div>
+    <div style="flex:1%"></div>
+    <div style="flex:35%"></div>
+    <div style="flex:5px"></div>
+    <div style="flex:100px"></div>
+    <div style="flex:8%"></div>
+    <div style="flex:8%"></div>
+    <div style="flex:8%" class="text-right">Сумма:</div>
+    <div style="flex:8%" class="text-right">{{ invoice.invoice_sum }}</div>
+    <div style="flex:8%"></div>
+</div>
+</div>
+<script>
+    $(document).ready(function() {
+        // Обробка кліку на кнопку "Сформировать код для весов"
+        $(document).on('click', '.generate-code-btn', function() {
+            var $btn = $(this);
+            var $container = $btn.siblings('.code-form-container');
+            $btn.hide();
+            $container.show();
+        });
+
+        // Обробка кліку на кнопку "Сформировать"
+        $(document).on('click', '.submit-code-btn', function() {
+            var $btn = $(this);
+            var $cell = $btn.closest('.printer-code-cell');
+            var productId = $cell.data('product-id');
+            var $inputs = $cell.find('.range-input');
+            var range1 = $inputs.eq(0).val();
+            var range2 = $inputs.eq(1).val();
+
+            if (!productId) {
+                alert('Помилка: не знайдено product_id');
+                return;
+            }
+
+            // Відправляємо AJAX запит
+            $.ajax({
+                url: '{% url "form_massa_k_barcode_for_kontur" %}',
+                method: 'POST',
+                data: {
+                    'product_id': productId,
+                    'range_1': range1,
+                    'range_2': range2,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Перезавантажуємо сторінку після успішного створення коду
+                        location.reload();
+                    } else {
+                        alert('Помилка при створенні коду');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    alert('Помилка при відправці запиту');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

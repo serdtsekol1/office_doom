@@ -14,6 +14,30 @@ from datetime import timedelta, date
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, current_store_id
 # from mainapp.gmail_invoices import get_gmail_messages
 
+class kontur_suppliers(models.Model):
+    supplier_id = models.CharField('supplier_id', max_length=255, blank=True, default=None, null=True)
+    supplier_name = models.CharField('supplier_name', max_length=255, blank=True, default=None, null=True)
+    supplier_inn = models.CharField('supplier_inn', max_length=255, blank=True, default=None, null=True)
+    supplier_kpp = models.CharField('supplier_kpp', max_length=255, blank=True, default=None, null=True)
+class kontur_products(models.Model):
+    product_id = models.CharField('product_id', max_length=255, blank=True, default=None, null=True)
+    product_name = models.CharField('product_name', max_length=255, blank=True, default=None, null=True)
+    product_barcodes = models.CharField('product_barcodes', max_length=255, blank=True, default=None, null=True)
+    product_sell_price = models.DecimalField('product_sell_price', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    product_shelf_life = models.IntegerField('product_shelf_life', blank=True, default=None, null=True)
+    product_short_name = models.CharField('product_short_name', max_length=255, blank=True, default=None, null=True)
+    product_contents = models.TextField('product_contents', blank=True, default=None, null=True)
+class kontur_barcode(models.Model):
+    kontur_product_fk = models.ForeignKey(kontur_products, on_delete=models.CASCADE)
+    barcode = models.CharField('barcode', max_length=255, blank=True, default=None, null=True)
+class kontur_invoices(models.Model):
+    invoice_id = models.CharField('invoice_id', max_length=255, blank=True, default=None, null=True)
+    invoice_number = models.CharField('invoice_number', max_length=255, blank=True, default=None, null=True)
+    invoice_date = models.DateField('invoice_date', blank=True, default=None, null=True)
+    invoice_sum = models.DecimalField('invoice_sum', null=True, blank=True, decimal_places=2, max_digits=11, default=None)
+    invoice_draft_or_accepted = models.BooleanField('invoice_draft_or_accepted', blank=True, default=None, null=True)
+    invoice_positions = models.TextField('invoice_positions', blank=True, default=None, null=True)
+    invoice_supplier = models.ForeignKey(kontur_suppliers, max_length=255, blank=True, default=None, null=True, on_delete=models.SET_NULL)
 class Store(models.Model):
     store_name = models.CharField('store_name', blank=True, null=True, max_length=255, default=None)
     store_id = models.IntegerField('store_id', blank=True, null=True)
@@ -49,7 +73,10 @@ class Store(models.Model):
                 device.delete()
 
 
-
+class link_to_product(models.Model):
+    link = models.CharField('link', max_length=255, blank=True, default=None, null=True)
+    product = models.CharField('product', max_length=255, blank=True, default=None, null=True)
+    
 
 
 class Device(models.Model):

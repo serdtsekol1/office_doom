@@ -301,7 +301,6 @@ with open('config.json', 'r') as f:
 current_store_id = loaded_data['current_store_id']
 JQUERY_URL = False  # smart_selects
 # USE_DJANGO_JQUERY = True # smart_selects
-SHOP_AMOUNT = os.environ.get('SHOP_AMOUNT')
 CURRENT_IDS = os.environ.get(f'SHOP_{os.environ.get("CURRENT_SHOP")}')
 print(CURRENT_IDS)
 # DEFAULT_FILE_STORAGE = 'storages.backends.overwrite.OverwriteStorage'
@@ -313,7 +312,10 @@ DIADOC_API = None
 DIADOC_LOGIN = os.environ.get('DIADOC_LOGIN')
 DIADOC_PASSWORD = os.environ.get('DIADOC_PASSWORD')
 DIADOC_ID = os.environ.get('DIADOC_ID')
-
+KONTUR_MARKET_RETAIL_OUTLET_ID = os.environ.get('KONTUR_MARKET_RETAIL_OUTLET_ID')
+KONTUR_MARKET_API_KEY = os.environ.get('KONTUR_MARKET_API_KEY')
+KONTUR_MARKET_SHOP_ID = os.environ.get('KONTUR_MARKET_SHOP_ID')
+KONTUR_MARKET_ORG_ID = os.environ.get('KONTUR_MARKET_ORG_ID')
 if not os.path.exists('persistent_vars.json'):
     # Create the file and write an empty dictionary to it
     with open('persistent_vars.json', 'w') as file:
@@ -322,11 +324,11 @@ if not os.path.exists('persistent_vars.json'):
 if os.environ.get('RUN_MAIN', None) == 'true':
     for i in range(10):
         try:
-            DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
+            #DREAM_KAS_API = DreamKasApi(DREAMKAS_LOGIN, DREAMKAS_PASSWORD)
+            DREAM_KAS_API = None
             break
         except Exception as ex:
             print('Попытка установить соединение неудачна. Попытка - ', i, '. Следующая попытка через',i*i/2, "секунд")
-            print(ex)
             time.sleep(i*i/2)
             pass
 

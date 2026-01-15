@@ -38,9 +38,10 @@ from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
 import mainapp.Dreamkas_documents
 from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object, fetch_document_object_bulk, fetch_documents_positions, fetch_latest_iterations_for_documents
 from mainapp.Reports.invoice_report import invoice_report, invoice_report_range_of_dates
+from mainapp.kontur_market_api import create_xlsx_file_for_printer_kontur, kontur_add_barcode_for_massa_k, kontur_get_invoice, kontur_get_invoices, kontur_market_get_products, kontur_market_get_shops, kontur_update_invoice, kontur_update_products
 from mainapp.logging_utils import log_item
 from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Invoice_v3, Pricing_order_v3, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset, \
-    Device, Document_internal, Position_invoice_v3
+    Device, Document_internal, Position_invoice_v3, kontur_barcode, kontur_invoices, kontur_products
 from . import dreamkas_documents, dreamkas_to_massaK, diadoc_to_dreamkas, gmail_to_dreamkas, dreamkas_Products
 from .diadoc_to_dreamkas import create_invoice_from_diadoc_document_v2
 from .dreamkas_documents import dreamkas_update_suppliers
@@ -163,6 +164,170 @@ class Preset(View):
 
     def patch(self, request):
         return JsonResponse({}, safe=False)
+
+### Kontur Market ###
+@csrf_exempt
+def kontur_products_page(request,search_query=None):
+    if request.method == 'GET':
+        products = kontur_products.objects.prefetch_related('kontur_barcode_set').all()
+        page = Paginator(products, 250).page(request.GET.get("page", 1))
+        return render(request, 'mainapp/pages/kontur_products_page.html', {'products': page})
+    if request.method == 'POST':
+        query = request.GET.get("query", None)
+        if query is None or query.strip() == "":
+            products = kontur_products.objects.prefetch_related('kontur_barcode_set').all()
+        elif query.isdigit():
+            products_1 = kontur_products.objects.filter(kontur_barcode__barcode__contains=query).distinct()
+            products_2 = kontur_products.objects.prefetch_related('kontur_barcode_set').filter(product_barcodes__icontains=query).distinct()
+            products = products_1 | products_2
+        else:
+            products = kontur_products.objects.prefetch_related('kontur_barcode_set').filter(Q(product_name__icontains=query) | Q(product_barcodes__icontains=query))
+        page = Paginator(products, 250).page(request.GET.get("page", 1))
+        products_list_contents = render_to_string('mainapp/parts/kontur_products_display.html', {'products': page}, request)
+        return JsonResponse({"products_list_contents": products_list_contents}, safe=False)
+
+@csrf_exempt
+def form_massa_k_barcode_for_kontur(request):
+    if request.method == 'POST' or request.method == 'GET':
+        product_id = request.POST.get('product_id', None)
+        range_1 = request.POST.get('range_1', None)
+        range_2 = request.POST.get('range_2', None)
+        try:
+            kontur_add_barcode_for_massa_k(product_id, None, range_1, range_2)
+            kontur_update_products(product_id=product_id)
+        except:
+            return JsonResponse({'success': False}, safe=False)
+    return JsonResponse({'success': True}, safe=False)
+
+@csrf_exempt
+def generate_xlsx_file_for_printer_kontur(request):
+    if request.method == 'POST' or request.method == 'GET':
+        try:
+            create_xlsx_file_for_printer_kontur()
+        except:
+            for proc in psutil.process_iter():
+                if "EXCEL" in proc.name():
+                    proc.kill()
+            create_xlsx_file_for_printer_kontur()
+        if os.path.exists('Файл_для_принтера.xlsx'):
+            with open('Файл_для_принтера.xlsx', 'rb') as file:
+                response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = 'attachment; filename=Файл_для_принтера.xlsx'
+                return response
+        else:
+            return HttpResponse("Error, file was not created", status=404)
+
+@csrf_exempt
+def invoices_kontur(request):
+    invoices_kontur = kontur_invoices.objects.all().order_by("-invoice_date")
+    page = Paginator(invoices_kontur, 300).page(request.GET.get("page", 1))
+    return render(request, 'mainapp/pages/invoices_kontur.html', {'invoices': page})
+
+def format_number(value):
+    """
+    Форматує число: видаляє .0 для цілих чисел, обмежує до 2 знаків після коми для float.
+    """
+    try:
+        # Конвертуємо в float
+        num = float(value) if isinstance(value, str) else float(value)
+        # Округлюємо до 2 знаків після коми
+        num = round(num, 2)
+        # Якщо це ціле число, повертаємо без .0
+        if num == int(num):
+            return int(num)
+        # Інакше повертаємо з максимум 2 знаками після коми
+        return num
+    except (ValueError, TypeError):
+        return value
+
+@csrf_exempt
+def invoice_kontur(request, invoice_id):
+    try:
+        kontur_update_invoice(invoice_id)
+    except:
+        pass
+    invoice = kontur_invoices.objects.get(invoice_id=invoice_id)
+    invoice_positions = json.loads(invoice.invoice_positions.replace("'","\""))
+    invoice_positions_edited = []
+    barcodes = kontur_barcode.objects.all()
+    counter = 1
+    for position in invoice_positions:
+        product = kontur_products.objects.filter(product_id=position['productId']).first()
+        product_barcodes = []
+        printer_code = None
+        for barcode_obj in kontur_barcode.objects.filter(kontur_product_fk=product):
+            product_barcodes.append(barcode_obj.barcode)
+            if barcode_obj.barcode and str(barcode_obj.barcode).startswith('2899999') and len(str(barcode_obj.barcode)) >= 12:
+                printer_code = str(barcode_obj.barcode)[8:12]
+        
+        # Форматуємо числа
+        product_amount = format_number(position['quantity'])
+        position_price_value = float(position['buyPricePerUnit'].replace(',','.'))
+        position_price = format_number(position_price_value)
+        position_sum_value = position['quantity'] * position_price_value
+        position_sum = format_number(position_sum_value)
+        
+        invoice_positions_edited.append({
+            'product_number' : counter,
+            'product_name': product.product_name,
+            'product_amount': product_amount,
+            'position_price' : position_price,
+            'position_sum' : position_sum,
+            'position_barcodes' : product_barcodes,
+            'printer_code' : printer_code,
+            'product_id' : position['productId'],
+        })
+        counter = counter + 1
+    return render(request, 'mainapp/pages/invoice_kontur.html', {'invoice': invoice, 'invoice_positions': invoice_positions_edited})
+
+@csrf_exempt
+def update_kontur_invoices_full(request):
+    if request.method == 'POST':
+        try:
+            kontur_get_invoices()
+            return JsonResponse({'success': True})
+        except Exception as Ex:
+            print(Ex)
+            return JsonResponse({'success': False})
+@csrf_exempt
+def update_kontur_invoices_scan(request):
+    if request.method == 'POST':
+        try:
+            kontur_get_invoices(scan=True)
+            return JsonResponse({'success': True})
+        except Exception as Ex:
+            print(Ex)
+            return JsonResponse({'success': False})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### Store / Device Related ###
@@ -289,8 +454,6 @@ def update_all_products(request):
         from mainapp.dreamkas_Products import Products_update
         Products_update()
         return redirect(reverse('products'))
-
-
 @csrf_exempt
 def generate_xlsx_file_for_printer(request):
     if request.method == 'POST' or request.method == 'GET':
@@ -304,7 +467,7 @@ def generate_xlsx_file_for_printer(request):
         if os.path.exists('Файл_для_принтера.xlsx'):
             with open('Файл_для_принтера.xlsx', 'rb') as file:
                 response = HttpResponse(file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                response['Content-Disposition'] = 'attachment; filename=File_for_printer.xlsx'
+                response['Content-Disposition'] = 'attachment; filename=Файл_для_принтера.xlsx'
                 return response
         else:
             return HttpResponse("File not found", status=404)
@@ -943,7 +1106,6 @@ def update_supplier_prefix(request):
     supplier_obj.save()
     return JsonResponse({'success': True})
 
-
 def invoices_diadoc(request):
     diadocinvoices = DiadocInvoice.objects.all().order_by("-issue_date")
     dreamkas_invoices = Invoice.objects.all()
@@ -1078,7 +1240,6 @@ def update_diadoc_invoices(request):
         except Exception as Ex:
             print(Ex)
             return JsonResponse({'success': False})
-
 
 @csrf_exempt
 def update_diadoc_invoices_v2(request):

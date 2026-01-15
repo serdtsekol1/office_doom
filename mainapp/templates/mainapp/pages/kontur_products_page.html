@@ -1,0 +1,180 @@
+{% extends "wrapper.html" %}
+{% block body %}
+    <div class="d-flex justify-content-between">
+        <div>
+            {% comment %} <form action="{% url "update_all_goods" %}" method="post">
+                <button type="submit" class="btn btn-success">Обновить Товары</button>
+            </form> {% endcomment %}
+            <div>
+                Поиск товара:
+            </div>
+            <div>
+                <input id="search" value="" placeholder="Имя или штрихкод товара">
+            </div>
+        </div>
+        <div>
+            <form action="{% url "generate_xlsx_file_for_printer_kontur" %}" method="post">
+                <button type="submit" class="btn btn-success">Создать файл для принтера</button>
+            </form>
+        </div>
+    </div>
+    <div class="list-group list-group-numbered">
+        <div class="list-group-item d-flex justify-content-start align-items-center">
+            <div style="flex-basis: 35%">
+                Название
+            </div>
+            <div style="flex-basis: 15%">
+                Штрихкоды
+            </div>
+            <div style="flex-basis: 15%">
+                Цена
+            </div>
+            <div style="flex-basis: 10%">
+            </div>
+            <div style="flex-basis: 10%">
+            </div>
+            <div style="flex-basis: 15%">
+            </div>
+        </div>
+        <div id="products_list_contents">
+            {% include 'mainapp/parts/kontur_products_display.html' %}
+        </div>
+    </div>
+    <script>
+        const search_product = debounce((query) => {
+            $.ajax({
+                type: "POST",
+                url: '{% url "kontur_products_page" %}' + '?query=' + query,
+                success: function (data) {
+                    console.log(data)
+                    $('#products_list_contents').html(data.products_list_contents)
+                }
+            });
+        }, 250)
+
+        $("#search").on('input', (e) => {
+            search_product(e.currentTarget.value)
+        })
+
+        const create_or_change_barcodes_from_printer_code = debounce((element, printer_code, id_out) => {
+            $.ajax({
+                type: "POST",
+                url: '{% url "create_or_change_printer_code_for_product" %}',
+                data: {'printer_code': printer_code, 'id_out': id_out},
+                success: function (data) {
+                    $(".js_error").remove()
+                    console.log(data)
+                    if (data.success) {
+                        $(element).after(`<div class="js_error">${data.message}</div>`)
+                    } else {
+                        $(element).after(`<div class="js_error">${data.message}</div>`)
+                    }
+                }
+            });
+        }, 750)
+        $("body").on('input', ".js_printed_code", (e) => {
+            create_or_change_barcodes_from_printer_code(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
+        })
+
+        $("body").on('input', ".js_short_name", (e) => {
+            create_or_change_short_name(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
+        })
+        const create_or_change_short_name = debounce((element, short_name, id_out) => {
+            $.ajax({
+                type: "POST",
+                url: '{% url "create_or_change_short_name_for_product" %}',
+                data: {'short_name': short_name, 'id_out': id_out},
+                success: function (data) {
+                    console.log(data)
+                    if (data.success) {
+
+                    } else {
+
+                    }
+                }
+            });
+        }, 500)
+
+        $("body").on('input', ".js_expiry_duration", (e) => {
+            create_or_change_expiry_duration(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
+        })
+        const create_or_change_expiry_duration = debounce((element, expiry_duration, id_out) => {
+            $.ajax({
+                type: "POST",
+                url: '{% url "create_or_change_expiry_duration_for_product" %}',
+                data: {'expiry_duration': expiry_duration, 'id_out': id_out},
+                success: function (data) {
+                    console.log(data)
+                    if (data.success) {
+
+                    } else {
+
+                    }
+                }
+            });
+        }, 500)
+        $("body").on('input', ".js_contents", (e) => {
+            create_or_change_contents(e.currentTarget, e.currentTarget.value, e.currentTarget.dataset.id_out)
+        })
+        const create_or_change_contents = debounce((element, contents, id_out) => {
+            $.ajax({
+                type: "POST",
+                url: '{% url "create_or_change_contents_for_product" %}',
+                data: {'contents': contents, 'id_out': id_out},
+                success: function (data) {
+                    console.log(data)
+                    if (data.success) {
+
+                    } else {
+
+                    }
+                }
+            });
+        }, 500)
+        $(".refresh-dreamkas-invoices").on('click', (e) => {
+                e.preventDefault()
+                let spinner = $(".refresh-diadoc-invoices span.loading-spinner-stuff");
+                spinner.css("display", "inherit")
+                {#element.getElementById('update-diadoc-invoices').setAttribute(class, "btn btn-success refresh-diadoc-invoices spinner-border spinner-border-sm")#}
+                $.ajax({
+                    type: "POST",
+                    url: '/invoices_diadoc_update_v2/',
+                    {#contentType: false,#}
+                    {#processData: false,#}
+                    {#async: false,#}
+
+                    success: function (data) {
+                        console.log(data)
+                        if (data.success === true) {
+                            document.location.reload()
+                        } else {
+                            Swal.fire({
+                                position: 'top-end',
+                                title: `Произошла Ошибка. Попробуйте позже либо обратитесь к администиатору`,
+                                showConfirmButton: false,
+                                timer: 10000,
+                                backdrop: false
+                            })
+                            spinner.css("display", "none")
+                        }
+
+                    }
+                })
+            }
+        )
+
+
+        {% comment %}        $("#search").on('input', (e) => {
+                    console.log(e.currentTarget.value)
+                    $.ajax({
+                        type: "POST",
+                        url: '{% url "kontur_products" %}' + '?query=' + e.currentTarget.value,  
+                        success: function (data) {
+                            console.log(data)
+                            $('#products_list_contents').html(data.products_list_contents)
+                        }
+                    });
+                }){% endcomment %}
+
+    </script>
+{% endblock %}

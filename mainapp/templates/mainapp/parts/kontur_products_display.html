@@ -1,0 +1,42 @@
+{% load mainapp_tags %}
+{% for product in products %}
+    <div class="list-group-item d-flex justify-content-start align-items-center">
+        <div class="text-break" style="flex-basis: 35%">
+            {{ product.product_name }}
+        </div>
+        <div style="flex-basis: 15%">
+            {% for barcode in product.kontur_barcode_set.all %}
+                <div class="text-break" style="padding: 3px;line-height: 1em">
+                    {{ barcode.barcode }}
+                </div>
+            {% endfor %}
+        </div>
+        <div style="flex-basis: 15%">
+            {% if product.product_sell_price %}{{ product.product_sell_price }}{% endif %}
+        </div>
+        <div style="flex-basis: 10%">
+            <div>Состав:<input class="js_contents" style="width: 100%" data-id_out="{{ product.product_id }}" id="product_contents"
+                               value="{% if product.product_contents %}{{ product.product_contents }}{% endif %}"
+                               placeholder=""></div>
+            <div>Срок Годности:<input class="js_expiry_duration" style="width: 100%" data-id_out="{{ product.product_id }}" id="product_expriry_duration"
+                                      value="{% if product.product_shelf_life %}{{ product.product_shelf_life }}{% endif %}"
+                                      placeholder=""></div>
+        </div>
+        <div style="flex-basis: 10%">
+            <div>Код для весов:</div>
+            {% get_kontur_printer_code_from_barcode product.kontur_barcode_set.all as printer_code %}
+            <input class="js_printed_code" style="width: 100%" data-id_out="{{ product.product_id }}" id="printer_code"
+                   value="{% if printer_code.printer_code %}{{ printer_code.printer_code }}{% endif %}"
+                   placeholder="">
+        </div>
+        <div style="flex-basis: 15%">
+            <div>Название для весов:</div>
+            <input class="js_short_name" style="width: 100%" data-id_out="{{ product.product_id }}" id="short_name"
+                   value="{% if product.product_short_name %}{{ product.product_short_name }}{% endif %}"
+                   placeholder="">
+        </div>
+    </div>
+
+
+{% endfor %}
+

@@ -1,15 +1,15 @@
 from django.urls import path
-from mainapp.views import dreamkas_invoices, get_index_page, get_invoice_timers,  old_documents_to_new_documents, product_codes_for_massaK, search_invoices, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
+from mainapp.views import dreamkas_invoices, generate_xlsx_file_for_printer_kontur, get_index_page, get_invoice_timers, invoice_kontur, invoices_kontur,  old_documents_to_new_documents, product_codes_for_massaK, search_invoices, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
     update_diadoc_invoices, create_document_from_diadoc, dreamkas_invoice, update_item_group, dreamkas_suppliers, dreamkas_supplier, supplier_paymenttime_update, gmail_messages, update_gmail_messages, \
     inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document, hide_invoice, get_all_gmail_messages, test_page, \
-    generate_goods_report, edit_existing_report, invoices_report, generate_invoice_report, update_all_products, generate_xlsx_file_for_printer, display_all_goods_for_printer, products, \
+    generate_goods_report, edit_existing_report, invoices_report, generate_invoice_report, update_all_products, generate_xlsx_file_for_printer, display_all_goods_for_printer, products, update_kontur_invoices_full, update_kontur_invoices_scan, \
     update_one_product, create_or_change_printer_code_for_product, change_printer_file_location, delete_all_suppliers, update_all_suppliers, set_store_id, update_stores_and_devices, \
     find_invoice_duplicates, delete_broken_suppliers, show_duplicate_diadoc_invoices, create_or_change_short_name_for_product, gmail_presets, update_gmail_preset, create_gmail_preset, stores, \
     update_store, update_diadoc_invoices_v2, invoices_diadoc_v2, diadoc_presets, create_diadoc_preset, update_diadoc_preset, create_document_from_diadoc_v2, create_documents_from_gmail_message_v2, \
     delete_all_stores, delete_gmail_messages, update_supplier_prefix, delete_diadoc_invoices, debug, debug_update_all_invoices, debug_concat_rests_2, concat_list_of_rests, \
     delete_duplicate_barcode_objects, delete_duplicate_invoice_objects, delete_duplicate_and_invalid_product_objects, debug_remove_deuplicate_diadoc_invoice_objects, debug_force_update_all_products, \
     invoice_delete_position, create_or_change_expiry_duration_for_product, create_or_change_contents_for_product, debug_remove_printer_code_from_long_not_accepted_products, debug_redo_all_codes_back, \
-    create_new_document, pricing_documents, set_invoice_update_amount
+    create_new_document, pricing_documents, set_invoice_update_amount, form_massa_k_barcode_for_kontur, kontur_products_page
 
 urlpatterns = [
     path('', get_index_page, name="index"),
@@ -32,7 +32,7 @@ urlpatterns = [
     path('display_all_goods_for_printer/', display_all_goods_for_printer, name='display_all_goods_for_printer'),
     path('products/', products, name='products'),
     path('update_one_product/<str:id_out>/', update_one_product, name="update_one_product"),
-    path('generate_xlsx_file_for_printer/', generate_xlsx_file_for_printer, name='generate_xlsx_file_for_printer'),
+    
     path('create_or_change_printer_code_for_product/', create_or_change_printer_code_for_product, name='create_or_change_printer_code_for_product'),
     path('create_or_change_short_name_for_product/', create_or_change_short_name_for_product, name='create_or_change_short_name_for_product'),
     path('create_or_change_expiry_duration_for_product/', create_or_change_expiry_duration_for_product, name='create_or_change_expiry_duration_for_product'),
@@ -77,11 +77,21 @@ urlpatterns = [
     path('merge_inventory_check_items/<int:inventory_check_id>/', merge_inventory_check_items, name="merge_inventory_check_items"),
     path('update_inventory_check/<int:inventory_check_id>/', update_inventory_check, name="update_inventory_check"),
 
+
+    ## KONTUR
+    path('invoices_kontur/', invoices_kontur, name="invoices_kontur"),
+    path('invoice_kontur/<str:invoice_id>/', invoice_kontur, name="invoice_kontur"),
+    path('invoices_kontur_update_full/', update_kontur_invoices_full, name="invoices_kontur_update"),
+    path('invoices_kontur_update_scan/', update_kontur_invoices_scan, name="invoices_kontur_update"),
+    path('form_massa_k_barcode_for_kontur/', form_massa_k_barcode_for_kontur, name="form_massa_k_barcode_for_kontur"),
+    path('kontur_products_page/', kontur_products_page, name="kontur_products_page"),
+    path('generate_xlsx_file_for_printer_kontur/', generate_xlsx_file_for_printer_kontur, name="generate_xlsx_file_for_printer_kontur"),
+    
     ## DIADOC
     path('invoices_diadoc/', invoices_diadoc, name="invoices_diadoc"),
     path('invoices_diadoc_v2/', invoices_diadoc_v2, name="invoices_diadoc"),
     path('invoices_diadoc_update/', update_diadoc_invoices, name="invoices_diadoc_update"),
-    path('invoices_diadoc_update_v2/', update_diadoc_invoices_v2, name="invoices_diadoc_update"),
+    path('invoices_diadoc_update_v2/', update_diadoc_invoices_v2, name="invoices_diadoc_update_v2"),
     path('create_document_from_diadoc/', create_document_from_diadoc, name="create_document_from_diadoc"),
     path('create_document_from_diadoc_v2/', create_document_from_diadoc_v2, name="create_document_from_diadoc"),
     path('show_duplicate_diadoc_invoices/', show_duplicate_diadoc_invoices, name="show_duplicate_diadoc_invoices"),

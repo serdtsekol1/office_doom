@@ -135,7 +135,6 @@ class DiadocApi():
         #     }
         # )
         # print(diadoc)
-
     def get_documents(self):
         print('5')
         self.LIST_DOCUMENTS = []

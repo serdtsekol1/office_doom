@@ -1,0 +1,48 @@
+{% extends 'wrapper.html' %}
+{% block body %}
+<button type="submit" class="btn btn-success refresh-kontur-invoices">
+    <span style="display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
+    <span role="status">Обновить Накладные в Маркете</span>
+</button>
+<div class="mb-3 d-flex justify-content-between align-items-start">
+    <div>
+        <div>
+            <label for="search">Поиск по накладным:</label>
+            <input id="search" value="" placeholder="Введите номер накладной" class="form-control">
+        </div>
+    </div>
+</div>
+{% include "mainapp/parts/pagination.html" with page=invoices %}    
+<div></div>
+<ol class="list-group list-group-numbered">
+    {{invoices}}
+    {% for invoice in invoices %}
+    <li class="list-group-item search_field" data-search_data_field="{{ invoice.invoice_number }} {{ invoice.invoice_sum }}" style="padding: 0; max-width: 60%;">
+        <a href="{% url 'invoice_kontur' invoice.invoice_id %}" class="d-flex justify-content-between align-items-center" style="text-decoration: none; color: inherit; padding: 0.75rem 1.25rem; display: block; width: 100%;">
+            <div>
+                <div style="font-size: 16px; font-weight: 500;" class="fw-bold">{{ invoice.invoice_number }}</div>
+                <div>{{ invoice.invoice_supplier.supplier_name }}</div>
+                <div>{{ invoice.invoice_date|date:"d.m.Y" }}</div>
+            </div>
+            <div>
+                <div>{{ invoice.invoice_sum }}</div>
+            </div>
+        </a>
+    </li>
+    {% endfor %}
+</ol>
+{% endblock %}
+<script>
+    $(".refresh-kontur-invoices").on('click', (e) => {
+        e.preventDefault()
+        let spinner = $(".refresh-kontur-invoices span.loading-spinner-stuff");
+        spinner.css("display", "inherit")
+        $.ajax({
+            type: "POST",
+            url: "/invoices_kontur_update/",
+            success: function (data) {
+                spinner.css("display", "none")
+            }
+        })
+    })
+</script>

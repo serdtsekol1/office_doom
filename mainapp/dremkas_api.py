@@ -350,7 +350,6 @@ class DreamKasApi:
             print('status 400')
         offset = 0
         while receipt['data'].__len__() >= 1000:
-            print(offset)
             offset = offset + 1000
             receipt = self.session.get("https://kabinet.dreamkas.ru/api/receipts?" + date_from + date_to + device + "&limit=1000&offset=" + str(offset)).json()
             if receipt['data'].__len__() != 0:

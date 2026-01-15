@@ -3,7 +3,7 @@ import os
 
 from requests.auth import HTTPBasicAuth
 from requests_html import HTMLSession
-from dremkas.settings import DREAM_KAS_API, SHOP_AMOUNT
+from dremkas.settings import DREAM_KAS_API
 from mainapp.models import Product, Prices, Barcodes, Prices_shop
 import time
 
