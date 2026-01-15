@@ -69,6 +69,8 @@ def kontur_update_products(product_id=None):
         products = [kontur_market_get_product(KONTUR_MARKET_SHOP_ID,product_id)]
     else:
         products = kontur_market_get_products(KONTUR_MARKET_SHOP_ID)
+    if products.__len__() == 0 or 'shopId' not in products[0]:
+        return False
     existing_barcodes = kontur_barcode.objects.all()
     existing_barcodes_map = {}
     for barcode in existing_barcodes:
