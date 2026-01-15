@@ -64,6 +64,7 @@ def kontur_add_barcode_v107(product_id, barcode):
         }
     resp = session.post(f'https://market.kontur.ru/api/v107/{KONTUR_MARKET_ORG_ID}/{KONTUR_MARKET_RETAIL_OUTLET_ID}/{KONTUR_MARKET_SHOP_ID}/Cards/AddBarCode', json=json_data)
 def kontur_update_products(product_id=None):
+    print('Start updating products')
     if product_id is not None:
         products = [kontur_market_get_product(KONTUR_MARKET_SHOP_ID,product_id)]
     else:
@@ -98,13 +99,16 @@ def kontur_update_products(product_id=None):
             objs_to_update.append(kontur_product)
     kontur_products.objects.bulk_create(objs_to_create)
     kontur_products.objects.bulk_update(objs_to_update, ['product_name', 'product_sell_price'])
+    print('Products updated')
     barcodes_to_create = []
     barcodes_to_update = []
+    barcodes_external = []
     for product in products:
         barcodes = product.get('barcodes')
         if barcodes is None or barcodes.__len__() == 0:
             continue
         for barcode in product['barcodes']:
+            barcodes_external.append(barcode)
             product_obj = existing_products_map[product['id']]
             if product_obj is not None:
                 if barcode not in existing_barcodes_map:
@@ -118,6 +122,13 @@ def kontur_update_products(product_id=None):
                     barcodes_to_update.append(kontur_barcode_obj)
     kontur_barcode.objects.bulk_create(barcodes_to_create)
     kontur_barcode.objects.bulk_update(barcodes_to_update, ['kontur_product_fk'])
+    print('Barcodes updated')
+    barcodes_internal = kontur_barcode.objects.all()
+    for barcode in barcodes_internal:
+        if barcode.barcode not in barcodes_external:
+            print('Deleting barcode', barcode.barcode)
+            barcode.delete()
+    print('Barcodes deleted')
     return True
 def kontur_get_suppliers():
     headers = {
