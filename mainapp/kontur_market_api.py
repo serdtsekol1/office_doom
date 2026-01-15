@@ -259,8 +259,8 @@ def create_xlsx_file_for_printer_kontur():
         if product['sellPricePerUnit'] is None:
             print('Product', product['name'], 'has no valid sell price, skipping')
             continue
-        list_of_products_for_xlsx_file_xlsx.append([counter,product['code'],product['name'],product['sellPricePerUnit'],'0',contents,shelf_life,code_to_add])
-        list_of_products_for_xlsx_file_xlsx.append([counter,product['code'],product['name'],product['sellPricePerUnit'],'1',contents,shelf_life,'1' + code_to_add.zfill(4)])
+        list_of_products_for_xlsx_file_xlsx.append([counter,product['code'],product['name'],'0',product['sellPricePerUnit'],contents,shelf_life,code_to_add])
+        list_of_products_for_xlsx_file_xlsx.append([10000 + counter,product['code'],product['name'],'1',product['sellPricePerUnit'],contents,shelf_life,'1' + code_to_add.zfill(4)])
         counter = counter + 1
     data = [['1','2','3','4','5','6','7','8']]
     for item in list_of_products_for_xlsx_file_xlsx:
