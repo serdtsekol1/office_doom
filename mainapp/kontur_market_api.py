@@ -168,7 +168,7 @@ def kontur_update_invoice(invoice_id):
 
 def kontur_get_invoices(date_from='', date_to='',scan=False):
     if scan == True:
-        days = 2
+        days = 1
     else:
         days = 10
     if date_from == '':

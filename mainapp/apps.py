@@ -24,14 +24,14 @@ def periodicTask():
     while True:
         try:
             kontur_update_products()
-            if counter % 24 == 0:
+            if counter % 60 == 0:
                 kontur_get_suppliers()
                 kontur_get_invoices()
             else:
                 kontur_get_invoices(scan=True)
             kontur_market_send_products(shop_id)
             counter = counter + 1
-            time.sleep(300)
+            time.sleep(60)
         except:
             pass
 
