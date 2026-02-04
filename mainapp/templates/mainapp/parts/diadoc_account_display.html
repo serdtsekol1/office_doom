@@ -1,0 +1,22 @@
+
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        ID Диадока:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_diadoc_id" style="width: 100%" id="diadoc_id" data-diadoc_account_id="{% if diadoc_account %}{{ diadoc_account.id }}{% endif %}"
+               value="{% if diadoc_account and diadoc_account.diadoc_id %}{{ diadoc_account.diadoc_id }}{% endif %}"
+               placeholder=""
+               {% if diadoc_account and diadoc_account.diadoc_id %}readonly{% endif %}>
+    </div>
+</div>
+<div class="d-flex justify-content-start align-items-center">
+    <div style="flex-basis: 300px">
+        Название аккаунта Диадок:
+    </div>
+    <div style="flex-basis: 200px">
+        <input class="js_diadoc_account_name" style="width: 100%" id="diadoc_account_name" data-diadoc_account_id="{% if diadoc_account %}{{ diadoc_account.id }}{% endif %}"
+               value="{% if diadoc_account and diadoc_account.diadoc_account_name %}{{ diadoc_account.diadoc_account_name }}{% endif %}"
+               placeholder="">
+    </div>
+</div>

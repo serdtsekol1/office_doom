@@ -1,11 +1,11 @@
 from django.urls import path
-from mainapp.views import dreamkas_invoices, generate_xlsx_file_for_printer_kontur, get_index_page, get_invoice_timers, invoice_kontur, invoices_kontur,  old_documents_to_new_documents, product_codes_for_massaK, search_invoices, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
-    update_diadoc_invoices, create_document_from_diadoc, dreamkas_invoice, update_item_group, dreamkas_suppliers, dreamkas_supplier, supplier_paymenttime_update, gmail_messages, update_gmail_messages, \
+from mainapp.views import dreamkas_invoices, generate_xlsx_file_for_printer_kontur, get_index_page, get_invoice_timers, invoice_kontur, invoices_diadoc_v3, invoices_kontur,  old_documents_to_new_documents, product_codes_for_massaK, search_invoices, test, invoices, manual_invoice, good_groups, test_union, paid_update, Preset, good_groups_user_form, invoices_update, create_pricing_order, invoices_diadoc, \
+    update_diadoc_invoices, create_document_from_diadoc, dreamkas_invoice, update_diadoc_invoices_v3, update_item_group, dreamkas_suppliers, dreamkas_supplier, supplier_paymenttime_update, gmail_messages, update_gmail_messages, \
     inventory_checks, update_inventory_check, inventory_check, merge_inventory_check_items, create_documents_from_gmail_message, show_excel_document, hide_invoice, get_all_gmail_messages, test_page, \
     generate_goods_report, edit_existing_report, invoices_report, generate_invoice_report, update_all_products, generate_xlsx_file_for_printer, display_all_goods_for_printer, products, update_kontur_invoices_full, update_kontur_invoices_scan, \
     update_one_product, create_or_change_printer_code_for_product, change_printer_file_location, delete_all_suppliers, update_all_suppliers, set_store_id, update_stores_and_devices, \
     find_invoice_duplicates, delete_broken_suppliers, show_duplicate_diadoc_invoices, create_or_change_short_name_for_product, gmail_presets, update_gmail_preset, create_gmail_preset, stores, \
-    update_store, update_diadoc_invoices_v2, invoices_diadoc_v2, diadoc_presets, create_diadoc_preset, update_diadoc_preset, create_document_from_diadoc_v2, create_documents_from_gmail_message_v2, \
+    update_store, create_or_update_diadoc_account, diadoc_accounts, set_default_diadoc_account_view, update_diadoc_invoices_v2, invoices_diadoc_v2, diadoc_presets, create_diadoc_preset, update_diadoc_preset, create_document_from_diadoc_v2, create_1c_invoice_from_diadoc, create_documents_from_gmail_message_v2, \
     delete_all_stores, delete_gmail_messages, update_supplier_prefix, delete_diadoc_invoices, debug, debug_update_all_invoices, debug_concat_rests_2, concat_list_of_rests, \
     delete_duplicate_barcode_objects, delete_duplicate_invoice_objects, delete_duplicate_and_invalid_product_objects, debug_remove_deuplicate_diadoc_invoice_objects, debug_force_update_all_products, \
     invoice_delete_position, create_or_change_expiry_duration_for_product, create_or_change_contents_for_product, debug_remove_printer_code_from_long_not_accepted_products, debug_redo_all_codes_back, \
@@ -21,6 +21,9 @@ urlpatterns = [
     path('update_stores_and_devices/', update_stores_and_devices, name="update_stores_and_devices"),
     path('stores/', stores, name="stores"),
     path('update_store/', update_store, name="update_store"),
+    path('diadoc_accounts/', diadoc_accounts, name="diadoc_accounts"),
+    path('set_default_diadoc_account/', set_default_diadoc_account_view, name="set_default_diadoc_account"),
+    path('update_diadoc_account/', create_or_update_diadoc_account, name="update_diadoc_account"),
     path('delete_all_stores/', delete_all_stores, name="delete_all_stores"),
 
     path('manual_invoice/', manual_invoice, name="manual_invoice"),
@@ -88,12 +91,13 @@ urlpatterns = [
     path('generate_xlsx_file_for_printer_kontur/', generate_xlsx_file_for_printer_kontur, name="generate_xlsx_file_for_printer_kontur"),
     
     ## DIADOC
-    path('invoices_diadoc/', invoices_diadoc, name="invoices_diadoc"),
-    path('invoices_diadoc_v2/', invoices_diadoc_v2, name="invoices_diadoc"),
+    path('invoices_diadoc/', invoices_diadoc_v3, name="invoices_diadoc"),
     path('invoices_diadoc_update/', update_diadoc_invoices, name="invoices_diadoc_update"),
     path('invoices_diadoc_update_v2/', update_diadoc_invoices_v2, name="invoices_diadoc_update_v2"),
+    path('invoices_diadoc_update_v3/', update_diadoc_invoices_v3, name="invoices_diadoc_update_v3"),
     path('create_document_from_diadoc/', create_document_from_diadoc, name="create_document_from_diadoc"),
     path('create_document_from_diadoc_v2/', create_document_from_diadoc_v2, name="create_document_from_diadoc"),
+    path('create_1c_invoice_from_diadoc/', create_1c_invoice_from_diadoc, name="create_1c_invoice_from_diadoc"),
     path('show_duplicate_diadoc_invoices/', show_duplicate_diadoc_invoices, name="show_duplicate_diadoc_invoices"),
     path('diadoc_presets/', diadoc_presets, name="diadoc_presets"),
     path('create_diadoc_preset/', create_diadoc_preset, name="create_diadoc_preset"),

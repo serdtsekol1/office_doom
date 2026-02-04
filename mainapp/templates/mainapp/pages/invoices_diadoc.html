@@ -3,10 +3,19 @@
     {{ Status }}
     {% if status == "Error" %}
     {% endif %}
-    <button type="submit" class="btn btn-success refresh-diadoc-invoices">
-        <span style="display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
-        <span role="status">Обновить Накладные в Диадок</span>
-    </button>
+    <div class="d-flex align-items-center mb-3">
+        <div style="flex-basis: 12%">
+            <select name="diadoc_account_select" id="diadoc_account_select" class="form-control selectpiker select_preset" style="width:100%">
+                {% for acc in diadoc_accounts %}
+                    <option {% if diadoc_account and acc.id == diadoc_account.id %} selected="selected" {% endif %} value="{{ acc.id }}">{{ acc.diadoc_account_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success refresh-diadoc-invoices ml-2">
+            <span style="display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <span role="status">Обновить Накладные в Диадок</span>
+        </button>
+    </div>
     <ol class="list-group list-group-numbered">
         {% for invoice in invoices %}
 
@@ -17,24 +26,6 @@
                     <div style="font-size: 16px; font-weight: 500;" class="fw-bold"> {{ invoice.number }}</div>
                     <div class="text-dark">{{ invoice.kontragent }}</div>
                     <div class="text-dark">{{ invoice.issue_date|date:"d.m.Y" }}</div>
-
-                </div>
-                <div style="margin-right: 70px">
-                    {% for dreamkas_invoice in matching_invoices %}
-                        {% if dreamkas_invoice.number == invoice.number %}
-                            {% if dreamkas_invoice.supplier == invoice.kontragent %}
-                                {% if dreamkas_invoice.issue_date == invoice.issue_date %}
-                                    <a href="https://kabinet.dreamkas.ru/app/#!/documents/card~2F{{ dreamkas_invoice.id_dreem }}">
-                                        <button type="submit" class="btn btn-primary">
-                                            <span style="display: none" class="loading-spinner-stuff spinner-border spinner-border-sm" aria-hidden="true"></span>
-                                            <span role="status">Просмотреть накладную</span>
-                                        </button>
-                                    </a>
-                                {% endif %}
-                            {% endif %}
-                        {% endif %}
-                    {% endfor %}
-
 
                 </div>
                 <div class="">
@@ -50,12 +41,25 @@
         {% endfor %}
     </ol>
     <script>
+        $("#diadoc_account_select").on('change', (e) => {
+            let diadoc_account_id = $(e.currentTarget).find("option:selected").val();
+            $.ajax({
+                type: "POST",
+                url: '/set_default_diadoc_account/',
+                data: {'diadoc_account_id': diadoc_account_id, 'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                success: function (data) {
+                    if (data.success) {
+                        document.location.reload();
+                    }
+                }
+            });
+        });
         $('.create-dreamkas-invoice-from-diadoc-invoice').on('click', (e) => {
             e.currentTarget.querySelector('.loading-spinner-stuff').style.display = "inherit";
             $.ajax({
                 type: 'POST',
-                url: '/create_document_from_diadoc_v2/',
-                data: {'diadoc_document_id': e.currentTarget.dataset.diadoc_document_id},
+                url: '/create_1c_invoice_from_diadoc/',
+                data: {'diadoc_document_id': e.currentTarget.dataset.diadoc_document_id, 'csrfmiddlewaretoken': '{{ csrf_token }}'},
 
                 success: function (data) {
                     if (data.success) {
@@ -85,7 +89,7 @@
                 {#element.getElementById('update-diadoc-invoices').setAttribute(class, "btn btn-success refresh-diadoc-invoices spinner-border spinner-border-sm")#}
                 $.ajax({
                     type: "POST",
-                    url: '/invoices_diadoc_update_v2/',
+                    url: '/invoices_diadoc_update_v3/',
                     {#contentType: false,#}
                     {#processData: false,#}
                     {#async: false,#}

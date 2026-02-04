@@ -35,13 +35,14 @@ from simplegmail.query import construct_query
 
 import mainapp
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, CURRENT_IDS
+from mainapp import Diadoc_to_1c
 import mainapp.Dreamkas_documents
 from mainapp.Dreamkas_documents.fetch_document_object import fetch_document_object, fetch_document_object_bulk, fetch_documents_positions, fetch_latest_iterations_for_documents
 from mainapp.Reports.invoice_report import invoice_report, invoice_report_range_of_dates
 from mainapp.kontur_market_api import create_xlsx_file_for_printer_kontur, kontur_add_barcode_for_massa_k, kontur_get_invoice, kontur_get_invoices, kontur_market_get_products, kontur_market_get_shops, kontur_update_invoice, kontur_update_products
 from mainapp.logging_utils import log_item
 from mainapp.models import Invoice, GoodGroups, DiadocInvoice, Invoice_v3, Pricing_order_v3, Supplier, Gmail_Messages, Position, DailyInvoiceReport, Product, Barcodes, Prices, Store, Supplier_name, PresetGmail, DiadocPreset, \
-    Device, Document_internal, Position_invoice_v3, kontur_barcode, kontur_invoices, kontur_products
+    Device, Document_internal, Position_invoice_v3, kontur_barcode, kontur_invoices, kontur_products, Diadoc_account
 from . import dreamkas_documents, dreamkas_to_massaK, diadoc_to_dreamkas, gmail_to_dreamkas, dreamkas_Products
 from .diadoc_to_dreamkas import create_invoice_from_diadoc_document_v2
 from .dreamkas_documents import dreamkas_update_suppliers
@@ -1116,8 +1117,27 @@ def invoices_diadoc(request):
                 matching_invoices.append(dreamkas_invoice)
     page = Paginator(diadocinvoices, 300).page(request.GET.get("page", 1))
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
-
-
+@csrf_exempt
+def diadoc_accounts(request):
+    from mainapp.models import Diadoc_account
+    diadoc_accounts = Diadoc_account.objects.all()
+    if request.method == 'POST' and request.POST.get('diadoc_account_id'):
+        diadoc_account_id = request.POST.get('diadoc_account_id')
+        diadoc_account = Diadoc_account.objects.filter(id=diadoc_account_id).first()
+        diadoc_account_contents = render_to_string(
+            'mainapp/parts/diadoc_account_display.html',
+            {'diadoc_account': diadoc_account},
+            request
+        )
+        return JsonResponse({'diadoc_account_contents': diadoc_account_contents})
+    diadoc_account = diadoc_accounts.first()
+    return render(request, 'mainapp/pages/diadoc_accounts.html', {'diadoc_accounts': diadoc_accounts, 'diadoc_account': diadoc_account})
+@csrf_exempt
+def create_or_update_diadoc_account(request):
+    from mainapp.models import Diadoc_account
+    diadoc_account = Diadoc_account.objects.update_or_create(diadoc_id=request.POST.get('diadoc_id'),
+                                                             defaults={'diadoc_account_name': request.POST.get('diadoc_account_name')})
+    return JsonResponse({'success': True})
 @csrf_exempt
 def delete_diadoc_invoices(request):
     for diadoc_invoice_obj in DiadocInvoice.objects.all():
@@ -1149,7 +1169,36 @@ def invoices_diadoc_v2(request):
     print('7:', time.time() - start_time)
     return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'matching_invoices': matching_invoices})
 
+def set_default_diadoc_account(diadoc_account_id):
+    diadoc_account = Diadoc_account.objects.filter(default_selected=True)
+    for acc in diadoc_account:
+        acc.default_selected = False
+        acc.save()
+    diadoc_account = Diadoc_account.objects.filter(id=diadoc_account_id).first()
+    diadoc_account.default_selected = True
+    diadoc_account.save()
+    return True
 
+
+@csrf_exempt
+def set_default_diadoc_account_view(request):
+    if request.method == 'POST' and request.POST.get('diadoc_account_id'):
+        set_default_diadoc_account(request.POST.get('diadoc_account_id'))
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False})
+
+
+@csrf_exempt
+def invoices_diadoc_v3(request):
+    diadoc_accounts = Diadoc_account.objects.all()
+    diadoc_account = Diadoc_account.objects.filter(default_selected=True).first()
+    diadoc_account_id = diadoc_account.diadoc_id if diadoc_account else None
+    if diadoc_account_id:
+        diadocinvoices = DiadocInvoice.objects.filter(diadoc_account_id=diadoc_account_id).order_by("-issue_date")[:request.GET.get("page", 1) * 100]
+    else:
+        diadocinvoices = DiadocInvoice.objects.order_by("-issue_date")[:request.GET.get("page", 1) * 100]
+    page = Paginator(diadocinvoices, 100).page(request.GET.get("page", 1))
+    return render(request, 'mainapp/pages/invoices_diadoc.html', {'invoices': page, 'diadoc_accounts': diadoc_accounts, 'diadoc_account': diadoc_account})
 @csrf_exempt
 def diadoc_presets(request):
     if request.method == 'GET':
@@ -1252,6 +1301,24 @@ def update_diadoc_invoices_v2(request):
         except Exception as Ex:
             print(Ex)
             return JsonResponse({'success': False})
+@csrf_exempt
+def create_1c_invoice_from_diadoc(request):
+    if request.method == 'POST':
+        try:
+            Diadoc_to_1c.process_for_partner(request.POST.get('diadoc_document_id'))
+            return JsonResponse({'success': True, 'links': []})
+        except Exception as ex:
+            return JsonResponse({'success': False, 'errormsg': str(ex)})
+    return JsonResponse({'success': False, 'errormsg': 'POST required'})
+@csrf_exempt
+def update_diadoc_invoices_v3(request):
+    if request.method == 'POST':
+        diadoc_account_id = Diadoc_account.objects.filter(default_selected=True).first().diadoc_id
+        try:
+            Diadoc_to_1c.update_diadoc_invoices(diadoc_account_id)
+            return JsonResponse({'success': True})
+        except Exception as Ex:
+            print(Ex)
 
 
 @csrf_exempt

@@ -13,7 +13,10 @@ from datetime import timedelta, date
 
 from dremkas.settings import DREAM_KAS_API, DIADOC_API, current_store_id
 # from mainapp.gmail_invoices import get_gmail_messages
-
+class Diadoc_account(models.Model):
+    diadoc_id = models.CharField('diadoc_id', max_length=255, blank=True, default=None, null=True)
+    diadoc_account_name = models.CharField('diadoc_account_name', max_length=255, blank=True, default=None, null=True)
+    default_selected = models.BooleanField('default_selected', blank=True, default=False, null=True)
 class kontur_suppliers(models.Model):
     supplier_id = models.CharField('supplier_id', max_length=255, blank=True, default=None, null=True)
     supplier_name = models.CharField('supplier_name', max_length=255, blank=True, default=None, null=True)
@@ -947,7 +950,7 @@ class DiadocInvoice(models.Model):
     downloadlink = models.CharField('Статус', max_length=1000, blank=True, default=None, null=True)
     invoices = models.ManyToManyField(Invoice)
     store_id = models.CharField('store_id', max_length=255, blank=True, default=None, null=True)
-
+    diadoc_account_id = models.CharField('diadoc_account_id', max_length=255, blank=True, default=None, null=True)
     @staticmethod
     def update_diadoc_invoices():
         invoices = DIADOC_API.get_documents()

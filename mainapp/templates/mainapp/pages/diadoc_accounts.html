@@ -1,0 +1,58 @@
+{% extends "wrapper.html" %}
+{% load mainapp_tags %}
+{% block body %}
+    <div class="d-flex align-items-center">
+        <div style="flex-basis: 12%">
+            <select name="select" id="select" class="form-control selectpiker select_preset" style="width:100%">
+                {% for acc in diadoc_accounts %}
+                    <option {% if acc.id == diadoc_account.id %} selected="selected" {% endif %} value={{ acc.id }}>{{ acc.diadoc_account_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="button" id="add_diadoc_account_btn" class="btn btn-secondary ml-2">Добавить аккаунт</button>
+    </div>
+    <div class="d-flex">
+        <div id="diadoc_account_contents" style="flex-basis: 550px">
+            {% include 'mainapp/parts/diadoc_account_display.html' %}
+        </div>
+    </div>
+    <script>
+        $("#add_diadoc_account_btn").on('click', () => {
+            $.ajax({
+                type: "POST",
+                url: '/update_diadoc_account/',
+                data: {'diadoc_id': '', 'diadoc_account_name': ''},
+                success: function () {
+                    window.location.reload();
+                }
+            });
+        });
+        $(".select_preset").on('change', (e) => {
+            let diadoc_account_id = $(e.currentTarget).find("option:selected").val()
+            $.ajax({
+                type: "POST",
+                url: '/diadoc_accounts/',
+                data: {'diadoc_account_id': diadoc_account_id},
+                success: function (data) {
+                    $('#diadoc_account_contents').html(data.diadoc_account_contents);
+                }
+            });
+        })
+        document.addEventListener('input', (e) => {
+            const target = e.target;
+            if (target.classList && Array.from(target.classList).some((className) => className.startsWith('js_'))) {
+                const container = target.closest('#diadoc_account_contents');
+                const diadoc_account_id = target.dataset.diadoc_account_id;
+                const diadoc_id = container.querySelector('#diadoc_id').value;
+                const diadoc_account_name = container.querySelector('#diadoc_account_name').value;
+                $.ajax({
+                    type: "POST",
+                    url: '/update_diadoc_account/',
+                    data: {'diadoc_account_id': diadoc_account_id, 'diadoc_id': diadoc_id, 'diadoc_account_name': diadoc_account_name},
+                    success: function (data) {},
+                    error: function (error) {}
+                });
+            }
+        });
+    </script>
+{% endblock %}
