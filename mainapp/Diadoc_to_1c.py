@@ -125,6 +125,7 @@ def process_for_partner(diadoc_document_id):
             counter += 1
             if counter > 15:
                 return None
+            print('Trying to find picture', picture_path)
             box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
             if box is not None:
                 return box
