@@ -35,3 +35,6 @@ database.sql
 temp/
 session_data.pkl
 config.json
+button_1c.bmp
+.gitignore
+button_1c.png
