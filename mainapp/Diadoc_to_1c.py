@@ -156,6 +156,7 @@ def process_for_partner(diadoc_document_id):
     box2 = pyautogui.locateOnScreen("button_1c.bmp", confidence=0.8)
     print(box1)
     print(box2)
+    print('test 2')
     time.sleep(5)
     print(box1)
     print(box2)
