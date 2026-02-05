@@ -153,11 +153,11 @@ def process_for_partner(diadoc_document_id):
     os.startfile("C:\\Program Files (x86)\\1cv8\\common\\1cestart.exe")
     print('test')
     try:
-        box1 = pyautogui.locateOnScreen("button_1c.png")
+        box1 = pyautogui.locateOnScreen("button_1c.png", confidence=0.85)
     except Exception as e:
         print(e)
     try:
-        box2 = pyautogui.locateOnScreen("button_1c.bmp")
+        box2 = pyautogui.locateOnScreen("button_1c.bmp", confidence=0.85)
     except Exception as e:
         print(e)
     print(box1)
