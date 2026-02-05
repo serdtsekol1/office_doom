@@ -122,15 +122,20 @@ def process_for_partner(diadoc_document_id):
                 time.sleep(1)
             counter += 1
     def wait_until_picture_appears_and_click(picture_path):
-        box = wait_until_picture_appears(picture_path)
-        if box is None:
-            pyautogui.alert(text=f'Не найдено {picture_path}',button='OK',title='')
-            return False
-        x,y = pyautogui.center(box)
-        time.sleep(1)
-        pyautogui.click(x,y)
-        time.sleep(1)
-        return True
+        counter = 0
+        while True:
+            try:
+                box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
+                if box is not None:
+                    x,y = pyautogui.center(box)
+                    pyautogui.click(x,y)
+                    return True
+            except:
+                pass
+                time.sleep(1)
+                counter = counter + 1
+                if counter > 5:
+                    return False
     def wait_until_picture_appears(picture_path):
         counter = 0
         while True:
@@ -152,30 +157,6 @@ def process_for_partner(diadoc_document_id):
     import os
     os.startfile("C:\\Program Files (x86)\\1cv8\\common\\1cestart.exe")
     time.sleep(3)
-    print('test')
-    try:
-        box1 = pyautogui.locateOnScreen("button_1c.png", confidence=0.85)
-        print(box1)
-    except Exception as e:
-        print(e)
-    try:
-        box2 = pyautogui.locateOnScreen("button_1c.bmp", confidence=0.85)
-        print(box2)
-    except Exception as e:
-        print(e)
-    print('test 2')
-    time.sleep(5)
-    try:
-        box1 = pyautogui.locateOnScreen("button_1c.png")
-        print(box1)
-    except Exception as e:
-        print(e)
-    try:
-        box2 = pyautogui.locateOnScreen("button_1c.bmp")
-        print(box2)
-    except Exception as e:
-        print(e)
-    return
     step = "Включение 1С"
     if not wait_until_picture_appears_and_click("1c_prepr_1.png"):
         return False
