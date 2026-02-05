@@ -154,14 +154,14 @@ def process_for_partner(diadoc_document_id):
     print('test')
     try:
         box1 = pyautogui.locateOnScreen("button_1c.png", confidence=0.85)
+        print(box1)
     except Exception as e:
         print(e)
     try:
         box2 = pyautogui.locateOnScreen("button_1c.bmp", confidence=0.85)
+        print(box2)
     except Exception as e:
         print(e)
-    print(box1)
-    print(box2)
     print('test 2')
     time.sleep(5)
     try:
