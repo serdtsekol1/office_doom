@@ -159,21 +159,26 @@ def process_for_partner(diadoc_document_id):
     time.sleep(3)
     step = "Включение 1С"
     if not wait_until_picture_appears_and_click("1c_prepr_1.png"):
+        print(f'fail at {step}')
         return False
     step = "Включение 1С 2"
     if not wait_until_picture_appears_and_click("enter.png"):
+        print(f'fail at {step}')
         return False
     step = "Открыть Приходные накладные"
     if not wait_until_picture_appears_and_click("prihodnaya_nakladnaya.png"):
+        print(f'fail at {step}')
         return False
     step = "Добавить накладную"
     if not wait_until_picture_appears_and_click("add_button.png"):
+        print(f'fail at {step}')
         return False
     if not wait_if_there_is_a_picture("kontragent.png"):
+        print(f'fail at {step}')
         return False
-    for position in positions:
-        keyboard.send_keys(f"{position['position']['barcode']}{{ENTER}}")
-        break
+    # for position in positions:
+    #     keyboard.send_keys(f"{position['position']['barcode']}{{ENTER}}")
+    #     break
     
     # for position in positions:
     #     barcode = position['position']['barcode']
