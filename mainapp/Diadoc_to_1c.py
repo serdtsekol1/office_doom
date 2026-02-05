@@ -151,6 +151,7 @@ def process_for_partner(diadoc_document_id):
                 process.kill()
     import os
     os.startfile("C:\\Program Files (x86)\\1cv8\\common\\1cestart.exe")
+    print('test')
     box1 = pyautogui.locateOnScreen("button_1c.png", confidence=0.8)
     box2 = pyautogui.locateOnScreen("button_1c.bmp", confidence=0.8)
     print(box1)
