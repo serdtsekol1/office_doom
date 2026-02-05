@@ -158,7 +158,7 @@ def process_for_partner(diadoc_document_id):
     os.startfile("C:\\Program Files (x86)\\1cv8\\common\\1cestart.exe")
     time.sleep(3)
     step = "Включение 1С"
-    if not wait_until_picture_appears_and_click("1c_prepr_1.png"):
+    if not wait_until_picture_appears_and_click("1c_predpr_1.png"):
         print(f'fail at {step}')
         return False
     step = "Включение 1С 2"
