@@ -104,10 +104,12 @@ def add_product_to_invoice(barcode):
         
 
 def process_for_partner(diadoc_document_id):
+
     import time, datetime
     from mainapp.Diadoc_to_1c import extract_positions_for_invoice
-    positions,document_info = extract_positions_for_invoice(diadoc_document_id)
+    #positions,document_info = extract_positions_for_invoice(diadoc_document_id)
     from pywinauto import keyboard
+    
     def wait_if_there_is_a_picture(picture_path):
         counter = 0
         while True:
@@ -133,7 +135,7 @@ def process_for_partner(diadoc_document_id):
         counter = 0
         while True:
             counter += 1
-            if counter > 15:
+            if counter > 5:
                 return None
             print('Trying to find picture', picture_path)
             box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
@@ -149,6 +151,14 @@ def process_for_partner(diadoc_document_id):
                 process.kill()
     import os
     os.startfile("C:\\Program Files (x86)\\1cv8\\common\\1cestart.exe")
+    box1 = pyautogui.locateOnScreen("button_1c.png", confidence=0.8)
+    box2 = pyautogui.locateOnScreen("button_1c.bmp", confidence=0.8)
+    print(box1)
+    print(box2)
+    time.sleep(5)
+    print(box1)
+    print(box2)
+    return
     step = "Включение 1С"
     if not wait_until_picture_appears_and_click("1c_prepr_1.png"):
         return False
