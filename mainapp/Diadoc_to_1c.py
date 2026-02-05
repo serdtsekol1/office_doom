@@ -152,14 +152,26 @@ def process_for_partner(diadoc_document_id):
     import os
     os.startfile("C:\\Program Files (x86)\\1cv8\\common\\1cestart.exe")
     print('test')
-    box1 = pyautogui.locateOnScreen("button_1c.png", confidence=0.8)
-    box2 = pyautogui.locateOnScreen("button_1c.bmp", confidence=0.8)
+    try:
+        box1 = pyautogui.locateOnScreen("button_1c.png", confidence=0.8)
+    except Exception as e:
+        print(e)
+    try:
+        box2 = pyautogui.locateOnScreen("button_1c.bmp", confidence=0.8)
+    except Exception as e:
+        print(e)
     print(box1)
     print(box2)
     print('test 2')
     time.sleep(5)
-    print(box1)
-    print(box2)
+    try:
+        box1 = pyautogui.locateOnScreen("button_1c.png", confidence=0.8)
+    except Exception as e:
+        print(e)
+    try:
+        box2 = pyautogui.locateOnScreen("button_1c.bmp", confidence=0.8)
+    except Exception as e:
+        print(e)
     return
     step = "Включение 1С"
     if not wait_until_picture_appears_and_click("1c_prepr_1.png"):
