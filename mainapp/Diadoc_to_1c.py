@@ -111,14 +111,24 @@ def process_for_partner(diadoc_document_id):
     def wait_if_there_is_a_picture(picture_path):
         counter = 0
         while True:
-            counter += 1
-            if counter > 4:
+            if counter > 5:
                 return False
             box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
             if box is not None:
                 return True
             else:
                 time.sleep(1)
+            counter += 1
+    def wait_until_picture_appears_and_click(picture_path):
+        box = wait_until_picture_appears(picture_path)
+        if box is None:
+            pyautogui.alert(text=f'Не найдено {picture_path}',button='OK',title='')
+            return False
+        x,y = pyautogui.center(box)
+        time.sleep(1)
+        pyautogui.click(x,y)
+        time.sleep(1)
+        return True
     def wait_until_picture_appears(picture_path):
         counter = 0
         while True:
@@ -139,48 +149,23 @@ def process_for_partner(diadoc_document_id):
                 process.kill()
     import os
     os.startfile("C:\\Program Files (x86)\\1cv8\\common\\1cestart.exe")
-    box = wait_until_picture_appears("1c_prepr_1.png")
-    if box is None:
-        pyautogui.alert(text='Не найдена кнопка для запуска 1С',button='OK',title='')
-    x,y = pyautogui.center(box)
-    time.sleep(1)
-    pyautogui.click(x,y)
-    time.sleep(1)
-    box = wait_until_picture_appears("enter.png")
-    if box is None:
-        pyautogui.alert(text='Не найдена кнопка для запуска 1С (2)',button='OK',title='')
-    x,y = pyautogui.center(box)
-    time.sleep(1)
-    pyautogui.click(x,y)
-    time.sleep(1)
-    box = wait_until_picture_appears("prihodnaya_nakladnaya.png")
-    if box is None:
-        pyautogui.alert(text='Не найдена кнопка Приходная накладная',button='OK',title='')
-    x,y = pyautogui.center(box)
-    time.sleep(1)
-    pyautogui.click(x,y)
-    time.sleep(1)
-    box = wait_until_picture_appears("add_button.png")
-    if box is None:
-        pyautogui.alert(text='Не найдена кнопка Добавить накладную',button='OK',title='')
-    x,y = pyautogui.center(box)
-    time.sleep(2)
-    pyautogui.click(x,y)
-    time.sleep(1)
-    box = wait_until_picture_appears("kontragent.png")
-    if box is None:
-        pyautogui.alert(text='Не найдена строка Контрагент',button='OK',title='')
-    x,y = pyautogui.center(box)
-    time.sleep(2)
-    pyautogui.click(x,y)
-    time.sleep(1)
-    box = wait_until_picture_appears("add_position.png")
-    if box is None:
-        pyautogui.alert(text='Не найдена кнопка Добавить позицию',button='OK',title='')
-    x,y = pyautogui.center(box)
-    time.sleep(2)
-    pyautogui.click(x,y)
-    time.sleep(1)
+    step = "Включение 1С"
+    if not wait_until_picture_appears_and_click("1c_prepr_1.png"):
+        return False
+    step = "Включение 1С 2"
+    if not wait_until_picture_appears_and_click("enter.png"):
+        return False
+    step = "Открыть Приходные накладные"
+    if not wait_until_picture_appears_and_click("prihodnaya_nakladnaya.png"):
+        return False
+    step = "Добавить накладную"
+    if not wait_until_picture_appears_and_click("add_button.png"):
+        return False
+    if not wait_if_there_is_a_picture("kontragent.png"):
+        return False
+    for position in positions:
+        keyboard.send_keys(f"{position['position']['barcode']}{{ENTER}}")
+        break
     
     # for position in positions:
     #     barcode = position['position']['barcode']
