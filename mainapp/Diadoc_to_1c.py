@@ -59,6 +59,7 @@ def extract_positions_from_invoice(diadoc_document_id):
         with open(file_name, "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
             data_dict = xmltodict.parse(xmlfileObj.read())
     except Exception as e:
+        print('here')
         return False
     for position in data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов']:
         productcode = None
