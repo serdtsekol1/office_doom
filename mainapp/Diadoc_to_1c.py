@@ -145,8 +145,11 @@ def process_for_partner(diadoc_document_id):
             try:
                 box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
                 if box is not None:
+                    print('found at',x,y,'clicking')
                     x,y = pyautogui.center(box)
                     pyautogui.click(x,y)
+                    print('clicked')
+                    time.sleep(5)
                     return True
             except:
                 pass
