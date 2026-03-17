@@ -43,6 +43,8 @@ def extract_positions_for_invoice(diadoc_document_id):
     print('here3')
     positions, document_info = extract_positions_from_invoice(diadoc_document_id)
     print('here4')
+    print(positions)
+    print(document_info)
     if not positions:
         return False
     print('here5')
