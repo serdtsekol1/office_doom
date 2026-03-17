@@ -159,13 +159,13 @@ def process_for_partner(diadoc_document_id):
         counter = 0
         while True:
             counter += 1
-            if counter > 5:
+            if counter > 50:
                 return None
             box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
             if box is not None:
                 return box
             else:
-                time.sleep(1)
+                time.sleep(0.1)
     import psutil
     process_list = ['1cv8s.exe','1cv8.exe',]
     for process in psutil.process_iter():
@@ -185,6 +185,9 @@ def process_for_partner(diadoc_document_id):
         print(f'fail at {step}')
         return False
     step = "Открыть номенклатуру"
+    if not wait_until_picture_appears_and_click('mainapp\\1c\\nomencl_btn.png'):
+        print(f'fail at {step}')
+        return False
     keyboard.send_keys("*+Y")
     if not wait_until_picture_appears('mainapp\\1c\\nomencl.png'):
         print(f'fail at {step}')
