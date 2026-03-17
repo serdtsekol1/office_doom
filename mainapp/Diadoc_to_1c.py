@@ -192,15 +192,24 @@ def process_for_partner(diadoc_document_id):
     if not wait_until_picture_appears('mainapp\\1c\\nomencl.png'):
         print(f'fail at {step}')
         return False
+    step = "Товары"
     for position in positions:
+        print('here1')
         product_name = position['product']['name'] if position['product'] else position['position']['name']
+        print('here2')
         if position['product']:
+            print('here3')
             product_barcodes = [barcode['barcode'] for barcode in position['product']['barcodes']]
         else:
+            print('here4')
             product_barcodes = [position['position']['barcode']]
+        print('here5')
         keyboard.send_keys(position['position']['barcode'])
+        print('here6')
         time.sleep(0.5)
+        print('here7')
         if find_pic("product_not_found.png"):
+            print('here8')
             keyboard.send_keys("{{ENTER}}")
             time.sleep(0.25)
             keyboard.send_keys("{{INSERT}}")
