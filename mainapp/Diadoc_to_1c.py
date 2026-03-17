@@ -163,8 +163,9 @@ def process_for_partner(diadoc_document_id):
                     print('clicked')
                     time.sleep(5)
                     return True
-            except:
+            except Exception as e:
                 print('here but ex')
+                print(e)
                 pass
                 time.sleep(1)
                 counter = counter + 1
