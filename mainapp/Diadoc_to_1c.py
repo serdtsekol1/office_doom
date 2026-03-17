@@ -199,7 +199,11 @@ def process_for_partner(diadoc_document_id):
         print('here2')
         if position['product']:
             print('here3')
-            product_barcodes = [barcode['barcode'] for barcode in position['product']['barcodes']]
+            try:
+                product_barcodes = [barcode['barcode'] for barcode in position['product']['barcodes']]
+            except Exception as e:
+                print(e)
+                return False
         else:
             print('here4')
             product_barcodes = [position['position']['barcode']]
