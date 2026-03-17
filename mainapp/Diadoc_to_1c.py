@@ -150,9 +150,11 @@ def process_for_partner(diadoc_document_id):
                 time.sleep(1)
             counter += 1
     def wait_until_picture_appears_and_click(picture_path):
+        print('here1')
         counter = 0
         while True:
             try:
+                print('here2')
                 box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
                 if box is not None:
                     print('found at',x,y,'clicking')
@@ -162,6 +164,7 @@ def process_for_partner(diadoc_document_id):
                     time.sleep(5)
                     return True
             except:
+                print('here but ex')
                 pass
                 time.sleep(1)
                 counter = counter + 1
