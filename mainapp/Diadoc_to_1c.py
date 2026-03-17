@@ -34,29 +34,21 @@ def update_diadoc_invoices(diadoc_account_id):
     
 def extract_positions_for_invoice(diadoc_document_id):
     resulting_positions = []
-    print('here2')
     try:
         shop_ids = kontur_market_get_shops()        
         products = kontur_market_get_products(shop_ids[0]['id'])
     except:
         return False
-    print('here3')
     positions, document_info = extract_positions_from_invoice(diadoc_document_id)
-    print('here4')
-    print(positions)
-    print(document_info)
     if not positions:
         return False
-    print('here5')
     barcode_to_product = {}
     for product in products:
         for barcode in (product.get('barcodes') or []):
             barcode_to_product[barcode] = product
-    print('here6')
     for position in positions:
         matched_product = barcode_to_product.get(position['barcode'])
         resulting_positions.append({"position": position, "product": matched_product})
-    print('here7')
     return resulting_positions, document_info
 def extract_positions_from_invoice(diadoc_document_id):
     all_positions = []
@@ -67,7 +59,6 @@ def extract_positions_from_invoice(diadoc_document_id):
         with open(file_name, "r", encoding='windows-1251', errors='ignore') as xmlfileObj:
             data_dict = xmltodict.parse(xmlfileObj.read())
     except Exception as e:
-        print('here')
         return False
     for position in data_dict['Файл']['Документ']['ТаблСчФакт']['СведТов']:
         productcode = None
@@ -116,7 +107,6 @@ def process_for_partner(diadoc_document_id):
     import time, datetime
     from mainapp.Diadoc_to_1c import extract_positions_for_invoice
     positions,document_info = extract_positions_for_invoice(diadoc_document_id)
-    print('here1')
     def find_pic(picture_path):
         try:
             box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
@@ -150,26 +140,20 @@ def process_for_partner(diadoc_document_id):
                 time.sleep(1)
             counter += 1
     def wait_until_picture_appears_and_click(picture_path):
-        print('here1')
         counter = 0
         while True:
             try:
-                print('here2')
                 box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
                 if box is not None:
                     x,y = pyautogui.center(box)
-                    print('found at',x,y,'clicking')
                     pyautogui.click(x,y)
-                    print('clicked')
                     time.sleep(5)
                     return True
             except Exception as e:
-                print('here but ex')
-                print(e)
                 pass
-                time.sleep(1)
+                time.sleep(0.2)
                 counter = counter + 1
-                if counter > 5:
+                if counter > 25:
                     return False
     def wait_until_picture_appears(picture_path):
         counter = 0
@@ -177,7 +161,6 @@ def process_for_partner(diadoc_document_id):
             counter += 1
             if counter > 5:
                 return None
-            print('Trying to find picture', picture_path)
             box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
             if box is not None:
                 return box
@@ -202,8 +185,10 @@ def process_for_partner(diadoc_document_id):
         print(f'fail at {step}')
         return False
     step = "Открыть номенклатуру"
-    wait_until_picture_appears_and_click("mainapp\\1c\\nomencl.png")
     keyboard.send_keys("*+Y")
+    if not wait_until_picture_appears('mainapp\\1c\\nomencl.png'):
+        print(f'fail at {step}')
+        return False
     for position in positions:
         product_name = position['product']['name'] if position['product'] else position['position']['name']
         if position['product']:
