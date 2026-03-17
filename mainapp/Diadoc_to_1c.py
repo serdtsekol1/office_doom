@@ -202,7 +202,9 @@ def process_for_partner(diadoc_document_id):
             try:
                 product_barcodes = [barcode['barcode'] for barcode in position['product']['barcodes']]
             except Exception as e:
-                print(e)
+                import traceback
+                traceback.print_exc()
+                print(positions)
                 return False
         else:
             print('here4')
