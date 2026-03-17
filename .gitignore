@@ -38,3 +38,4 @@ config.json
 button_1c.bmp
 .gitignore
 button_1c.png
+chromedriver.exe
