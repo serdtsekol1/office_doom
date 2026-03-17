@@ -190,15 +190,15 @@ def process_for_partner(diadoc_document_id):
     os.startfile("C:\\Program Files (x86)\\1cv8\\common\\1cestart.exe")
     time.sleep(3)
     step = "Включение 1С"
-    if not wait_until_picture_appears_and_click("1c\\1c_predpr_1.png"):
+    if not wait_until_picture_appears_and_click("mainapp\\1c\\1c_predpr_1.png"):
         print(f'fail at {step}')
         return False
     step = "Включение 1С 2"
-    if not wait_until_picture_appears_and_click("1c\\enter.png"):
+    if not wait_until_picture_appears_and_click("mainapp\\1c\\enter.png"):
         print(f'fail at {step}')
         return False
     step = "Открыть номенклатуру"
-    wait_until_picture_appears_and_click("1c\\nomencl.png")
+    wait_until_picture_appears_and_click("mainapp\\1c\\nomencl.png")
     keyboard.send_keys("*+Y")
     for position in positions:
         product_name = position['product']['name'] if position['product'] else position['position']['name']
