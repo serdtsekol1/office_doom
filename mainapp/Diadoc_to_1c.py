@@ -95,7 +95,6 @@ def extract_positions_from_invoice(diadoc_document_id):
         "document_sender_inn": document_sender['@ИННЮЛ'],
     }
     return all_positions, document_info
-                                    
             
 def add_product_to_invoice(barcode):
     keyboard.send_keys(f"{barcode}{{ENTER}}")
@@ -104,18 +103,37 @@ def add_product_to_invoice(barcode):
         
 
 def process_for_partner(diadoc_document_id):
-
+    import pyperclip
     import time, datetime
     from mainapp.Diadoc_to_1c import extract_positions_for_invoice
-    #positions,document_info = extract_positions_for_invoice(diadoc_document_id)
-    from pywinauto import keyboard
-    
+    positions,document_info = extract_positions_for_invoice(diadoc_document_id)
+    def find_pic(picture_path):
+        try:
+            box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
+            return True
+        except:
+            return False
+    def wait_for_change_on_screen(times=25):
+        im1 = pyautogui.screenshot()
+        counter = 0
+        while True:
+            im2 = pyautogui.screenshot()
+            if im1 != im2:
+                return True
+            time.sleep(0.1)
+            counter = counter + 1
+            if counter > times:
+                return False
     def wait_if_there_is_a_picture(picture_path):
         counter = 0
         while True:
             if counter > 5:
                 return False
-            box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
+            box = None
+            try:
+                box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
+            except:
+                pass
             if box is not None:
                 return True
             else:
@@ -155,6 +173,7 @@ def process_for_partner(diadoc_document_id):
             if process.name() == process_name:
                 process.kill()
     import os
+    
     os.startfile("C:\\Program Files (x86)\\1cv8\\common\\1cestart.exe")
     time.sleep(3)
     step = "Включение 1С"
@@ -165,20 +184,32 @@ def process_for_partner(diadoc_document_id):
     if not wait_until_picture_appears_and_click("enter.png"):
         print(f'fail at {step}')
         return False
-    step = "Открыть Приходные накладные"
-    if not wait_until_picture_appears_and_click("prihodnaya_nakladnaya.png"):
-        print(f'fail at {step}')
-        return False
-    step = "Добавить накладную"
-    if not wait_until_picture_appears_and_click("add_button.png"):
-        print(f'fail at {step}')
-        return False
-    if not wait_if_there_is_a_picture("kontragent.png"):
-        print(f'fail at {step}')
-        return False
-    # for position in positions:
-    #     keyboard.send_keys(f"{position['position']['barcode']}{{ENTER}}")
-    #     break
+    step = "Открыть номенклатуру"
+    keyboard.send_keys("*+Y")
+    for position in positions:
+        product_name = position['product']['name'] if position['product'] else position['position']['name']
+        if position['product']:
+            product_barcodes = [barcode['barcode'] for barcode in position['product']['barcodes']]
+        else:
+            product_barcodes = [position['position']['barcode']]
+        keyboard.send_keys(position['position']['barcode'])
+        time.sleep(0.5)
+        if find_pic("product_not_found.png"):
+            keyboard.send_keys("{{ENTER}}")
+            time.sleep(0.25)
+            keyboard.send_keys("{{INSERT}}")
+            time.sleep(0.25)
+            keyboard.send_keys(product_name)
+            time.sleep(0.25)
+            keyboard.send_keys("{{ENTER}}")
+            time.sleep(2)
+            break
+        
+            
+        
+        
+        
+    
     
     # for position in positions:
     #     barcode = position['position']['barcode']
