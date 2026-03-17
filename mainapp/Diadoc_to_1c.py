@@ -34,21 +34,27 @@ def update_diadoc_invoices(diadoc_account_id):
     
 def extract_positions_for_invoice(diadoc_document_id):
     resulting_positions = []
+    print('here2')
     try:
         shop_ids = kontur_market_get_shops()        
         products = kontur_market_get_products(shop_ids[0]['id'])
     except:
         return False
+    print('here3')
     positions, document_info = extract_positions_from_invoice(diadoc_document_id)
+    print('here4')
     if not positions:
         return False
+    print('here5')
     barcode_to_product = {}
     for product in products:
         for barcode in (product.get('barcodes') or []):
             barcode_to_product[barcode] = product
+    print('here6')
     for position in positions:
         matched_product = barcode_to_product.get(position['barcode'])
         resulting_positions.append({"position": position, "product": matched_product})
+    print('here7')
     return resulting_positions, document_info
 def extract_positions_from_invoice(diadoc_document_id):
     all_positions = []
@@ -108,6 +114,7 @@ def process_for_partner(diadoc_document_id):
     import time, datetime
     from mainapp.Diadoc_to_1c import extract_positions_for_invoice
     positions,document_info = extract_positions_for_invoice(diadoc_document_id)
+    print('here1')
     def find_pic(picture_path):
         try:
             box = pyautogui.locateOnScreen(picture_path, confidence=0.8)
