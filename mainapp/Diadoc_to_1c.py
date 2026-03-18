@@ -193,26 +193,23 @@ def process_for_partner(diadoc_document_id):
         print(f'fail at {step}')
         return False
     step = "Товары"
+    pyautogui.click(850,450)
+    time.sleep(0.5)
     for position in positions:
-        print('here1')
         product_name = position['product']['name'] if position['product'] else position['position']['name']
-        print('here2')
         if position.get('product') is not None:
             product_barcodes = [barcode for barcode in position['product']['barcodes']]
         else:
             product_barcodes = [position['position']['barcode']]
-        print('here5')
         keyboard.send_keys(product_barcodes[0])
-        print('here6')
         time.sleep(0.5)
         if find_pic("product_not_found.png"):
-            print('here8')
             keyboard.send_keys("{{ENTER}}")
-            time.sleep(0.25)
+            time.sleep(0.5)
             keyboard.send_keys("{{INSERT}}")
-            time.sleep(0.25)
+            time.sleep(0.5)
             keyboard.send_keys(product_name)
-            time.sleep(0.25)
+            time.sleep(0.5)
             keyboard.send_keys("{{ENTER}}")
             time.sleep(2)
             break
