@@ -203,6 +203,7 @@ def process_for_partner(diadoc_document_id):
             product_barcodes = [position['position']['barcode']]
         keyboard.send_keys("{F7}")
         time.sleep(0.3)
+        print("entering barcode: ", product_barcodes[0])
         keyboard.send_keys(product_barcodes[0])
         time.sleep(0.1)
         keyboard.send_keys("{{ENTER}}")
