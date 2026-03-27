@@ -240,7 +240,8 @@ def process_for_partner(diadoc_document_id):
                     keyboard.send_keys("^v")
                     keyboard.send_keys("^{ENTER}")
                     time.sleep(0.5)
-                break
+                keyboard.send_keys("^{ENTER}")
+                time.sleep(2)
         except Exception as e:
             print(e)
             break
