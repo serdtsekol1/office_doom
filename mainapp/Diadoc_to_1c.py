@@ -209,7 +209,7 @@ def process_for_partner(diadoc_document_id):
         pyperclip.copy(str(product_barcodes[0]))
         keyboard.send_keys("^v")
         time.sleep(0.2)
-        keyboard.send_keys("{ENTER}")
+        keyboard.send_keys("^{ENTER}")
         time.sleep(1)
         try:
             if find_pic("mainapp\\1c\\product_not_found.png"):
@@ -220,7 +220,7 @@ def process_for_partner(diadoc_document_id):
                 pyperclip.copy(str(product_name))
                 keyboard.send_keys("^v")
                 time.sleep(0.5)
-                keyboard.send_keys("{^ENTER}")
+                keyboard.send_keys("{ENTER}")
                 time.sleep(2)
                 pyautogui.click(1343, 190)
                 time.sleep(0.1)
