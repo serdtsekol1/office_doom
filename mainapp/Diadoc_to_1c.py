@@ -97,7 +97,8 @@ def extract_positions_from_invoice(diadoc_document_id):
     return all_positions, document_info
             
 def add_product_to_invoice(barcode):
-    keyboard.send_keys(f"{barcode}{{ENTER}}")
+    keyboard.send_keys(str(barcode))
+    pyautogui.press("enter")
 
 
         
@@ -208,9 +209,9 @@ def process_for_partner(diadoc_document_id):
         pyperclip.copy(str(product_barcodes[0]))
         keyboard.send_keys("^v")
         time.sleep(0.2)
-        keyboard.send_keys("{{ENTER}}")
+        keyboard.send_keys("{ENTER}")
         time.sleep(0.2)
-        keyboard.send_keys("{{ENTER}}")
+        keyboard.send_keys("{ENTER}")
         time.sleep(0.2)
         keyboard.send_keys("{{ENTER}}")
         time.sleep(0.5)
