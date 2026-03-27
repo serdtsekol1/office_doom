@@ -66,7 +66,7 @@ def extract_positions_from_invoice(diadoc_document_id):
              if check_code(position['ДопСведТов']['@КодТов'][1:14]):
                  productcode = position['ДопСведТов']['@КодТов'][1:14]
         except:
-            continue
+            pass
         if productcode is None:
             try:
                 temp_productcode = position['ДопСведТов']['НомСредИдентТов']['НомУпак']
@@ -77,7 +77,7 @@ def extract_positions_from_invoice(diadoc_document_id):
                 if check_code(temp_productcode):
                     productcode = temp_productcode
             except:
-                continue
+                pass
         if productcode is not None:
             new_position = {
                 "barcode": productcode,
@@ -201,10 +201,13 @@ def process_for_partner(diadoc_document_id):
             product_barcodes = [barcode for barcode in position['product']['barcodes']]
         else:
             product_barcodes = [position['position']['barcode']]
+        keyboard.send_keys("{F7}")
+        time.sleep(0.3)
         keyboard.send_keys(product_barcodes[0])
+        time.sleep(0.1)
         keyboard.send_keys("{{ENTER}}")
         time.sleep(0.5)
-        if find_pic("product_not_found.png"):
+        if find_pic("mainapp\\1c\\product_not_found.png"):
             keyboard.send_keys("{{ENTER}}")
             time.sleep(0.5)
             keyboard.send_keys("{{INSERT}}")
