@@ -204,8 +204,9 @@ def process_for_partner(diadoc_document_id):
         keyboard.send_keys("{F7}")
         time.sleep(0.3)
         print("entering barcode: ", product_barcodes[0])
-        keyboard.send_keys(product_barcodes[0])
-        time.sleep(0.1)
+        for symbol in product_barcodes[0]:
+            keyboard.send_keys(symbol)
+            time.sleep(0.1)
         keyboard.send_keys("{{ENTER}}")
         time.sleep(0.5)
         if find_pic("mainapp\\1c\\product_not_found.png"):
