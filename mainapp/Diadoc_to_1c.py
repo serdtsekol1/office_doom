@@ -202,6 +202,7 @@ def process_for_partner(diadoc_document_id):
         else:
             product_barcodes = [position['position']['barcode']]
         keyboard.send_keys("{F7}")
+        pyautogui.click(850,450)
         time.sleep(0.5)
         print("entering barcode: ", product_barcodes[0])
         pyperclip.copy(str(product_barcodes[0]))
