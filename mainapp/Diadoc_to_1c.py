@@ -233,7 +233,7 @@ def process_for_partner(diadoc_document_id):
                 for barcode in product_barcodes:
                     pyperclip.copy(str(barcode))
                     keyboard.send_keys("{INSERT}")
-                    time.sleep(0.3)
+                    time.sleep(0.7)
                     pyautogui.click(619, 396)
                     keyboard.send_keys("^v")
                     keyboard.send_keys("^{ENTER}")
