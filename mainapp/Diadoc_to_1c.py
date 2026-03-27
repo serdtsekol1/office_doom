@@ -210,20 +210,20 @@ def process_for_partner(diadoc_document_id):
         keyboard.send_keys("^v")
         time.sleep(0.2)
         keyboard.send_keys("{ENTER}")
-        time.sleep(0.2)
-        keyboard.send_keys("{ENTER}")
-        time.sleep(0.2)
-        keyboard.send_keys("{{ENTER}}")
         time.sleep(0.5)
-        if find_pic("mainapp\\1c\\product_not_found.png"):
-            keyboard.send_keys("{{ENTER}}")
-            time.sleep(0.5)
-            keyboard.send_keys("{{INSERT}}")
-            time.sleep(0.5)
-            keyboard.send_keys(product_name)
-            time.sleep(0.5)
-            keyboard.send_keys("{{ENTER}}")
-            time.sleep(2)
+        try:
+            if find_pic("mainapp\\1c\\product_not_found.png"):
+                keyboard.send_keys("{ENTER}}")
+                time.sleep(0.5)
+                keyboard.send_keys("{INSERT}}")
+                time.sleep(0.5)
+                keyboard.send_keys(product_name)
+                time.sleep(0.5)
+                keyboard.send_keys("{ENTER}}")
+                time.sleep(2)
+                break
+        except Exception as e:
+            print(e)
             break
         
             
