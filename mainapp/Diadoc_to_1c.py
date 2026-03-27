@@ -222,6 +222,8 @@ def process_for_partner(diadoc_document_id):
                 time.sleep(0.5)
                 keyboard.send_keys("^{ENTER}")
                 time.sleep(2)
+                pyautogui.click(650, 240)
+                time.sleep(0.5)
                 pyautogui.click(1343, 190)
                 time.sleep(0.1)
                 pyautogui.click(1323, 315)
